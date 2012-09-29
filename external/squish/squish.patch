@@ -1,3 +1,4 @@
+Binary files libsquish/.DS_Store and libsquish-vpup/.DS_Store differ
 diff -rupN libsquish/GNUmakefile libsquish-vpup/GNUmakefile
 --- libsquish/GNUmakefile	2012-03-26 08:23:32.000000000 +0100
 +++ libsquish-vpup/GNUmakefile	2012-09-29 03:40:33.000000000 +0100
@@ -36,16 +37,7 @@ diff -rupN libsquish/GNUmakefile libsquish-vpup/GNUmakefile
  	ranlib $@
 diff -rupN libsquish/config libsquish-vpup/config
 --- libsquish/config	2012-03-24 11:35:01.000000000 +0000
-+++ libsquish-vpup/config	2012-09-29 04:06:42.000000000 +0100
-@@ -7,7 +7,7 @@ USE_SHARED ?= 1
- USE_ALTIVEC ?= 0
- 
- # define to 1 to use SSE2 instructions
--USE_SSE ?= 0
-+USE_SSE ?= 1
- 
- # default flags
- CXXFLAGS ?= -O2 -Wall
++++ libsquish-vpup/config	2012-09-30 00:16:20.000000000 +0100
 @@ -21,4 +21,4 @@ ifeq ($(USE_SSE),1)
  endif
  
