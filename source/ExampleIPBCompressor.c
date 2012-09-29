@@ -1,0 +1,1182 @@
+/*
+
+File: ExampleIPBCompressor.c, part of ExampleIPBCodec
+
+Abstract: Example Image Compressor using new IPB-capable component interface in QuickTime 7.
+
+Version: 1.0
+
+© Copyright 2005 Apple Computer, Inc. All rights reserved.
+
+IMPORTANT:  This Apple software is supplied to 
+you by Apple Computer, Inc. ("Apple") in 
+consideration of your agreement to the following 
+terms, and your use, installation, modification 
+or redistribution of this Apple software 
+constitutes acceptance of these terms.  If you do 
+not agree with these terms, please do not use, 
+install, modify or redistribute this Apple 
+software.
+
+In consideration of your agreement to abide by 
+the following terms, and subject to these terms, 
+Apple grants you a personal, non-exclusive 
+license, under Apple's copyrights in this 
+original Apple software (the "Apple Software"), 
+to use, reproduce, modify and redistribute the 
+Apple Software, with or without modifications, in 
+source and/or binary forms; provided that if you 
+redistribute the Apple Software in its entirety 
+and without modifications, you must retain this 
+notice and the following text and disclaimers in 
+all such redistributions of the Apple Software. 
+Neither the name, trademarks, service marks or 
+logos of Apple Computer, Inc. may be used to 
+endorse or promote products derived from the 
+Apple Software without specific prior written 
+permission from Apple.  Except as expressly 
+stated in this notice, no other rights or 
+licenses, express or implied, are granted by 
+Apple herein, including but not limited to any 
+patent rights that may be infringed by your 
+derivative works or by other works in which the 
+Apple Software may be incorporated.
+
+The Apple Software is provided by Apple on an "AS 
+IS" basis.  APPLE MAKES NO WARRANTIES, EXPRESS OR 
+IMPLIED, INCLUDING WITHOUT LIMITATION THE IMPLIED 
+WARRANTIES OF NON-INFRINGEMENT, MERCHANTABILITY 
+AND FITNESS FOR A PARTICULAR PURPOSE, REGARDING 
+THE APPLE SOFTWARE OR ITS USE AND OPERATION ALONE 
+OR IN COMBINATION WITH YOUR PRODUCTS.
+
+IN NO EVENT SHALL APPLE BE LIABLE FOR ANY 
+SPECIAL, INDIRECT, INCIDENTAL OR CONSEQUENTIAL 
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
+PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS 
+OF USE, DATA, OR PROFITS; OR BUSINESS 
+INTERRUPTION) ARISING IN ANY WAY OUT OF THE USE, 
+REPRODUCTION, MODIFICATION AND/OR DISTRIBUTION OF 
+THE APPLE SOFTWARE, HOWEVER CAUSED AND WHETHER 
+UNDER THEORY OF CONTRACT, TORT (INCLUDING 
+NEGLIGENCE), STRICT LIABILITY OR OTHERWISE, EVEN 
+IF APPLE HAS BEEN ADVISED OF THE POSSIBILITY OF 
+SUCH DAMAGE.
+
+*/
+
+
+#if __APPLE_CC__
+    #include <QuickTime/QuickTime.h>
+#else
+    #include <ConditionalMacros.h>
+    #include <Endian.h>
+    #include <ImageCodec.h>
+#endif
+
+#include "ExampleIPBCodecVersion.h"
+#include "VPUCodecUtility.h"
+#include "vpu.h"
+#include "Tasks.h"
+#include "Buffers.h"
+
+/*
+ Defines determining the method of DXT compression.
+ The GPU is very fast but produces low quality results
+ Squish produces nicer results but takes longer.
+ YCoCg encodes YCoCg in DXT and requires a shader to draw, and produces very high quality results
+ If both are available, the GPU is selected at the lowest quality setting.
+ */
+
+#define VPU_GPU_ENCODE
+#define VPU_SQUISH_ENCODE
+#define VPU_YCOCG_ENCODE
+
+#if !defined(VPU_GPU_ENCODE) && !defined(VPU_SQUISH_ENCODE) && !defined(VPU_YCOCG_ENCODE)
+    #error None of VPU_GPU_ENCODE, VPU_YCOCG_ENCODE nor VPU_SQUISH_ENCODE are defined. #define at least one.
+#endif
+
+#ifdef VPU_GPU_ENCODE
+    #include "VPUCodecGL.h"
+#endif
+
+#ifdef VPU_SQUISH_ENCODE
+    #include "squish-c.h"
+    #include <Accelerate/Accelerate.h>
+#endif
+
+#ifdef VPU_YCOCG_ENCODE
+    #include "YCoCg.h"
+    #include "YCoCgDXT.h"
+#endif
+
+#include <libkern/OSAtomic.h>
+
+#ifdef DEBUG
+    #include <mach/mach_time.h>
+#endif
+
+typedef struct VPUCodecCompressTask VPUCodecCompressTask;
+
+typedef struct {
+	ComponentInstance				self;
+	ComponentInstance				target;
+	
+	ICMCompressorSessionRef 		session; // NOTE: we do not need to retain or release this
+	ICMCompressionSessionOptionsRef	sessionOptions;
+	
+	long							width;
+	long							height;
+	size_t							maxEncodedDataSize;
+	int								nextDecodeNumber;
+	
+    int                             lastFrameOut;
+    VPUCodecBufferRef               *finishedFrames;
+    int                             finishedFramesCapacity;
+    OSSpinLock                      lock;
+    
+    Boolean                         endTasksPending;
+    VPUCodecBufferPoolRef           compressTaskPool;
+#ifdef VPU_GPU_ENCODE
+    Boolean                         useGL;
+    VPUCGLRef                       glEncoder;
+#endif
+#ifdef VPU_SQUISH_ENCODE
+    VPUCodecBufferPoolRef           permuteBufferPool;
+#endif
+#ifdef VPU_YCOCG_ENCODE
+    Boolean                         useYCoCg;
+#endif
+    VPUCodecBufferPoolRef           dxtBufferPool;
+    
+    Boolean                         allowAsyncCompletion;
+    unsigned int                    dxtFormat;
+#ifdef VPU_SQUISH_ENCODE
+    unsigned int                    dxtColorCompressor;
+#endif
+    unsigned int                    vpuCompressor;
+    unsigned int                    taskGroup;
+#ifdef DEBUG
+    unsigned int                    debugFrameCount;
+    uint64_t                        debugStartTime;
+    uint64_t                        debugLastFrameTime;
+    unsigned long                   debugTotalFrameBytes;
+    unsigned long                   debugLargestFrameBytes;
+    unsigned long                   debugSmallestFrameBytes;    
+#endif
+} ExampleIPBCompressorGlobalsRecord, *ExampleIPBCompressorGlobals;
+
+struct VPUCodecCompressTask
+{
+    ExampleIPBCompressorGlobals glob;
+    int frameNumber;
+    VPUCodecBufferRef           dxtBuffer;
+    ICMCompressorSourceFrameRef sourceFrame;
+    ICMMutableEncodedFrameRef encodedFrame;
+};
+
+// Setup required for ComponentDispatchHelper.c
+#define IMAGECODEC_BASENAME() 		ExampleIPB_C
+#define IMAGECODEC_GLOBALS() 		ExampleIPBCompressorGlobals storage
+
+#define CALLCOMPONENT_BASENAME()	IMAGECODEC_BASENAME()
+#define	CALLCOMPONENT_GLOBALS()		IMAGECODEC_GLOBALS()
+
+#define QT_BASENAME()				CALLCOMPONENT_BASENAME()
+#define QT_GLOBALS()				CALLCOMPONENT_GLOBALS()
+
+#define COMPONENT_UPP_PREFIX()		uppImageCodec
+#define COMPONENT_DISPATCH_FILE		"ExampleIPBCompressorDispatch.h"
+#define COMPONENT_SELECT_PREFIX()  	kImageCodec
+
+#if __APPLE_CC__
+#include <CoreServices/Components.k.h>
+#include <QuickTime/ImageCodec.k.h>
+#include <QuickTime/ImageCompression.k.h>
+#include <QuickTime/ComponentDispatchHelper.c>
+#else
+#include <Components.k.h>
+#include <ImageCodec.k.h>
+#include <ImageCompression.k.h>
+#include <ComponentDispatchHelper.c>
+#endif
+
+static void emitFrame(VPUCodecBufferRef buffer, bool onBackgroundThread);
+static void queueEncodedFrame(ExampleIPBCompressorGlobals glob, VPUCodecBufferRef frame);
+static VPUCodecBufferRef dequeueFrameNumber(ExampleIPBCompressorGlobals glob, int number);
+
+// Open a new instance of the component.
+// Allocate component instance storage ("globals") and associate it with the new instance so that other
+// calls will receive it.  
+// Note that "one-shot" component calls like CallComponentVersion and ImageCodecGetCodecInfo work by opening
+// an instance, making that call and then closing the instance, so you should avoid performing very expensive
+// initialization operations in a component's Open function.
+ComponentResult 
+ExampleIPB_COpen(
+  ExampleIPBCompressorGlobals glob, 
+  ComponentInstance self )
+{    
+	ComponentResult err = noErr;
+	    
+	glob = calloc( sizeof( ExampleIPBCompressorGlobalsRecord ), 1 );
+	if( ! glob ) {
+		err = memFullErr;
+		goto bail;
+	}
+	SetComponentInstanceStorage( self, (Handle)glob );
+
+	glob->self = self;
+	glob->target = self;
+	
+	glob->nextDecodeNumber = 1;
+    
+    glob->lock = OS_SPINLOCK_INIT;
+    glob->endTasksPending = false;
+#ifdef VPU_GPU_ENCODE
+    glob->useGL = false;
+    glob->glEncoder = NULL;
+#endif
+#ifdef VPU_YCOCG_ENCODE
+    glob->useYCoCg = false;
+#endif
+    
+bail:
+    debug_print_err(glob, err);
+	return err;
+}
+
+// Closes the instance of the component.
+// Release all storage associated with this instance.
+// Note that if a component's Open function fails with an error, its Close function will still be called.
+ComponentResult 
+ExampleIPB_CClose(
+  ExampleIPBCompressorGlobals glob, 
+  ComponentInstance self )
+{
+#pragma unused (self)
+	if( glob )
+    {
+#ifdef DEBUG
+        if (glob->debugFrameCount)
+        {
+            uint64_t elapsed = glob->debugLastFrameTime - glob->debugStartTime;
+            
+            // Convert to nanoseconds.
+            
+            AbsoluteTime absoluteElapsed = UInt64ToUnsignedWide(elapsed);
+            Nanoseconds elapsedNano = AbsoluteToNanoseconds(absoluteElapsed);
+            
+            // Convert to seconds
+            
+            double time = (double)UnsignedWideToUInt64(elapsedNano) / (double)NSEC_PER_SEC;
+
+            printf("VPU CODEC: %u frames over %.1f seconds %.1f FPS. ", glob->debugFrameCount, time, glob->debugFrameCount / time);
+            printf("Largest frame bytes: %lu smallest: %lu average: %lu ",
+                   glob->debugLargestFrameBytes, glob->debugSmallestFrameBytes, glob->debugTotalFrameBytes/ glob->debugFrameCount);
+            unsigned int uncompressed = glob->width * glob->height;
+            if (glob->dxtFormat == VPUTextureFormat_RGB_DXT1) uncompressed /= 2;
+            uncompressed += 4U; // VPU uses 4 extra bytes
+            printf("uncompressed: %d\n", uncompressed);
+        }
+#endif
+		ICMCompressionSessionOptionsRelease( glob->sessionOptions );
+		glob->sessionOptions = NULL;
+        
+        VPUCodecDestroyBufferPool(glob->dxtBufferPool);
+#ifdef VPU_GPU_ENCODE
+        if (glob->glEncoder)
+        {
+            VPUCGLDestroy(glob->glEncoder);
+        }
+#endif
+#ifdef VPU_SQUISH_ENCODE
+        VPUCodecDestroyBufferPool(glob->permuteBufferPool);
+#endif
+        VPUCodecDestroyBufferPool(glob->compressTaskPool);
+        
+        if (glob->endTasksPending)
+        {
+            VPUCodecWillStopTasks();
+        }
+        
+		free( glob );
+	}
+	
+	return noErr;
+}
+
+// Return the version of the component.
+// This does not need to correspond in any way to the human-readable version numbers found in
+// Get Info windows, etc.  
+// The principal use of component version numbers is to choose between multiple installed versions
+// of the same component: if the component manager sees two components with the same type, subtype
+// and manufacturer codes and either has the componentDoAutoVersion registration flag set,
+// it will deregister the one with the older version.  (If componentAutoVersionIncludeFlags is also 
+// set, it only does this when the component flags also match.)
+// By convention, the high short of the component version is the interface version, which Apple
+// bumps when there is a major change in the interface.  
+// We recommend bumping the low short of the component version every time you ship a release of a component.
+// The version number in the 'thng' resource should be the same as the number returned by this function.
+ComponentResult 
+ExampleIPB_CVersion(ExampleIPBCompressorGlobals glob)
+{
+#pragma unused (glob)
+	return kExampleIPBCompressorVersion;
+}
+
+// Sets the target for a component instance.
+// When a component wants to make a component call on itself, it should make that call on its target.
+// This allows other components to delegate to the component.
+// By default, a component's target is itself -- see the Open function.
+ComponentResult 
+ExampleIPB_CTarget(ExampleIPBCompressorGlobals glob, ComponentInstance target)
+{
+	glob->target = target;
+	return noErr;
+}
+
+// Your component receives the ImageCodecGetCodecInfo request whenever an application calls the Image Compression Manager's GetCodecInfo function.
+// Your component should return a formatted compressor information structure defining its capabilities.
+// Both compressors and decompressors may receive this request.
+ComponentResult 
+ExampleIPB_CGetCodecInfo(ExampleIPBCompressorGlobals glob, CodecInfo *info)
+{
+	OSErr err = noErr;
+
+	if (info == NULL)
+    {
+		err = paramErr;
+	}
+	else
+    {
+		CodecInfo **tempCodecInfo;
+
+		err = GetComponentResource((Component)glob->self, codecInfoResourceType, 256, (Handle *)&tempCodecInfo);
+		if (err == noErr)
+        {
+			*info = **tempCodecInfo;
+			DisposeHandle((Handle)tempCodecInfo);
+		}
+	}
+    
+    debug_print_err(glob, err);
+	return err;
+}
+
+// Return the maximum size of compressed data for the image in bytes.
+// Note that this function is only used when the ICM client is using a compression sequence
+// (created with CompressSequenceBegin, not ICMCompressionSessionCreate).
+// Nevertheless, it's important to implement it because such clients need to know how much 
+// memory to allocate for compressed frame buffers.
+ComponentResult 
+ExampleIPB_CGetMaxCompressionSize(
+	ExampleIPBCompressorGlobals glob, 
+	PixMapHandle        src,
+	const Rect *        srcRect,
+	short               depth,
+	CodecQ              quality,
+	long *              size)
+{
+#pragma unused (glob, src, quality)
+	
+	if( ! size )
+		return paramErr;
+    int dxtSize = roundUpToMultipleOf4(srcRect->right - srcRect->left) * roundUpToMultipleOf4(srcRect->bottom - srcRect->top);
+    if (depth == 24) dxtSize /= 2;
+	*size = VPUMaxEncodedLength(dxtSize);
+    
+	return noErr;
+}
+
+// Create a dictionary that describes the kinds of pixel buffers that we want to receive.
+// The important keys to add are kCVPixelBufferPixelFormatTypeKey, 
+// kCVPixelBufferWidthKey and kCVPixelBufferHeightKey.
+// Many compressors will also want to set kCVPixelBufferExtendedPixels, 
+// kCVPixelBufferBytesPerRowAlignmentKey, kCVImageBufferGammaLevelKey and kCVImageBufferYCbCrMatrixKey.
+static OSStatus 
+createPixelBufferAttributesDictionary( SInt32 width, SInt32 height,
+                                      const OSType *pixelFormatList, int pixelFormatCount,
+                                      CFMutableDictionaryRef *pixelBufferAttributesOut )
+{
+	OSStatus err = memFullErr;
+	int i;
+	CFMutableDictionaryRef pixelBufferAttributes = NULL;
+	CFNumberRef number = NULL;
+	CFMutableArrayRef array = NULL;
+//	SInt32 widthRoundedUp, heightRoundedUp, extendRight, extendBottom;
+	
+	pixelBufferAttributes = CFDictionaryCreateMutable( 
+                                                      NULL, 0, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks );
+	if( ! pixelBufferAttributes ) goto bail;
+	
+	array = CFArrayCreateMutable( NULL, 0, &kCFTypeArrayCallBacks );
+	if( ! array ) goto bail;
+	
+	// Under kCVPixelBufferPixelFormatTypeKey, add the list of source pixel formats.
+	// This can be a CFNumber or a CFArray of CFNumbers.
+	for( i = 0; i < pixelFormatCount; i++ ) {
+		number = CFNumberCreate( NULL, kCFNumberSInt32Type, &pixelFormatList[i] );
+		if( ! number ) goto bail;
+		
+		CFArrayAppendValue( array, number );
+		
+		CFRelease( number );
+		number = NULL;
+	}
+	
+	CFDictionaryAddValue( pixelBufferAttributes, kCVPixelBufferPixelFormatTypeKey, array );
+	CFRelease( array );
+	array = NULL;
+	
+	// Add kCVPixelBufferWidthKey and kCVPixelBufferHeightKey to specify the dimensions
+	// of the source pixel buffers.  Normally this is the same as the compression target dimensions.
+	addNumberToDictionary( pixelBufferAttributes, kCVPixelBufferWidthKey, width );
+	addNumberToDictionary( pixelBufferAttributes, kCVPixelBufferHeightKey, height );
+	
+	// If you want to require that extra scratch pixels be allocated on the edges of source pixel buffers,
+	// add the kCVPixelBufferExtendedPixels{Left,Top,Right,Bottom}Keys to indicate how much.
+	// Internally our encoded can only support multiples of 16x16 macroblocks; 
+	// we will round the compression dimensions up to a multiple of 16x16 and encode that size.  
+	// (Note that if your compressor needs to copy the pixels anyhow (eg, in order to convert to a different 
+	// format) you may get better performance if your copy routine does not require extended pixels.)
+//	widthRoundedUp = roundUpToMultipleOf16( width );
+//	heightRoundedUp = roundUpToMultipleOf16( height );
+//	extendRight = widthRoundedUp - width;
+//	extendBottom = heightRoundedUp - height;
+//	if( extendRight || extendBottom ) {
+//		addNumberToDictionary( pixelBufferAttributes, kCVPixelBufferExtendedPixelsRightKey, extendRight );
+//		addNumberToDictionary( pixelBufferAttributes, kCVPixelBufferExtendedPixelsBottomKey, extendBottom );
+//	}
+	
+	// Altivec code is most efficient reading data aligned at addresses that are multiples of 16.
+	// Pretending that we have some altivec code, we set kCVPixelBufferBytesPerRowAlignmentKey to
+	// ensure that each row of pixels starts at a 16-byte-aligned address.
+    // TODO: if we only require that we are 4-byte aligned then reduce this
+//	addNumberToDictionary( pixelBufferAttributes, kCVPixelBufferBytesPerRowAlignmentKey, 16 );
+	
+	// This codec accepts YCbCr input in the form of '2vuy' format pixel buffers.
+	// We recommend explicitly defining the gamma level and YCbCr matrix that should be used.
+    // TODO: fix gamma
+//	addDoubleToDictionary( pixelBufferAttributes, kCVImageBufferGammaLevelKey, 2.2 );
+//    addDoubleToDictionary( pixelBufferAttributes, kCVImageBufferGammaLevelKey, 1.0 );
+//	CFDictionaryAddValue( pixelBufferAttributes, kCVImageBufferYCbCrMatrixKey, kCVImageBufferYCbCrMatrix_ITU_R_601_4 );
+	
+	err = noErr;
+	*pixelBufferAttributesOut = pixelBufferAttributes;
+	pixelBufferAttributes = NULL;
+	
+bail:
+	if( pixelBufferAttributes ) CFRelease( pixelBufferAttributes );
+	if( number ) CFRelease( number );
+	if( array ) CFRelease( array );
+	return err;
+}
+
+// Prepare to compress frames.
+// Compressor should record session and sessionOptions for use in later calls.
+// Compressor may modify imageDescription at this point.
+// Compressor may create and return pixel buffer options.
+ComponentResult 
+ExampleIPB_CPrepareToCompressFrames(
+  ExampleIPBCompressorGlobals glob,
+  ICMCompressorSessionRef session,
+  ICMCompressionSessionOptionsRef sessionOptions,
+  ImageDescriptionHandle imageDescription,
+  void *reserved,
+  CFDictionaryRef *compressorPixelBufferAttributesOut)
+{
+#pragma unused (reserved)
+	ComponentResult err = noErr;
+	CFMutableDictionaryRef compressorPixelBufferAttributes = NULL;
+    // TODO: other pixel formats? non-A formats
+    OSType pixelFormatList[] = { k32BGRAPixelFormat, k32RGBAPixelFormat };
+	Fixed gammaLevel;
+//	SInt32 widthRoundedUp, heightRoundedUp;
+	
+	// Record the compressor session for later calls to the ICM.
+	// Note: this is NOT a CF type and should NOT be CFRetained or CFReleased.
+	glob->session = session;
+	
+	// Retain the session options for later use.
+	ICMCompressionSessionOptionsRelease( glob->sessionOptions );
+	glob->sessionOptions = sessionOptions;
+	ICMCompressionSessionOptionsRetain( glob->sessionOptions );
+	
+	// Modify imageDescription
+    
+    /*
+    Fixed gammaLevelIn = 0;
+    err = ICMImageDescriptionGetProperty(imageDescription, kQTPropertyClass_ImageDescription, kICMImageDescriptionPropertyID_GammaLevel, sizeof(gammaLevelIn), &gammaLevelIn, NULL);
+    if (err == noErr)
+    {
+        printf("input gamma level %f\n", FixedToFloat(gammaLevelIn));
+    }
+    else if (err == codecExtensionNotFoundErr)
+    {
+        printf("no input gamma level\n");
+    }
+     */
+	// We describe gamma as platform default, as that's what we get in
+    // and we don't convert it. More solid solutions welcome...
+    
+	gammaLevel = kQTUsePlatformDefaultGammaLevel;
+	err = ICMImageDescriptionSetProperty( imageDescription,
+			kQTPropertyClass_ImageDescription,
+			kICMImageDescriptionPropertyID_GammaLevel,
+			sizeof(gammaLevel),
+			&gammaLevel );
+	if( err )
+		goto bail;
+	
+	// Record the dimensions from the image description.
+	glob->width = (*imageDescription)->width;
+	glob->height = (*imageDescription)->height;
+    
+	// Create a pixel buffer attributes dictionary.
+	err = createPixelBufferAttributesDictionary( glob->width, glob->height, 
+			pixelFormatList, sizeof(pixelFormatList) / sizeof(OSType),
+			&compressorPixelBufferAttributes );
+	if( err ) 
+		goto bail;
+
+	*compressorPixelBufferAttributesOut = compressorPixelBufferAttributes;
+	compressorPixelBufferAttributes = NULL;
+	
+    UInt32 depth = 0;
+    err = ICMCompressionSessionOptionsGetProperty( glob->sessionOptions,
+                                                  kQTPropertyClass_ICMCompressionSessionOptions,
+                                                  kICMCompressionSessionOptionsPropertyID_Depth,
+                                                  sizeof( depth ),
+                                                  &depth,
+                                                  NULL );
+    if( err )
+        goto bail;
+    
+#ifdef DEBUG
+    printf("VPU CODEC: Starting encoding session ");
+    // Different apps send different things here...
+    if (depth == k32BGRAPixelFormat || depth == 32)
+    {
+        printf("32/DXT5 ");
+        glob->dxtFormat = VPUTextureFormat_RGBA_DXT5;
+    }
+    else // Treat any other depth as k24BGRPixelFormat
+    {
+        printf("24/DXT1 ");
+        glob->dxtFormat = VPUTextureFormat_RGB_DXT1;
+    }
+#else
+    switch (depth) {
+        case k32BGRAPixelFormat:
+        case 32:
+            glob->dxtFormat = VPUTextureFormat_RGBA_DXT5;
+            break;
+        default:
+            glob->dxtFormat = VPUTextureFormat_RGB_DXT1;
+            break;
+    }
+#endif
+    // Currently we ignore quality for the GL compressor and always ask for best
+    
+#if defined(VPU_SQUISH_ENCODE) || ( defined(VPU_YCOCG_ENCODE) &&  defined(VPU_GPU_ENCODE) )
+    // TODO: currently we use quality to enable the faster, lower quality compressor.
+    // This isn't a particularly clear way to highlite the speed gain it offers.
+    // http://developer.apple.com/library/mac/#technotes/tn2081/_index.html if we want to remove the Quality slider and provide custom UI
+    if(glob->sessionOptions) {
+        CodecQ quality;
+		err = ICMCompressionSessionOptionsGetProperty(glob->sessionOptions,
+                                                      kQTPropertyClass_ICMCompressionSessionOptions,
+                                                      kICMCompressionSessionOptionsPropertyID_Quality,
+                                                      sizeof( quality ),
+                                                      &quality,
+                                                      NULL );
+		if( err )
+			goto bail;
+        
+    #if defined(VPU_SQUISH_ENCODE)
+        #ifdef VPU_GPU_ENCODE
+        if (quality < codecLowQuality)
+        {
+            glob->useGL = true;
+        }
+        #endif // VPU_GPU_ENCODE
+        // Even if we plan to use the GL encoder, record the squish compressor in case we fall back
+        if (quality < codecNormalQuality)
+        {
+            glob->dxtColorCompressor = kColourRangeFit; // fast but worse
+        }
+        else if (quality <= codecHighQuality)
+        {
+            glob->dxtColorCompressor = kColourClusterFit;
+        }
+        #ifdef VPU_YCOCG_ENCODE
+        // If alpha can be discared and the quality is > max, use YCoCg DXT5
+        else if (quality > codecMaxQuality && glob->dxtFormat == VPUTextureFormat_RGB_DXT1)
+        {
+            glob->useYCoCg = true;
+            glob->dxtFormat = VPUTextureFormat_YCoCg_DXT5;
+        }
+        #endif // VPU_YCOCG_ENCODE
+        else
+        {
+            glob->dxtColorCompressor = kColourIterativeClusterFit;
+        }
+        // TODO: consider quality versus time cost of kColourIterativeClusterFit
+    #else // !defined(VPU_SQUISH_ENCODE)
+        if (quality < codecHighQuality || glob->dxtFormat == VPUTextureFormat_RGBA_DXT5)
+        {
+            glob->useGL = true;
+        }
+        else
+        {
+            glob->useYCoCg = true;
+            glob->dxtFormat = VPUTextureFormat_YCoCg_DXT5;
+        }
+    #endif // defined(VPU_SQUISH_ENCODE)
+        
+		if( err )
+			goto bail;
+        
+	}
+    else
+    {
+        glob->dxtColorCompressor = kColourClusterFit;
+    }
+#elif defined(VPU_GPU_ENCODE)
+    glob->useGL = true;
+#else
+    glob->useYCoCg = true;
+    glob->dxtFormat = VPUTextureFormat_YCoCg_DXT5;
+#endif
+    
+    // If we're allowed to, we output frames on a background thread
+    err = ICMCompressionSessionOptionsGetProperty(glob->sessionOptions,
+                                                  kQTPropertyClass_ICMCompressionSessionOptions,
+                                                  kICMCompressionSessionOptionsPropertyID_AllowAsyncCompletion,
+                                                  sizeof( Boolean ),
+                                                  &glob->allowAsyncCompletion,
+                                                  NULL );
+    
+	// Work out the upper bound on encoded frame data size -- we'll allocate buffers of this size.
+    long wantedDXTSize = roundUpToMultipleOf4(glob->width) * roundUpToMultipleOf4(glob->height);
+    if (glob->dxtFormat == VPUTextureFormat_RGB_DXT1) wantedDXTSize /= 2;
+    
+    if (VPUCodecGetBufferPoolBufferSize(glob->dxtBufferPool) != wantedDXTSize)
+    {
+        VPUCodecDestroyBufferPool(glob->dxtBufferPool);
+        glob->dxtBufferPool = VPUCodecCreateBufferPool(wantedDXTSize);
+    }
+    if (glob->dxtBufferPool == NULL)
+    {
+        err = memFullErr;
+        goto bail;
+    }
+    
+    glob->maxEncodedDataSize = VPUMaxEncodedLength(wantedDXTSize);
+#ifdef VPU_GPU_ENCODE
+    if (glob->glEncoder == NULL && glob->useGL == true)
+    {
+        glob->glEncoder = VPUCGLCreateEncoder(glob->width, glob->height, glob->dxtFormat);
+        if (glob->glEncoder == NULL)
+        {
+            // Something went wrong, fall back (or forward) to squish
+            glob->useGL = false;
+        }
+    }
+#endif
+    
+#if defined(VPU_SQUISH_ENCODE) || defined(VPU_YCOCG_ENCODE)
+    #ifdef VPU_GPU_ENCODE
+    if (glob->useGL == false)
+    {
+    #endif
+        // TODO: if we end up needing this stage, pad to multiple of 16, then manually tile for squish to discard extra tiles
+    //    long wantedPermuteRowBytes = roundUpToMultipleOf16(glob->width * 4);
+        long wantedPermuteBufferSize = glob->width * 4 * glob->height;
+        if (VPUCodecGetBufferPoolBufferSize(glob->permuteBufferPool) != wantedPermuteBufferSize)
+        {
+            VPUCodecDestroyBufferPool(glob->permuteBufferPool);
+            glob->permuteBufferPool = VPUCodecCreateBufferPool(wantedPermuteBufferSize);
+        }
+        
+        if (glob->permuteBufferPool == NULL)
+        {
+            err = memFullErr;
+            goto bail;
+        }
+    #ifdef VPU_GPU_ENCODE
+    }
+    #endif
+#endif
+
+#ifdef DEBUG
+#ifdef VPU_GPU_ENCODE
+    if (glob->useGL == true)
+    {
+        printf("using OpenGL encoding");
+    }
+    else
+    {
+#endif // VPU_GPU_ENCODE
+#ifdef VPU_YCOCG_ENCODE
+        if (glob->useYCoCg == true)
+        {
+            printf("using YCoCg DXT encoding");
+        }
+        else
+        {
+#endif // VPU_YCOCG_ENCODE
+        printf("using Squish ");
+        switch (glob->dxtColorCompressor) {
+            case kColourRangeFit:
+                printf("kColourRangeFit for low-medium quality");
+                break;
+            case kColourClusterFit:
+                printf("kColourClusterFit for medium-high quality");
+                break;
+            case kColourIterativeClusterFit:
+                printf("kColourIterativeClusterFit for best quality");
+                break;
+            default:
+                printf("unexpected squish compressor setting");
+                break;
+        }
+#ifdef VPU_YCOCG_ENCODE
+        }
+#endif // VPU_YCOCG_ENCODE
+#ifdef VPU_GPU_ENCODE
+    }
+#endif // VPU_GPU_ENCODE
+#endif // DEBUG
+    
+    if (glob->compressTaskPool == NULL)
+    {
+        glob->compressTaskPool = VPUCodecCreateBufferPool(sizeof(VPUCodecCompressTask));
+    }
+    
+    if (glob->compressTaskPool == NULL)
+    {
+        err = memFullErr;
+        goto bail;
+    }
+    
+    // TODO: if we support multiple compressor types, we could expose this in the compression settings UI
+    glob->vpuCompressor = VPUCompressorSnappy;
+    
+#ifdef DEBUG
+    printf(" with snappy\n");
+#endif
+    VPUCodecWillStartTasks();
+    glob->endTasksPending = true;
+    
+    glob->taskGroup = VPUCodecNewTaskGroup();
+    
+    glob->finishedFrames = NULL;
+    glob->finishedFramesCapacity = 0;
+#ifdef DEBUG    
+    glob->debugStartTime = mach_absolute_time();
+#endif
+bail:
+	if( compressorPixelBufferAttributes ) CFRelease( compressorPixelBufferAttributes );
+    debug_print_err(glob, err);
+	return err;
+}
+
+static void Background_Encode(void *info)
+{
+#if defined(VPU_SQUISH_ENCODE) || defined(VPU_YCOCG_ENCODE)
+    VPUCodecBufferRef permuteBuffer = NULL;
+#endif
+    VPUCodecCompressTask *task = VPUCodecGetBufferBaseAddress((VPUCodecBufferRef)info);
+    ExampleIPBCompressorGlobals glob = task->glob;
+    
+    // TODO: Don't ignore errors here, feed them back to an API thread for reporting and to drop the frame
+    ///////// BEGIN QUICK AND DIRTY OUTPUT
+    ComponentResult err = noErr;
+    
+    ICMMutableEncodedFrameRef output = NULL;
+    
+    err = ICMEncodedFrameCreateMutable(glob->session, task->sourceFrame, glob->maxEncodedDataSize, &output);
+    if (err)
+        goto bail;
+    
+#ifdef VPU_YCOCG_ENCODE
+    if (glob->useYCoCg == true)
+    {
+        // TODO: for BGRA->YCoCg->YCoCgDXT do it in a single pass
+        
+        CVPixelBufferRef sourceBuffer = ICMCompressorSourceFrameGetPixelBuffer(task->sourceFrame);
+        OSType sourcePixelFormat = CVPixelBufferGetPixelFormatType(sourceBuffer);
+        
+        if( sourcePixelFormat != k32BGRAPixelFormat
+           && sourcePixelFormat != k32RGBAPixelFormat )
+        {
+            err = internalComponentErr;
+            goto bail;
+        }
+        
+        CVPixelBufferLockBaseAddress(sourceBuffer, 0);
+        unsigned int sourceBytesPerRow = CVPixelBufferGetBytesPerRow(sourceBuffer);
+        task->dxtBuffer = VPUCodecGetBuffer(glob->dxtBufferPool);
+        permuteBuffer = VPUCodecGetBuffer(glob->permuteBufferPool);
+        
+        if (sourcePixelFormat == k32BGRAPixelFormat)
+        {
+            ConvertBGR_ToCoCg_Y8888(CVPixelBufferGetBaseAddress(sourceBuffer),
+                                    VPUCodecGetBufferBaseAddress(permuteBuffer),
+                                    glob->width,
+                                    glob->height,
+                                    sourceBytesPerRow,
+                                    glob->width * 4);
+        }
+        else
+        {
+            ConvertRGB_ToCoCg_Y8888(CVPixelBufferGetBaseAddress(sourceBuffer),
+                                    VPUCodecGetBufferBaseAddress(permuteBuffer),
+                                    glob->width,
+                                    glob->height,
+                                    sourceBytesPerRow,
+                                    glob->width * 4);
+        }
+        CompressYCoCgDXT5(VPUCodecGetBufferBaseAddress(permuteBuffer),
+                          VPUCodecGetBufferBaseAddress(task->dxtBuffer),
+                          glob->width,
+                          glob->height,
+                          glob->width * 4);
+    }
+    else
+    {
+#endif
+#ifdef VPU_SQUISH_ENCODE
+    #ifdef VPU_GPU_ENCODE
+    if(glob->useGL == false)
+    {
+    #endif
+        CVPixelBufferRef sourceBuffer = ICMCompressorSourceFrameGetPixelBuffer(task->sourceFrame);
+        OSType sourcePixelFormat = CVPixelBufferGetPixelFormatType(sourceBuffer);
+        
+        if( sourcePixelFormat != k32BGRAPixelFormat
+           && sourcePixelFormat != k32RGBAPixelFormat )
+        {
+            err = internalComponentErr;
+            goto bail;
+        }
+        
+        CVPixelBufferLockBaseAddress(sourceBuffer, 0);
+        unsigned int sourceBytesPerRow = CVPixelBufferGetBytesPerRow(sourceBuffer);
+        task->dxtBuffer = VPUCodecGetBuffer(glob->dxtBufferPool);
+        
+            void *pixelsForSquish;
+            
+            if (sourcePixelFormat == k32BGRAPixelFormat)
+            {
+                // TODO: this won't actually work as we will then be lying to SquishCompressImage which doesn't have a notion of rowbytes
+                // (except for widths which happily are a multiple of 16)
+                vImage_Buffer src = {
+                    CVPixelBufferGetBaseAddress(sourceBuffer),
+                    glob->height,
+                    glob->width,
+                    sourceBytesPerRow
+                };
+                
+                permuteBuffer = VPUCodecGetBuffer(glob->permuteBufferPool);
+                vImage_Buffer dst = {
+                    VPUCodecGetBufferBaseAddress(permuteBuffer),
+                    glob->height,
+                    glob->width,
+                    glob->width * 4
+                };
+                // TODO: avoid this permute stage!
+                uint8_t permuteMap[] = {2, 1, 0, 3};
+                vImage_Error permuteError = vImagePermuteChannels_ARGB8888(&src, &dst, permuteMap, kvImageNoFlags);
+                
+                
+                if (permuteError != kvImageNoError)
+                {
+                    err = internalComponentErr;
+                    goto bail;
+                }
+                pixelsForSquish = dst.data;
+            }
+            else if (sourceBytesPerRow != glob->width * 4)
+            {
+                // Squish won't tolerate extra bytes at the ends of rows
+                // so we have to copy to a temporary buffer
+                // TODO: probably easy to modify squish to take a rowBytes argument
+                // or just compress beyond the edge of the image if the extra bytes can pretend to be whole pixels
+                permuteBuffer = VPUCodecGetBuffer(glob->permuteBufferPool);
+                pixelsForSquish = VPUCodecGetBufferBaseAddress(permuteBuffer);
+                const void *src = CVPixelBufferGetBaseAddress(sourceBuffer);
+                unsigned int rowLength = glob->width * 4;
+                unsigned int i;
+                for (i = 0; i < glob->height; i++) {
+                    memcpy(pixelsForSquish + (rowLength * i), src, rowLength);
+                }
+            }
+            else
+            {
+                pixelsForSquish = CVPixelBufferGetBaseAddress(sourceBuffer);
+            }
+            
+            // TODO: it may be faster to split the image into blocks ourself and do them in parallel
+            // TODO: we should probably check the pbuffer's w/h match our expected w/h
+            int squishFormat = glob->dxtFormat == VPUTextureFormat_RGB_DXT1 ? kDxt1 : kDxt5;
+            SquishCompressImage(pixelsForSquish, glob->width, glob->height, VPUCodecGetBufferBaseAddress(task->dxtBuffer), squishFormat | glob->dxtColorCompressor, NULL);
+        
+        CVPixelBufferUnlockBaseAddress(sourceBuffer, 0);
+        #ifdef VPU_GPU_ENCODE
+        }
+        #endif
+    #endif
+#ifdef VPU_YCOCG_ENCODE
+    }
+#endif
+    unsigned long actualEncodedDataSize = 0;
+    unsigned int vpuResult = VPUEncode(VPUCodecGetBufferBaseAddress(task->dxtBuffer),
+                                       VPUCodecGetBufferSize(task->dxtBuffer),
+                                       glob->dxtFormat,
+                                       glob->vpuCompressor,
+                                       ICMEncodedFrameGetDataPtr(output),
+                                       glob->maxEncodedDataSize,
+                                       &actualEncodedDataSize);
+    if (vpuResult != VPUResult_No_Error)
+    {
+        err = internalComponentErr;
+        goto bail;
+    }
+    
+    ICMEncodedFrameSetDataSize(output, actualEncodedDataSize);
+    
+    MediaSampleFlags mediaSampleFlags = 0;
+    
+    mediaSampleFlags |= mediaSampleDroppable;
+    mediaSampleFlags |= mediaSampleDoesNotDependOnOthers;
+	
+	err = ICMEncodedFrameSetMediaSampleFlags(output, mediaSampleFlags );
+	if( err )
+		goto bail;
+	
+	err = ICMEncodedFrameSetFrameType( output, kICMFrameType_I );
+	if (err)
+        goto bail;
+    
+	// Output the encoded frame.
+    task->encodedFrame = output;
+    output = NULL;
+    // TODO: we could detach the source frame's pixel buffer at this point
+    
+    if (glob->allowAsyncCompletion)
+    {
+        emitFrame((VPUCodecBufferRef)info, true);
+    }
+    else
+    {
+        queueEncodedFrame(glob, (VPUCodecBufferRef)info);
+    }
+    
+#ifdef DEBUG
+    // TODO: do this on the "main" thread to avoid the lock
+    OSSpinLockLock(&glob->lock);
+    glob->debugFrameCount++;
+    glob->debugLastFrameTime = mach_absolute_time();
+    glob->debugTotalFrameBytes += actualEncodedDataSize;
+    if (actualEncodedDataSize > glob->debugLargestFrameBytes) glob->debugLargestFrameBytes = actualEncodedDataSize;
+    if (actualEncodedDataSize < glob->debugSmallestFrameBytes || glob->debugSmallestFrameBytes == 0) glob->debugSmallestFrameBytes = actualEncodedDataSize;
+    OSSpinLockUnlock(&glob->lock);
+#endif
+    ///////// END QUICK AND DIRTY OUTPUT
+bail:
+    if (output) ICMEncodedFrameRelease( output );
+#if defined(VPU_SQUISH_ENCODE) || defined(VPU_YCOCG_ENCODE)
+    VPUCodecReturnBuffer(permuteBuffer);
+#endif
+    debug_print_err(glob, err);
+    // TODO: do something with err
+}
+
+// Presents the compressor with a frame to encode.
+// The compressor may encode the frame immediately or queue it for later encoding.
+// If the compressor queues the frame for later decode, it must retain it (by calling ICMCompressorSourceFrameRetain)
+// and release it when it is done with it (by calling ICMCompressorSourceFrameRelease).
+// Pixel buffers are guaranteed to conform to the pixel buffer options returned by ImageCodecPrepareToCompressFrames.
+ComponentResult 
+ExampleIPB_CEncodeFrame(
+  ExampleIPBCompressorGlobals glob,
+  ICMCompressorSourceFrameRef sourceFrame,
+  UInt32 flags )
+{
+#pragma unused (flags)
+	ComponentResult err = noErr;
+    
+    VPUCodecBufferRef buffer = VPUCodecGetBuffer(glob->compressTaskPool);
+    VPUCodecCompressTask *task = (VPUCodecCompressTask *)VPUCodecGetBufferBaseAddress(buffer);
+    task->sourceFrame = ICMCompressorSourceFrameRetain(sourceFrame);
+    task->glob = glob;
+    task->frameNumber = ICMCompressorSourceFrameGetDisplayNumber(sourceFrame); // TODO we could just call this whenever we need it and not store it
+    
+#ifdef VPU_GPU_ENCODE
+    if (glob->useGL)
+    {
+        CVPixelBufferRef sourceBuffer = ICMCompressorSourceFrameGetPixelBuffer(task->sourceFrame);
+        OSType sourcePixelFormat = CVPixelBufferGetPixelFormatType(sourceBuffer);
+        
+        if( sourcePixelFormat != k32BGRAPixelFormat )
+        {
+            err = internalComponentErr;
+            goto bail;
+        }
+        
+        task->dxtBuffer = VPUCodecGetBuffer(glob->dxtBufferPool);
+        
+        CVPixelBufferLockBaseAddress(sourceBuffer, 0);
+        
+        VPUCGLEncode(glob->glEncoder,
+                     CVPixelBufferGetBytesPerRow(sourceBuffer),
+                     VPUCGLPixelFormat_BGRA8,
+                     CVPixelBufferGetBaseAddress(sourceBuffer),
+                     VPUCodecGetBufferBaseAddress(task->dxtBuffer));
+        
+        CVPixelBufferUnlockBaseAddress(sourceBuffer, 0);
+    }
+    else
+    {
+        task->dxtBuffer = NULL;
+    }
+#else
+    task->dxtBuffer = NULL;
+#endif
+    VPUCodecTask(Background_Encode, glob->taskGroup, buffer);
+    
+    if (glob->allowAsyncCompletion == false)
+    {
+        do
+        {
+            buffer = dequeueFrameNumber(glob, glob->lastFrameOut + 1); // TODO: this function could just look up the next frame number from glob, ah well
+            emitFrame(buffer, false);
+        } while (buffer != NULL);
+    }
+    
+bail:
+    debug_print_err(glob, err);
+	return err;
+}
+
+// Directs the compressor to finish with a queued source frame, either emitting or dropping it.
+// This frame does not necessarily need to be the first or only source frame emitted or dropped
+// during this call, but the compressor must call either ICMCompressorSessionDropFrame or 
+// ICMCompressorSessionEmitEncodedFrame with this frame before returning.
+// The ICM will call this function to force frames to be encoded for the following reasons:
+//   - the maximum frame delay count or maximum frame delay time in the sessionOptions
+//     does not permit more frames to be queued
+//   - the client has called ICMCompressionSessionCompleteFrames.
+ComponentResult 
+ExampleIPB_CCompleteFrame( 
+  ExampleIPBCompressorGlobals glob,
+  ICMCompressorSourceFrameRef sourceFrame,
+  UInt32 flags )
+{
+#pragma unused (sourceFrame, flags)
+    VPUCodecWaitForTasksToComplete(glob->taskGroup); // TODO: this waits for all pending frames rather than the particular frame
+    VPUCodecBufferRef buffer;
+    
+    if (glob->allowAsyncCompletion == false)
+    {
+        do
+        {
+            buffer = dequeueFrameNumber(glob, glob->lastFrameOut + 1); // TODO: this function could just look up the next frame number from glob, ah well
+            
+            emitFrame(buffer, false);
+
+        } while (buffer != NULL);
+    }
+	return noErr;
+}
+
+static void emitFrame(VPUCodecBufferRef buffer, bool onBackgroundThread)
+{
+    if (buffer != NULL)
+    {
+        VPUCodecCompressTask *task = VPUCodecGetBufferBaseAddress(buffer);
+        if (onBackgroundThread)
+        {
+            OSSpinLockLock(&task->glob->lock);
+        }
+        task->glob->lastFrameOut = task->frameNumber;
+        if (onBackgroundThread)
+        {
+            OSSpinLockUnlock(&task->glob->lock);
+        }
+        ICMCompressorSessionEmitEncodedFrame(task->glob->session, task->encodedFrame, 1, &task->sourceFrame); // TODO: we could maybe emit multiple frames at once if we're able
+        ICMCompressorSourceFrameRelease(task->sourceFrame);
+        ICMEncodedFrameRelease(task->encodedFrame);
+        VPUCodecReturnBuffer(task->dxtBuffer);
+        VPUCodecReturnBuffer(buffer);
+    }
+}
+
+static void queueEncodedFrame(ExampleIPBCompressorGlobals glob, VPUCodecBufferRef frame)
+{
+    if (glob)
+    {
+        OSSpinLockLock(&glob->lock);
+        int i;
+        int insertIndex = -1; // -1 == not found
+        // Look for a free slot
+        for (i = 0; i < glob->finishedFramesCapacity; i++)
+        {
+            if (glob->finishedFrames[i] == NULL)
+            {
+                insertIndex = i;
+                break;
+            }
+        }
+        // If no slot available then grow finishedFrames by one
+        if (insertIndex == -1)
+        {
+            glob->finishedFramesCapacity++;
+            VPUCodecBufferRef *newFinishedFrames = malloc(sizeof(VPUCodecBufferRef) * glob->finishedFramesCapacity);
+            for (i = 0; i < glob->finishedFramesCapacity; i++) {
+                if (i < (glob->finishedFramesCapacity - 1) && glob->finishedFrames != NULL)
+                {
+                    newFinishedFrames[i] = glob->finishedFrames[i];
+                }
+                else
+                {
+                    newFinishedFrames[i] = NULL;
+                }
+            }
+            free(glob->finishedFrames);
+            glob->finishedFrames = newFinishedFrames;
+            insertIndex = glob->finishedFramesCapacity - 1;
+        }
+        glob->finishedFrames[insertIndex] = frame;
+        OSSpinLockUnlock(&glob->lock);
+    }
+}
+
+static VPUCodecBufferRef dequeueFrameNumber(ExampleIPBCompressorGlobals glob, int number)
+{
+    VPUCodecBufferRef found = NULL;
+    if (glob)
+    {
+        OSSpinLockLock(&glob->lock);
+        if (glob->finishedFrames != NULL)
+        {
+            int i;
+            for (i = 0; i < glob->finishedFramesCapacity; i++)
+            {
+                if (glob->finishedFrames[i] != NULL)
+                {
+                    VPUCodecCompressTask *task = (VPUCodecCompressTask *)VPUCodecGetBufferBaseAddress(glob->finishedFrames[i]);
+                    if (task->frameNumber == number)
+                    {
+                        found = glob->finishedFrames[i];
+                        glob->finishedFrames[i] = NULL;
+                    }
+                }
+            }
+        }
+        OSSpinLockUnlock(&glob->lock);
+    }
+    return found;
+}

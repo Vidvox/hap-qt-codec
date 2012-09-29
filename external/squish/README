@@ -1,0 +1,11 @@
+This directory contains source for squish and an Xcode project and script to build it.
+
+Squish is available from http://code.google.com/p/libsquish/
+
+This source was acquired at revision 44 thus:
+
+svn export -r 44 http://libsquish.googlecode.com/svn/trunk squish-source
+
+The only change to the source has been to remove the test and images directories.
+
+The script build-squish.sh is run from within Xcode to build a 32-bit version of the library suitable for use by the vpup codec.

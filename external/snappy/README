@@ -1,0 +1,11 @@
+This directory contains source for snappy and an Xcode project and script to build it.
+
+Snappy is available from http://code.google.com/p/snappy/
+
+This source was acquired as release 1.0.5 from
+
+http://code.google.com/p/snappy/downloads/detail?name=snappy-1.0.5.tar.gz
+
+The only change to the source has been to remove the testdata directory.
+
+The script build-snappy.sh is run from within Xcode to build a 32-bit version of the library suitable for use by the vpup codec.

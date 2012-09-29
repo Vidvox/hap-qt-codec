@@ -1,0 +1,413 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXFileReference section */
+		BD9464DA16175CEA009B26E6 /* README */ = {isa = PBXFileReference; lastKnownFileType = text; path = README; sourceTree = "<group>"; };
+		BDDAEB19161690F000FEC70D /* alpha.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = alpha.cpp; sourceTree = "<group>"; };
+		BDDAEB1A161690F000FEC70D /* alpha.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = alpha.h; sourceTree = "<group>"; };
+		BDDAEB1B161690F000FEC70D /* ChangeLog */ = {isa = PBXFileReference; lastKnownFileType = text; path = ChangeLog; sourceTree = "<group>"; };
+		BDDAEB1C161690F000FEC70D /* clusterfit.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = clusterfit.cpp; sourceTree = "<group>"; };
+		BDDAEB1D161690F000FEC70D /* clusterfit.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = clusterfit.h; sourceTree = "<group>"; };
+		BDDAEB1E161690F000FEC70D /* CMakeLists.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = CMakeLists.txt; sourceTree = "<group>"; };
+		BDDAEB1F161690F000FEC70D /* colourblock.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = colourblock.cpp; sourceTree = "<group>"; };
+		BDDAEB20161690F000FEC70D /* colourblock.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = colourblock.h; sourceTree = "<group>"; };
+		BDDAEB21161690F000FEC70D /* colourfit.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = colourfit.cpp; sourceTree = "<group>"; };
+		BDDAEB22161690F000FEC70D /* colourfit.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = colourfit.h; sourceTree = "<group>"; };
+		BDDAEB23161690F000FEC70D /* colourset.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = colourset.cpp; sourceTree = "<group>"; };
+		BDDAEB24161690F000FEC70D /* colourset.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = colourset.h; sourceTree = "<group>"; };
+		BDDAEB25161690F000FEC70D /* config */ = {isa = PBXFileReference; lastKnownFileType = text; path = config; sourceTree = "<group>"; };
+		BDDAEB26161690F000FEC70D /* config.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = config.h; sourceTree = "<group>"; };
+		BDDAEB27161690F000FEC70D /* Doxyfile */ = {isa = PBXFileReference; lastKnownFileType = text; path = Doxyfile; sourceTree = "<group>"; };
+		BDDAEB29161690F000FEC70D /* squishgen.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = squishgen.cpp; sourceTree = "<group>"; };
+		BDDAEB2A161690F000FEC70D /* squishpng.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = squishpng.cpp; sourceTree = "<group>"; };
+		BDDAEB2B161690F000FEC70D /* squishtest.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = squishtest.cpp; sourceTree = "<group>"; };
+		BDDAEB2C161690F000FEC70D /* GNUmakefile */ = {isa = PBXFileReference; lastKnownFileType = text; path = GNUmakefile; sourceTree = "<group>"; };
+		BDDAEB46161690F000FEC70D /* libSquish.pro */ = {isa = PBXFileReference; lastKnownFileType = text; path = libSquish.pro; sourceTree = "<group>"; };
+		BDDAEB47161690F000FEC70D /* maths.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = maths.cpp; sourceTree = "<group>"; };
+		BDDAEB48161690F000FEC70D /* maths.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = maths.h; sourceTree = "<group>"; };
+		BDDAEB49161690F000FEC70D /* rangefit.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = rangefit.cpp; sourceTree = "<group>"; };
+		BDDAEB4A161690F000FEC70D /* rangefit.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = rangefit.h; sourceTree = "<group>"; };
+		BDDAEB4B161690F000FEC70D /* README */ = {isa = PBXFileReference; lastKnownFileType = text; path = README; sourceTree = "<group>"; };
+		BDDAEB4C161690F000FEC70D /* simd.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = simd.h; sourceTree = "<group>"; };
+		BDDAEB4D161690F000FEC70D /* simd_float.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = simd_float.h; sourceTree = "<group>"; };
+		BDDAEB4E161690F000FEC70D /* simd_sse.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = simd_sse.h; sourceTree = "<group>"; };
+		BDDAEB4F161690F000FEC70D /* simd_ve.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = simd_ve.h; sourceTree = "<group>"; };
+		BDDAEB50161690F000FEC70D /* singlecolourfit.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = singlecolourfit.cpp; sourceTree = "<group>"; };
+		BDDAEB51161690F000FEC70D /* singlecolourfit.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = singlecolourfit.h; sourceTree = "<group>"; };
+		BDDAEB52161690F000FEC70D /* singlecolourlookup.inl */ = {isa = PBXFileReference; lastKnownFileType = text; path = singlecolourlookup.inl; sourceTree = "<group>"; };
+		BDDAEB53161690F000FEC70D /* sources.pro */ = {isa = PBXFileReference; lastKnownFileType = text; path = sources.pro; sourceTree = "<group>"; };
+		BDDAEB54161690F000FEC70D /* squish.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = squish.cpp; sourceTree = "<group>"; };
+		BDDAEB55161690F000FEC70D /* squish.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = squish.h; sourceTree = "<group>"; };
+		BDDAEB5A161690F000FEC70D /* squish.vcproj */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = squish.vcproj; sourceTree = "<group>"; };
+		BDDAEB5C161690F000FEC70D /* squishpng.vcproj */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = squishpng.vcproj; sourceTree = "<group>"; };
+		BDDAEB5E161690F000FEC70D /* squishtest.vcproj */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = squishtest.vcproj; sourceTree = "<group>"; };
+		BDDAEB61161690F000FEC70D /* squish.vcproj */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = squish.vcproj; sourceTree = "<group>"; };
+		BDDAEB62161690F000FEC70D /* squish.sln */ = {isa = PBXFileReference; lastKnownFileType = text; path = squish.sln; sourceTree = "<group>"; };
+		BDDAEB64161690F000FEC70D /* squishpng.vcproj */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = squishpng.vcproj; sourceTree = "<group>"; };
+		BDDAEB66161690F000FEC70D /* squishtest.vcproj */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = squishtest.vcproj; sourceTree = "<group>"; };
+		BDDAEB69161690F000FEC70D /* squish.vcproj */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = squish.vcproj; sourceTree = "<group>"; };
+		BDDAEB6A161690F000FEC70D /* squish.sln */ = {isa = PBXFileReference; lastKnownFileType = text; path = squish.sln; sourceTree = "<group>"; };
+		BDDAEB6C161690F000FEC70D /* squishpng.vcproj */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = squishpng.vcproj; sourceTree = "<group>"; };
+		BDDAEB6E161690F000FEC70D /* squishtest.vcproj */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = squishtest.vcproj; sourceTree = "<group>"; };
+		BDDAEB721616913900FEC70D /* build-squish.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = "build-squish.sh"; sourceTree = "<group>"; };
+		BDDAEB731616917E00FEC70D /* squish.patch */ = {isa = PBXFileReference; lastKnownFileType = text; path = squish.patch; sourceTree = "<group>"; };
+		BDE9DE1A16169E7D008DC368 /* squish.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = squish.h; sourceTree = "<group>"; };
+		BDF4CC5F1616941B0062DDC2 /* libsquish.0.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = libsquish.0.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		BDDAEABF16168C8600FEC70D = {
+			isa = PBXGroup;
+			children = (
+				BD9464DA16175CEA009B26E6 /* README */,
+				BDDAEB721616913900FEC70D /* build-squish.sh */,
+				BDDAEB731616917E00FEC70D /* squish.patch */,
+				BDDAEB18161690F000FEC70D /* squish-source */,
+				BDDAEACB16168C8600FEC70D /* Products */,
+				BDE9DE1816169E7D008DC368 /* Products (Headers) */,
+			);
+			sourceTree = "<group>";
+		};
+		BDDAEACB16168C8600FEC70D /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				BDF4CC5F1616941B0062DDC2 /* libsquish.0.dylib */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		BDDAEB18161690F000FEC70D /* squish-source */ = {
+			isa = PBXGroup;
+			children = (
+				BDDAEB19161690F000FEC70D /* alpha.cpp */,
+				BDDAEB1A161690F000FEC70D /* alpha.h */,
+				BDDAEB1B161690F000FEC70D /* ChangeLog */,
+				BDDAEB1C161690F000FEC70D /* clusterfit.cpp */,
+				BDDAEB1D161690F000FEC70D /* clusterfit.h */,
+				BDDAEB1E161690F000FEC70D /* CMakeLists.txt */,
+				BDDAEB1F161690F000FEC70D /* colourblock.cpp */,
+				BDDAEB20161690F000FEC70D /* colourblock.h */,
+				BDDAEB21161690F000FEC70D /* colourfit.cpp */,
+				BDDAEB22161690F000FEC70D /* colourfit.h */,
+				BDDAEB23161690F000FEC70D /* colourset.cpp */,
+				BDDAEB24161690F000FEC70D /* colourset.h */,
+				BDDAEB25161690F000FEC70D /* config */,
+				BDDAEB26161690F000FEC70D /* config.h */,
+				BDDAEB27161690F000FEC70D /* Doxyfile */,
+				BDDAEB28161690F000FEC70D /* extra */,
+				BDDAEB2C161690F000FEC70D /* GNUmakefile */,
+				BDDAEB46161690F000FEC70D /* libSquish.pro */,
+				BDDAEB47161690F000FEC70D /* maths.cpp */,
+				BDDAEB48161690F000FEC70D /* maths.h */,
+				BDDAEB49161690F000FEC70D /* rangefit.cpp */,
+				BDDAEB4A161690F000FEC70D /* rangefit.h */,
+				BDDAEB4B161690F000FEC70D /* README */,
+				BDDAEB4C161690F000FEC70D /* simd.h */,
+				BDDAEB4D161690F000FEC70D /* simd_float.h */,
+				BDDAEB4E161690F000FEC70D /* simd_sse.h */,
+				BDDAEB4F161690F000FEC70D /* simd_ve.h */,
+				BDDAEB50161690F000FEC70D /* singlecolourfit.cpp */,
+				BDDAEB51161690F000FEC70D /* singlecolourfit.h */,
+				BDDAEB52161690F000FEC70D /* singlecolourlookup.inl */,
+				BDDAEB53161690F000FEC70D /* sources.pro */,
+				BDDAEB54161690F000FEC70D /* squish.cpp */,
+				BDDAEB55161690F000FEC70D /* squish.h */,
+				BDDAEB58161690F000FEC70D /* vs7 */,
+				BDDAEB5F161690F000FEC70D /* vs8 */,
+				BDDAEB67161690F000FEC70D /* vs9 */,
+			);
+			path = "squish-source";
+			sourceTree = "<group>";
+		};
+		BDDAEB28161690F000FEC70D /* extra */ = {
+			isa = PBXGroup;
+			children = (
+				BDDAEB29161690F000FEC70D /* squishgen.cpp */,
+				BDDAEB2A161690F000FEC70D /* squishpng.cpp */,
+				BDDAEB2B161690F000FEC70D /* squishtest.cpp */,
+			);
+			path = extra;
+			sourceTree = "<group>";
+		};
+		BDDAEB58161690F000FEC70D /* vs7 */ = {
+			isa = PBXGroup;
+			children = (
+				BDDAEB59161690F000FEC70D /* squish */,
+				BDDAEB5B161690F000FEC70D /* squishpng */,
+				BDDAEB5D161690F000FEC70D /* squishtest */,
+			);
+			path = vs7;
+			sourceTree = "<group>";
+		};
+		BDDAEB59161690F000FEC70D /* squish */ = {
+			isa = PBXGroup;
+			children = (
+				BDDAEB5A161690F000FEC70D /* squish.vcproj */,
+			);
+			path = squish;
+			sourceTree = "<group>";
+		};
+		BDDAEB5B161690F000FEC70D /* squishpng */ = {
+			isa = PBXGroup;
+			children = (
+				BDDAEB5C161690F000FEC70D /* squishpng.vcproj */,
+			);
+			path = squishpng;
+			sourceTree = "<group>";
+		};
+		BDDAEB5D161690F000FEC70D /* squishtest */ = {
+			isa = PBXGroup;
+			children = (
+				BDDAEB5E161690F000FEC70D /* squishtest.vcproj */,
+			);
+			path = squishtest;
+			sourceTree = "<group>";
+		};
+		BDDAEB5F161690F000FEC70D /* vs8 */ = {
+			isa = PBXGroup;
+			children = (
+				BDDAEB60161690F000FEC70D /* squish */,
+				BDDAEB62161690F000FEC70D /* squish.sln */,
+				BDDAEB63161690F000FEC70D /* squishpng */,
+				BDDAEB65161690F000FEC70D /* squishtest */,
+			);
+			path = vs8;
+			sourceTree = "<group>";
+		};
+		BDDAEB60161690F000FEC70D /* squish */ = {
+			isa = PBXGroup;
+			children = (
+				BDDAEB61161690F000FEC70D /* squish.vcproj */,
+			);
+			path = squish;
+			sourceTree = "<group>";
+		};
+		BDDAEB63161690F000FEC70D /* squishpng */ = {
+			isa = PBXGroup;
+			children = (
+				BDDAEB64161690F000FEC70D /* squishpng.vcproj */,
+			);
+			path = squishpng;
+			sourceTree = "<group>";
+		};
+		BDDAEB65161690F000FEC70D /* squishtest */ = {
+			isa = PBXGroup;
+			children = (
+				BDDAEB66161690F000FEC70D /* squishtest.vcproj */,
+			);
+			path = squishtest;
+			sourceTree = "<group>";
+		};
+		BDDAEB67161690F000FEC70D /* vs9 */ = {
+			isa = PBXGroup;
+			children = (
+				BDDAEB68161690F000FEC70D /* squish */,
+				BDDAEB6A161690F000FEC70D /* squish.sln */,
+				BDDAEB6B161690F000FEC70D /* squishpng */,
+				BDDAEB6D161690F000FEC70D /* squishtest */,
+			);
+			path = vs9;
+			sourceTree = "<group>";
+		};
+		BDDAEB68161690F000FEC70D /* squish */ = {
+			isa = PBXGroup;
+			children = (
+				BDDAEB69161690F000FEC70D /* squish.vcproj */,
+			);
+			path = squish;
+			sourceTree = "<group>";
+		};
+		BDDAEB6B161690F000FEC70D /* squishpng */ = {
+			isa = PBXGroup;
+			children = (
+				BDDAEB6C161690F000FEC70D /* squishpng.vcproj */,
+			);
+			path = squishpng;
+			sourceTree = "<group>";
+		};
+		BDDAEB6D161690F000FEC70D /* squishtest */ = {
+			isa = PBXGroup;
+			children = (
+				BDDAEB6E161690F000FEC70D /* squishtest.vcproj */,
+			);
+			path = squishtest;
+			sourceTree = "<group>";
+		};
+		BDE9DE1816169E7D008DC368 /* Products (Headers) */ = {
+			isa = PBXGroup;
+			children = (
+				BDE9DE1A16169E7D008DC368 /* squish.h */,
+			);
+			name = "Products (Headers)";
+			path = include;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		BDF4CC5E1616941B0062DDC2 /* squish */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = BDF4CC601616941B0062DDC2 /* Build configuration list for PBXNativeTarget "squish" */;
+			buildPhases = (
+				BDF4CC63161694290062DDC2 /* ShellScript */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = squish;
+			productName = squish;
+			productReference = BDF4CC5F1616941B0062DDC2 /* libsquish.0.dylib */;
+			productType = "com.apple.product-type.library.dynamic";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		BDDAEAC116168C8600FEC70D /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0450;
+				ORGANIZATIONNAME = Vidvox;
+			};
+			buildConfigurationList = BDDAEAC416168C8600FEC70D /* Build configuration list for PBXProject "squish" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+			);
+			mainGroup = BDDAEABF16168C8600FEC70D;
+			productRefGroup = BDDAEACB16168C8600FEC70D /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				BDF4CC5E1616941B0062DDC2 /* squish */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		BDF4CC63161694290062DDC2 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"$(SRCROOT)/build-squish.sh",
+				"$(SRCROOT)/squish-source",
+				"$(SRCROOT)/squish.patch",
+			);
+			outputPaths = (
+				"$(BUILT_PRODUCTS_DIR)/libsquish.0.dylib",
+				"$(BUILT_PRODUCTS_DIR)/include/squish.h",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "/bin/sh build-squish.sh\n";
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		BDDAEACC16168C8600FEC70D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.6;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		BDDAEACD16168C8600FEC70D /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.6;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		BDF4CC611616941B0062DDC2 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				DYLIB_COMPATIBILITY_VERSION = 0;
+				DYLIB_CURRENT_VERSION = 0;
+				EXECUTABLE_PREFIX = lib;
+				PRODUCT_NAME = "$(TARGET_NAME).${DYLIB_CURRENT_VERSION}";
+			};
+			name = Debug;
+		};
+		BDF4CC621616941B0062DDC2 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				DYLIB_COMPATIBILITY_VERSION = 0;
+				DYLIB_CURRENT_VERSION = 0;
+				EXECUTABLE_PREFIX = lib;
+				PRODUCT_NAME = "$(TARGET_NAME).${DYLIB_CURRENT_VERSION}";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		BDDAEAC416168C8600FEC70D /* Build configuration list for PBXProject "squish" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BDDAEACC16168C8600FEC70D /* Debug */,
+				BDDAEACD16168C8600FEC70D /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		BDF4CC601616941B0062DDC2 /* Build configuration list for PBXNativeTarget "squish" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BDF4CC611616941B0062DDC2 /* Debug */,
+				BDF4CC621616941B0062DDC2 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = BDDAEAC116168C8600FEC70D /* Project object */;
+}

@@ -1,0 +1,598 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXAggregateTarget section */
+		BDFA89C21368320600F959A4 /* Build & Copy Codec */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = BDFA89C61368320600F959A4 /* Build configuration list for PBXAggregateTarget "Build & Copy Codec" */;
+			buildPhases = (
+				BDFA89CA1368321200F959A4 /* ShellScript */,
+			);
+			dependencies = (
+				BDFA89C91368320E00F959A4 /* PBXTargetDependency */,
+			);
+			name = "Build & Copy Codec";
+			productName = "Build & Copy";
+		};
+/* End PBXAggregateTarget section */
+
+/* Begin PBXBuildFile section */
+		2BBCFE9B08A92F20001CD3B3 /* ExampleIPBCodecUniversal.r in Rez */ = {isa = PBXBuildFile; fileRef = 2BBCFE9A08A92F20001CD3B3 /* ExampleIPBCodecUniversal.r */; };
+		8D01CCCA0486CAD60068D4B7 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 089C167DFE841241C02AAC07 /* InfoPlist.strings */; };
+		8D01CCCE0486CAD60068D4B7 /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 08EA7FFBFE8413EDC02AAC07 /* Carbon.framework */; };
+		BD833765136760EA0074367F /* squish-c.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BD833763136760EA0074367F /* squish-c.cpp */; };
+		BD9464B916171F43009B26E6 /* libsquish.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = BDE9DE0A16169D82008DC368 /* libsquish.0.dylib */; };
+		BD9464BA16171F5F009B26E6 /* libsquish.0.dylib in CopyFiles */ = {isa = PBXBuildFile; fileRef = BDE9DE0A16169D82008DC368 /* libsquish.0.dylib */; };
+		BD9464BB16171F64009B26E6 /* libsnappy.1.dylib in CopyFiles */ = {isa = PBXBuildFile; fileRef = BDDAEA971616108700FEC70D /* libsnappy.1.dylib */; };
+		BDDAEA8416160F7500FEC70D /* vpu.c in Sources */ = {isa = PBXBuildFile; fileRef = BDDAEA8216160F7500FEC70D /* vpu.c */; };
+		BDDAEA8D1616104E00FEC70D /* lzf_c.c in Sources */ = {isa = PBXBuildFile; fileRef = BDDAEA891616104E00FEC70D /* lzf_c.c */; };
+		BDDAEA8E1616104E00FEC70D /* lzf_d.c in Sources */ = {isa = PBXBuildFile; fileRef = BDDAEA8A1616104E00FEC70D /* lzf_d.c */; };
+		BDDAEAA81616115100FEC70D /* libsnappy.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = BDDAEA971616108700FEC70D /* libsnappy.1.dylib */; };
+		BDF1AF061376DD7C00C0F4D1 /* Buffers.c in Sources */ = {isa = PBXBuildFile; fileRef = BDF1AF041376DD7C00C0F4D1 /* Buffers.c */; };
+		BDF48B1A14377D0500E7EAB8 /* VPUCodecGL.c in Sources */ = {isa = PBXBuildFile; fileRef = BDF48B1914377D0500E7EAB8 /* VPUCodecGL.c */; };
+		BDF48B1D14377E0E00E7EAB8 /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BDF48B1C14377E0E00E7EAB8 /* OpenGL.framework */; };
+		BDFA8A341368E60100F959A4 /* Accelerate.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BDFA8A331368E60100F959A4 /* Accelerate.framework */; };
+		E2210D2B15CAE914009DD434 /* YCoCg.c in Sources */ = {isa = PBXBuildFile; fileRef = E2210D2715CAE914009DD434 /* YCoCg.c */; };
+		E2210D2C15CAE914009DD434 /* YCoCgDXT.c in Sources */ = {isa = PBXBuildFile; fileRef = E2210D2915CAE914009DD434 /* YCoCgDXT.c */; };
+		E2210D3B15CAF913009DD434 /* ImageMath.c in Sources */ = {isa = PBXBuildFile; fileRef = E2210D3915CAF913009DD434 /* ImageMath.c */; };
+		E28C1FAB143B598500F2CD73 /* VPUCodecUtility.c in Sources */ = {isa = PBXBuildFile; fileRef = E28C1FAA143B598500F2CD73 /* VPUCodecUtility.c */; };
+		E2C99CAA13789AC60077AC75 /* Tasks.c in Sources */ = {isa = PBXBuildFile; fileRef = E2C99CA813789AC60077AC75 /* Tasks.c */; };
+		E2F397A8156A9C0D0064D018 /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = E2F397A7156A9C0D0064D018 /* libz.dylib */; };
+		FBFA8C990829E75000560632 /* ExampleIPBCompressor.c in Sources */ = {isa = PBXBuildFile; fileRef = FBFA8C8C0829E75000560632 /* ExampleIPBCompressor.c */; };
+		FBFA8C9A0829E75000560632 /* ExampleIPBDecompressor.c in Sources */ = {isa = PBXBuildFile; fileRef = FBFA8C8E0829E75000560632 /* ExampleIPBDecompressor.c */; };
+		FBFA8DED0829E7CF00560632 /* CoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FBFA8DEA0829E7CF00560632 /* CoreServices.framework */; };
+		FBFA8DEE0829E7CF00560632 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FBFA8DEB0829E7CF00560632 /* QuartzCore.framework */; };
+		FBFA8DEF0829E7CF00560632 /* QuickTime.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FBFA8DEC0829E7CF00560632 /* QuickTime.framework */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		BDDAEA961616108700FEC70D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BDDAEA8F1616108600FEC70D /* snappy.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = E2F2B9CA1613B45A00DDB379;
+			remoteInfo = snappy;
+		};
+		BDDAEA981616109C00FEC70D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BDDAEA8F1616108600FEC70D /* snappy.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = E2F2B9C91613B45A00DDB379;
+			remoteInfo = snappy;
+		};
+		BDE9DE0916169D82008DC368 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BDCB248616169B9300633182 /* squish.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = BDF4CC5F1616941B0062DDC2;
+			remoteInfo = squish;
+		};
+		BDE9DE0B16169D89008DC368 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BDCB248616169B9300633182 /* squish.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = BDF4CC5E1616941B0062DDC2;
+			remoteInfo = squish;
+		};
+		BDFA89C81368320E00F959A4 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 089C1669FE841209C02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 8D01CCC60486CAD60068D4B7;
+			remoteInfo = VPUCodec;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		BD19243D1366E7A5003A9BDC /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				BD9464BB16171F64009B26E6 /* libsnappy.1.dylib in CopyFiles */,
+				BD9464BA16171F5F009B26E6 /* libsquish.0.dylib in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		089C167EFE841241C02AAC07 /* English */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = English; path = English.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		08EA7FFBFE8413EDC02AAC07 /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = /System/Library/Frameworks/Carbon.framework; sourceTree = "<absolute>"; };
+		2BBCFE9A08A92F20001CD3B3 /* ExampleIPBCodecUniversal.r */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.rez; path = ExampleIPBCodecUniversal.r; sourceTree = "<group>"; };
+		32BAE0B30371A71500C91783 /* VPUCodec_Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VPUCodec_Prefix.pch; sourceTree = "<group>"; };
+		8D01CCD10486CAD60068D4B7 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		8D01CCD20486CAD60068D4B7 /* VPUCodec.component */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = VPUCodec.component; sourceTree = BUILT_PRODUCTS_DIR; };
+		BD833763136760EA0074367F /* squish-c.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = "squish-c.cpp"; sourceTree = "<group>"; };
+		BD833764136760EA0074367F /* squish-c.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "squish-c.h"; sourceTree = "<group>"; };
+		BD94BB62143357530064D679 /* VPUCodecGL.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VPUCodecGL.h; sourceTree = "<group>"; };
+		BDCB248616169B9300633182 /* squish.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = squish.xcodeproj; path = external/squish/squish.xcodeproj; sourceTree = SOURCE_ROOT; };
+		BDDAEA8216160F7500FEC70D /* vpu.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = vpu.c; path = external/vpup/vpu.c; sourceTree = SOURCE_ROOT; };
+		BDDAEA8316160F7500FEC70D /* vpu.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = vpu.h; path = external/vpup/vpu.h; sourceTree = SOURCE_ROOT; };
+		BDDAEA891616104E00FEC70D /* lzf_c.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = lzf_c.c; path = external/lzf/lzf_c.c; sourceTree = SOURCE_ROOT; };
+		BDDAEA8A1616104E00FEC70D /* lzf_d.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = lzf_d.c; path = external/lzf/lzf_d.c; sourceTree = SOURCE_ROOT; };
+		BDDAEA8B1616104E00FEC70D /* lzf.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = lzf.h; path = external/lzf/lzf.h; sourceTree = SOURCE_ROOT; };
+		BDDAEA8C1616104E00FEC70D /* lzfP.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = lzfP.h; path = external/lzf/lzfP.h; sourceTree = SOURCE_ROOT; };
+		BDDAEA8F1616108600FEC70D /* snappy.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = snappy.xcodeproj; path = external/snappy/snappy.xcodeproj; sourceTree = SOURCE_ROOT; };
+		BDF1AF041376DD7C00C0F4D1 /* Buffers.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = Buffers.c; sourceTree = "<group>"; };
+		BDF1AF051376DD7C00C0F4D1 /* Buffers.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Buffers.h; sourceTree = "<group>"; };
+		BDF48B1914377D0500E7EAB8 /* VPUCodecGL.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = VPUCodecGL.c; sourceTree = "<group>"; };
+		BDF48B1C14377E0E00E7EAB8 /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = System/Library/Frameworks/OpenGL.framework; sourceTree = SDKROOT; };
+		BDFA8A331368E60100F959A4 /* Accelerate.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Accelerate.framework; path = System/Library/Frameworks/Accelerate.framework; sourceTree = SDKROOT; };
+		E2210D2715CAE914009DD434 /* YCoCg.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = YCoCg.c; sourceTree = "<group>"; };
+		E2210D2815CAE914009DD434 /* YCoCg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = YCoCg.h; sourceTree = "<group>"; };
+		E2210D2915CAE914009DD434 /* YCoCgDXT.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = YCoCgDXT.c; sourceTree = "<group>"; };
+		E2210D2A15CAE914009DD434 /* YCoCgDXT.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = YCoCgDXT.h; sourceTree = "<group>"; };
+		E2210D3915CAF913009DD434 /* ImageMath.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ImageMath.c; sourceTree = "<group>"; };
+		E2210D3A15CAF913009DD434 /* ImageMath.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ImageMath.h; sourceTree = "<group>"; };
+		E28C1FAA143B598500F2CD73 /* VPUCodecUtility.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = VPUCodecUtility.c; sourceTree = "<group>"; };
+		E2C99CA813789AC60077AC75 /* Tasks.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = Tasks.c; sourceTree = "<group>"; };
+		E2C99CA913789AC60077AC75 /* Tasks.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Tasks.h; sourceTree = "<group>"; };
+		E2F397A7156A9C0D0064D018 /* libz.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.dylib; path = usr/lib/libz.dylib; sourceTree = SDKROOT; };
+		E2F8FE91143B5A8F00683004 /* VPUCodecUtility.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VPUCodecUtility.h; sourceTree = "<group>"; };
+		FBFA8C8B0829E75000560632 /* ExampleIPBCodecVersion.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = ExampleIPBCodecVersion.h; sourceTree = "<group>"; };
+		FBFA8C8C0829E75000560632 /* ExampleIPBCompressor.c */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.c; path = ExampleIPBCompressor.c; sourceTree = "<group>"; };
+		FBFA8C8D0829E75000560632 /* ExampleIPBCompressorDispatch.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = ExampleIPBCompressorDispatch.h; sourceTree = "<group>"; };
+		FBFA8C8E0829E75000560632 /* ExampleIPBDecompressor.c */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.c; path = ExampleIPBDecompressor.c; sourceTree = "<group>"; };
+		FBFA8C8F0829E75000560632 /* ExampleIPBDecompressorDispatch.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = ExampleIPBDecompressorDispatch.h; sourceTree = "<group>"; };
+		FBFA8DEA0829E7CF00560632 /* CoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreServices.framework; path = /System/Library/Frameworks/CoreServices.framework; sourceTree = "<absolute>"; };
+		FBFA8DEB0829E7CF00560632 /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = /System/Library/Frameworks/QuartzCore.framework; sourceTree = "<absolute>"; };
+		FBFA8DEC0829E7CF00560632 /* QuickTime.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuickTime.framework; path = /System/Library/Frameworks/QuickTime.framework; sourceTree = "<absolute>"; };
+		FBFA8E620830F6D800560632 /* ReadMe-ExampleIPBCodec.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "ReadMe-ExampleIPBCodec.txt"; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		8D01CCCD0486CAD60068D4B7 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BDF48B1D14377E0E00E7EAB8 /* OpenGL.framework in Frameworks */,
+				BDFA8A341368E60100F959A4 /* Accelerate.framework in Frameworks */,
+				8D01CCCE0486CAD60068D4B7 /* Carbon.framework in Frameworks */,
+				FBFA8DED0829E7CF00560632 /* CoreServices.framework in Frameworks */,
+				FBFA8DEE0829E7CF00560632 /* QuartzCore.framework in Frameworks */,
+				FBFA8DEF0829E7CF00560632 /* QuickTime.framework in Frameworks */,
+				E2F397A8156A9C0D0064D018 /* libz.dylib in Frameworks */,
+				BD9464B916171F43009B26E6 /* libsquish.0.dylib in Frameworks */,
+				BDDAEAA81616115100FEC70D /* libsnappy.1.dylib in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		089C166AFE841209C02AAC07 /* ExampleIPBCodec */ = {
+			isa = PBXGroup;
+			children = (
+				08FB77ADFE841716C02AAC07 /* Source */,
+				089C167CFE841241C02AAC07 /* Resources */,
+				089C1671FE841209C02AAC07 /* External Frameworks and Libraries */,
+				19C28FB4FE9D528D11CA2CBB /* Products */,
+			);
+			name = ExampleIPBCodec;
+			sourceTree = "<group>";
+		};
+		089C1671FE841209C02AAC07 /* External Frameworks and Libraries */ = {
+			isa = PBXGroup;
+			children = (
+				BDF48B1C14377E0E00E7EAB8 /* OpenGL.framework */,
+				E2F397A7156A9C0D0064D018 /* libz.dylib */,
+				BDFA8A331368E60100F959A4 /* Accelerate.framework */,
+				FBFA8DEA0829E7CF00560632 /* CoreServices.framework */,
+				FBFA8DEB0829E7CF00560632 /* QuartzCore.framework */,
+				FBFA8DEC0829E7CF00560632 /* QuickTime.framework */,
+				08EA7FFBFE8413EDC02AAC07 /* Carbon.framework */,
+			);
+			name = "External Frameworks and Libraries";
+			sourceTree = "<group>";
+		};
+		089C167CFE841241C02AAC07 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				2BBCFE9A08A92F20001CD3B3 /* ExampleIPBCodecUniversal.r */,
+				8D01CCD10486CAD60068D4B7 /* Info.plist */,
+				089C167DFE841241C02AAC07 /* InfoPlist.strings */,
+			);
+			name = Resources;
+			path = source;
+			sourceTree = "<group>";
+		};
+		08FB77ADFE841716C02AAC07 /* Source */ = {
+			isa = PBXGroup;
+			children = (
+				E2210D1F15CAE8C5009DD434 /* YCoCg */,
+				BD833762136760CD0074367F /* squish */,
+				BD2FC7AF1372FB0B00099D34 /* vpu */,
+				FBFA8E620830F6D800560632 /* ReadMe-ExampleIPBCodec.txt */,
+				FBFA8C8B0829E75000560632 /* ExampleIPBCodecVersion.h */,
+				FBFA8C8C0829E75000560632 /* ExampleIPBCompressor.c */,
+				FBFA8C8D0829E75000560632 /* ExampleIPBCompressorDispatch.h */,
+				FBFA8C8E0829E75000560632 /* ExampleIPBDecompressor.c */,
+				FBFA8C8F0829E75000560632 /* ExampleIPBDecompressorDispatch.h */,
+				32BAE0B30371A71500C91783 /* VPUCodec_Prefix.pch */,
+				BDF1AF051376DD7C00C0F4D1 /* Buffers.h */,
+				BDF1AF041376DD7C00C0F4D1 /* Buffers.c */,
+				E2C99CA913789AC60077AC75 /* Tasks.h */,
+				E2C99CA813789AC60077AC75 /* Tasks.c */,
+				E2F8FE91143B5A8F00683004 /* VPUCodecUtility.h */,
+				E28C1FAA143B598500F2CD73 /* VPUCodecUtility.c */,
+				BD94BB62143357530064D679 /* VPUCodecGL.h */,
+				BDF48B1914377D0500E7EAB8 /* VPUCodecGL.c */,
+			);
+			name = Source;
+			path = source;
+			sourceTree = "<group>";
+		};
+		19C28FB4FE9D528D11CA2CBB /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				8D01CCD20486CAD60068D4B7 /* VPUCodec.component */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		BD2FC7AF1372FB0B00099D34 /* vpu */ = {
+			isa = PBXGroup;
+			children = (
+				BDDAEA8F1616108600FEC70D /* snappy.xcodeproj */,
+				BDDAEA851616100100FEC70D /* lzf */,
+				BDDAEA8316160F7500FEC70D /* vpu.h */,
+				BDDAEA8216160F7500FEC70D /* vpu.c */,
+			);
+			name = vpu;
+			path = ../vpu;
+			sourceTree = "<group>";
+		};
+		BD833762136760CD0074367F /* squish */ = {
+			isa = PBXGroup;
+			children = (
+				BDCB248616169B9300633182 /* squish.xcodeproj */,
+				BD833764136760EA0074367F /* squish-c.h */,
+				BD833763136760EA0074367F /* squish-c.cpp */,
+			);
+			name = squish;
+			sourceTree = "<group>";
+		};
+		BDDAEA851616100100FEC70D /* lzf */ = {
+			isa = PBXGroup;
+			children = (
+				BDDAEA8B1616104E00FEC70D /* lzf.h */,
+				BDDAEA8C1616104E00FEC70D /* lzfP.h */,
+				BDDAEA891616104E00FEC70D /* lzf_c.c */,
+				BDDAEA8A1616104E00FEC70D /* lzf_d.c */,
+			);
+			name = lzf;
+			sourceTree = "<group>";
+		};
+		BDDAEA901616108600FEC70D /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				BDDAEA971616108700FEC70D /* libsnappy.1.dylib */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		BDE9DE0616169D82008DC368 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				BDE9DE0A16169D82008DC368 /* libsquish.0.dylib */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		E2210D1F15CAE8C5009DD434 /* YCoCg */ = {
+			isa = PBXGroup;
+			children = (
+				E2210D2815CAE914009DD434 /* YCoCg.h */,
+				E2210D2715CAE914009DD434 /* YCoCg.c */,
+				E2210D2A15CAE914009DD434 /* YCoCgDXT.h */,
+				E2210D2915CAE914009DD434 /* YCoCgDXT.c */,
+				E2210D3A15CAF913009DD434 /* ImageMath.h */,
+				E2210D3915CAF913009DD434 /* ImageMath.c */,
+			);
+			name = YCoCg;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		8D01CCC60486CAD60068D4B7 /* VPUCodec */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 2BF1EBEB08A92C280070D853 /* Build configuration list for PBXNativeTarget "VPUCodec" */;
+			buildPhases = (
+				8D01CCC90486CAD60068D4B7 /* Resources */,
+				8D01CCCB0486CAD60068D4B7 /* Sources */,
+				8D01CCCD0486CAD60068D4B7 /* Frameworks */,
+				FBFA8DFA0829E7D800560632 /* Rez */,
+				BD19243D1366E7A5003A9BDC /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				BDE9DE0C16169D89008DC368 /* PBXTargetDependency */,
+				BDDAEA991616109C00FEC70D /* PBXTargetDependency */,
+			);
+			name = VPUCodec;
+			productInstallPath = "$(HOME)/Library/Bundles";
+			productName = ExampleIPBCodec;
+			productReference = 8D01CCD20486CAD60068D4B7 /* VPUCodec.component */;
+			productType = "com.apple.product-type.bundle";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		089C1669FE841209C02AAC07 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0450;
+			};
+			buildConfigurationList = 2BF1EBEF08A92C280070D853 /* Build configuration list for PBXProject "VPUCodec" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 1;
+			knownRegions = (
+				en,
+			);
+			mainGroup = 089C166AFE841209C02AAC07 /* ExampleIPBCodec */;
+			projectDirPath = "";
+			projectReferences = (
+				{
+					ProductGroup = BDDAEA901616108600FEC70D /* Products */;
+					ProjectRef = BDDAEA8F1616108600FEC70D /* snappy.xcodeproj */;
+				},
+				{
+					ProductGroup = BDE9DE0616169D82008DC368 /* Products */;
+					ProjectRef = BDCB248616169B9300633182 /* squish.xcodeproj */;
+				},
+			);
+			projectRoot = "";
+			targets = (
+				8D01CCC60486CAD60068D4B7 /* VPUCodec */,
+				BDFA89C21368320600F959A4 /* Build & Copy Codec */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXReferenceProxy section */
+		BDDAEA971616108700FEC70D /* libsnappy.1.dylib */ = {
+			isa = PBXReferenceProxy;
+			fileType = "compiled.mach-o.dylib";
+			path = libsnappy.1.dylib;
+			remoteRef = BDDAEA961616108700FEC70D /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		BDE9DE0A16169D82008DC368 /* libsquish.0.dylib */ = {
+			isa = PBXReferenceProxy;
+			fileType = "compiled.mach-o.dylib";
+			path = libsquish.0.dylib;
+			remoteRef = BDE9DE0916169D82008DC368 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+/* End PBXReferenceProxy section */
+
+/* Begin PBXResourcesBuildPhase section */
+		8D01CCC90486CAD60068D4B7 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				8D01CCCA0486CAD60068D4B7 /* InfoPlist.strings in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXRezBuildPhase section */
+		FBFA8DFA0829E7D800560632 /* Rez */ = {
+			isa = PBXRezBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				2BBCFE9B08A92F20001CD3B3 /* ExampleIPBCodecUniversal.r in Rez */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXRezBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		BDFA89CA1368321200F959A4 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# This shell script simply copies the built component to \"~/Library/QuickTime\" and overrides any previous version at that location\n\nmkdir -p \"$USER_LIBRARY_DIR/QuickTime\"\nrm -rf \"$USER_LIBRARY_DIR/QuickTime/VPUCodec.component\"\ncp -rf \"$BUILT_PRODUCTS_DIR/VPUCodec.component\" \"$USER_LIBRARY_DIR/QuickTime/\"\n";
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		8D01CCCB0486CAD60068D4B7 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FBFA8C990829E75000560632 /* ExampleIPBCompressor.c in Sources */,
+				FBFA8C9A0829E75000560632 /* ExampleIPBDecompressor.c in Sources */,
+				BD833765136760EA0074367F /* squish-c.cpp in Sources */,
+				BDF1AF061376DD7C00C0F4D1 /* Buffers.c in Sources */,
+				E2C99CAA13789AC60077AC75 /* Tasks.c in Sources */,
+				BDF48B1A14377D0500E7EAB8 /* VPUCodecGL.c in Sources */,
+				E28C1FAB143B598500F2CD73 /* VPUCodecUtility.c in Sources */,
+				E2210D2B15CAE914009DD434 /* YCoCg.c in Sources */,
+				E2210D2C15CAE914009DD434 /* YCoCgDXT.c in Sources */,
+				E2210D3B15CAF913009DD434 /* ImageMath.c in Sources */,
+				BDDAEA8416160F7500FEC70D /* vpu.c in Sources */,
+				BDDAEA8D1616104E00FEC70D /* lzf_c.c in Sources */,
+				BDDAEA8E1616104E00FEC70D /* lzf_d.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		BDDAEA991616109C00FEC70D /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = snappy;
+			targetProxy = BDDAEA981616109C00FEC70D /* PBXContainerItemProxy */;
+		};
+		BDE9DE0C16169D89008DC368 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = squish;
+			targetProxy = BDE9DE0B16169D89008DC368 /* PBXContainerItemProxy */;
+		};
+		BDFA89C91368320E00F959A4 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 8D01CCC60486CAD60068D4B7 /* VPUCodec */;
+			targetProxy = BDFA89C81368320E00F959A4 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin PBXVariantGroup section */
+		089C167DFE841241C02AAC07 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				089C167EFE841241C02AAC07 /* English */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		2B8BCBA408A92EED00C014B9 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = source/VPUCodec_Prefix.pch;
+				INFOPLIST_FILE = source/Info.plist;
+				INSTALL_PATH = "$(HOME)/Library/QuickTime";
+				LD_RUNPATH_SEARCH_PATHS = "@loader_path/../Frameworks";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SRCROOT)\"",
+				);
+				PRODUCT_NAME = VPUCodec;
+				WRAPPER_EXTENSION = component;
+			};
+			name = Debug;
+		};
+		2B8BCBA508A92EED00C014B9 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				COMBINE_HIDPI_IMAGES = YES;
+				DEAD_CODE_STRIPPING = YES;
+				GCC_ENABLE_CPP_EXCEPTIONS = NO;
+				GCC_ENABLE_CPP_RTTI = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = DEBUG;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_PARAMETER = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				INFOPLIST_FILE = source/Info.plist;
+				LIBRARY_SEARCH_PATHS_QUOTED_FOR_TARGET_3 = "";
+				MACOSX_DEPLOYMENT_TARGET = 10.6;
+				OTHER_REZFLAGS = "-d ppc_$(ppc) -d i386_$(i386)";
+				REZ_RESOURCE_MAP_READ_ONLY = YES;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		2BF1EBED08A92C280070D853 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = source/VPUCodec_Prefix.pch;
+				INFOPLIST_FILE = source/Info.plist;
+				INSTALL_PATH = "$(HOME)/Library/QuickTime";
+				LD_RUNPATH_SEARCH_PATHS = "@loader_path/../Frameworks";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SRCROOT)\"",
+				);
+				PRODUCT_NAME = VPUCodec;
+				WRAPPER_EXTENSION = component;
+			};
+			name = Release;
+		};
+		2BF1EBF108A92C280070D853 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				COMBINE_HIDPI_IMAGES = YES;
+				DEAD_CODE_STRIPPING = YES;
+				GCC_ENABLE_CPP_EXCEPTIONS = NO;
+				GCC_ENABLE_CPP_RTTI = NO;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_PARAMETER = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				INFOPLIST_FILE = source/Info.plist;
+				LIBRARY_SEARCH_PATHS_QUOTED_FOR_TARGET_3 = "";
+				MACOSX_DEPLOYMENT_TARGET = 10.6;
+				OTHER_REZFLAGS = "-d ppc_$(ppc) -d i386_$(i386)";
+				REZ_RESOURCE_MAP_READ_ONLY = YES;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		BDFA89C41368320600F959A4 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		BDFA89C51368320600F959A4 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		2BF1EBEB08A92C280070D853 /* Build configuration list for PBXNativeTarget "VPUCodec" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				2B8BCBA408A92EED00C014B9 /* Debug */,
+				2BF1EBED08A92C280070D853 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		2BF1EBEF08A92C280070D853 /* Build configuration list for PBXProject "VPUCodec" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				2B8BCBA508A92EED00C014B9 /* Debug */,
+				2BF1EBF108A92C280070D853 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		BDFA89C61368320600F959A4 /* Build configuration list for PBXAggregateTarget "Build & Copy Codec" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BDFA89C41368320600F959A4 /* Debug */,
+				BDFA89C51368320600F959A4 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 089C1669FE841209C02AAC07 /* Project object */;
+}

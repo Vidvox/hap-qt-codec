@@ -1,0 +1,24 @@
+# config file used for the GNUmakefile only
+
+# define to 0 to not build shared library
+USE_SHARED ?= 1
+
+# define to 1 to use Altivec instructions
+USE_ALTIVEC ?= 0
+
+# define to 1 to use SSE2 instructions
+USE_SSE ?= 0
+
+# default flags
+CXXFLAGS ?= -O2 -Wall
+ifeq ($(USE_ALTIVEC),1)
+   CPPFLAGS += -DSQUISH_USE_ALTIVEC=1
+   CXXFLAGS += -maltivec
+endif
+ifeq ($(USE_SSE),1)
+   CPPFLAGS += -DSQUISH_USE_SSE=2
+   CXXFLAGS += -msse
+endif
+
+# where should we install to
+INSTALL_DIR ?= /usr/local
