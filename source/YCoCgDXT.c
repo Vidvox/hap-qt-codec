@@ -148,7 +148,7 @@ static ALWAYS_INLINE void EmitDoubleWord( dword i, byte **outData ) {
     (*outData) += 4;
 }
 
-static ALWAYS_INLINE void ExtractBlock( const byte *inPtr, const int width, const int stride, byte *colorBlock ) {
+static ALWAYS_INLINE void ExtractBlock( const byte *inPtr, const int stride, byte *colorBlock ) {
     for ( int j = 0; j < 4; j++ ) {
         memcpy( &colorBlock[j*4*4], inPtr, 4*4 );
         inPtr += stride;
@@ -157,7 +157,7 @@ static ALWAYS_INLINE void ExtractBlock( const byte *inPtr, const int width, cons
 
 // This box extract replicates the last rows and columns if the row or columns are not 4 texels aligned
 // This is so we don't get random pixels which could affect the color interpolation
-static void ExtractEdgeBlock( const byte *inPtr, const int width, const int stride, const int widthRemain, const int heightRemain, byte *colorBlock ) {
+static void ExtractEdgeBlock( const byte *inPtr, const int stride, const int widthRemain, const int heightRemain, byte *colorBlock ) {
     int *pBlock32 = (int *) colorBlock;  // Since we are using ARGA, we assume 4 byte alignment is already being used
     int *pSource32 = (int*) inPtr; 
     
@@ -464,10 +464,10 @@ int CompressYCoCgDXT5( const byte *inBuf, byte *outBuf, const int width, const i
             // Note: Modified from orignal source so that it can handle the edge blending better with non aligned 4x textures
             int widthRemain = width - i;
             if ((heightRemain < 4) || (widthRemain < 4) ) {
-                ExtractEdgeBlock( inBuf + i * 4, width, stride, widthRemain, heightRemain,  block );  
+                ExtractEdgeBlock( inBuf + i * 4, stride, widthRemain, heightRemain,  block );  
             }
             else {
-                ExtractBlock( inBuf + i * 4, width, stride, block );
+                ExtractBlock( inBuf + i * 4, stride, block );
             }
             // A simple min max extract for each color channel including alpha             
             GetMinMaxYCoCg( block, minColor, maxColor );
