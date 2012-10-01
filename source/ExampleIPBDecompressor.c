@@ -499,6 +499,8 @@ pascal ComponentResult ExampleIPB_DBeginBand(ExampleIPBDecompressorGlobals glob,
 	myDrp->height = (**p->imageDescription).height;
     myDrp->dxtWidth = glob->dxtWidth;
     myDrp->dxtHeight = glob->dxtHeight;
+    myDrp->convertBuffer = NULL;
+    myDrp->dxtBuffer = NULL;
     
     if (myDrp->width != glob->width || myDrp->height != glob->height)
     {
@@ -847,6 +849,9 @@ pascal ComponentResult ExampleIPB_DEndBand(ExampleIPBDecompressorGlobals glob, I
 #pragma unused(glob, result, flags)
 	ExampleIPBDecompressRecord *myDrp = (ExampleIPBDecompressRecord *)drp->userDecompressRecord;
     VPUCodecReturnBuffer(myDrp->dxtBuffer);
+    myDrp->dxtBuffer = NULL;
+    VPUCodecReturnBuffer(myDrp->convertBuffer);
+    myDrp->convertBuffer = NULL;
 #ifdef VPU_SQUISH_DECODE
     if (myDrp->needsPermute)
     {
