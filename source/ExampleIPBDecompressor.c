@@ -749,7 +749,7 @@ pascal ComponentResult ExampleIPB_DDrawBand(ExampleIPBDecompressorGlobals glob, 
     {
         if (myDrp->texFormat == VPUTextureFormat_YCoCg_DXT5)
         {
-            if (myDrp->destFormat == VPUCGLPixelFormat_BGRA8)
+            if (myDrp->destFormat == kCVPixelFormatType_32RGBA)
             {
                 ConvertCoCg_Y8888ToRGB_(VPUCodecGetBufferBaseAddress(myDrp->convertBuffer), (uint8_t *)drp->baseAddr, myDrp->width, myDrp->height, myDrp->dxtWidth * 4, drp->rowBytes);
             }
