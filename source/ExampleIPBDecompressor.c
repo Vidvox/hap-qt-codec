@@ -76,6 +76,7 @@ SUCH DAMAGE.
 #include <libkern/OSAtomic.h>
 #include "ExampleIPBCodecVersion.h"
 #include "VPUCodecUtility.h"
+#include "PixelFormats.h"
 #include "vpu.h"
 #include "Buffers.h"
 #include "YCoCg.h"
@@ -169,11 +170,6 @@ typedef struct {
 #include <ImageCompression.k.h>
 #include <ComponentDispatchHelper.c>
 #endif
-
-#define kVPUCVPixelFormat_RGB_DXT1 'DXt1'
-#define kVPUCVPixelFormat_RGBA_DXT1 'DXT1'
-#define kVPUCVPixelFormat_RGBA_DXT5 'DXT5'
-#define kVPUCVPixelFormat_YCoCg_DXT5 'DYT5'
 
 /*
  Boolean isDXTPixelFormat(OSType fmt)
@@ -436,6 +432,9 @@ pascal ComponentResult ExampleIPB_DPreflight(ExampleIPBDecompressorGlobals glob,
                 break;
             case VPUTextureFormat_YCoCg_DXT5:
                 (*p->wantedDestinationPixelTypes)[0] = kVPUCVPixelFormat_YCoCg_DXT5;
+                break;
+            case VPUTextureFormat_RGBA_DXT5:
+                (*p->wantedDestinationPixelTypes)[0] = kVPUCVPixelFormat_RGBA_DXT5;
                 break;
             default:
                 err = internalComponentErr;

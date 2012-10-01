@@ -29,6 +29,9 @@
 		BD9464B916171F43009B26E6 /* libsquish.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = BDE9DE0A16169D82008DC368 /* libsquish.0.dylib */; };
 		BD9464BA16171F5F009B26E6 /* libsquish.0.dylib in CopyFiles */ = {isa = PBXBuildFile; fileRef = BDE9DE0A16169D82008DC368 /* libsquish.0.dylib */; };
 		BD9464BB16171F64009B26E6 /* libsnappy.1.dylib in CopyFiles */ = {isa = PBXBuildFile; fileRef = BDDAEA971616108700FEC70D /* libsnappy.1.dylib */; };
+		BDDA19C616190E190068EBB3 /* YCoCgDXTEncoder.c in Sources */ = {isa = PBXBuildFile; fileRef = BDDA19C516190E190068EBB3 /* YCoCgDXTEncoder.c */; };
+		BDDA19CA161927080068EBB3 /* SquishEncoder.c in Sources */ = {isa = PBXBuildFile; fileRef = BDDA19C9161927080068EBB3 /* SquishEncoder.c */; };
+		BDDA19CD1619A5C90068EBB3 /* GLDXTEncoder.c in Sources */ = {isa = PBXBuildFile; fileRef = BDDA19CC1619A5C90068EBB3 /* GLDXTEncoder.c */; };
 		BDDAEA8416160F7500FEC70D /* vpu.c in Sources */ = {isa = PBXBuildFile; fileRef = BDDAEA8216160F7500FEC70D /* vpu.c */; };
 		BDDAEA8D1616104E00FEC70D /* lzf_c.c in Sources */ = {isa = PBXBuildFile; fileRef = BDDAEA891616104E00FEC70D /* lzf_c.c */; };
 		BDDAEA8E1616104E00FEC70D /* lzf_d.c in Sources */ = {isa = PBXBuildFile; fileRef = BDDAEA8A1616104E00FEC70D /* lzf_d.c */; };
@@ -113,6 +116,14 @@
 		BD833764136760EA0074367F /* squish-c.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "squish-c.h"; sourceTree = "<group>"; };
 		BD94BB62143357530064D679 /* VPUCodecGL.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VPUCodecGL.h; sourceTree = "<group>"; };
 		BDCB248616169B9300633182 /* squish.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = squish.xcodeproj; path = external/squish/squish.xcodeproj; sourceTree = SOURCE_ROOT; };
+		BDDA19BF161904300068EBB3 /* DXTEncoder.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DXTEncoder.h; sourceTree = "<group>"; };
+		BDDA19C416190DC10068EBB3 /* YCoCgDXTEncoder.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = YCoCgDXTEncoder.h; sourceTree = "<group>"; };
+		BDDA19C516190E190068EBB3 /* YCoCgDXTEncoder.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = YCoCgDXTEncoder.c; sourceTree = "<group>"; };
+		BDDA19C716191C670068EBB3 /* PixelFormats.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = PixelFormats.h; path = ../PixelFormats.h; sourceTree = "<group>"; };
+		BDDA19C8161926FD0068EBB3 /* SquishEncoder.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SquishEncoder.h; sourceTree = "<group>"; };
+		BDDA19C9161927080068EBB3 /* SquishEncoder.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = SquishEncoder.c; sourceTree = "<group>"; };
+		BDDA19CB1619A5B90068EBB3 /* GLDXTEncoder.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GLDXTEncoder.h; sourceTree = "<group>"; };
+		BDDA19CC1619A5C90068EBB3 /* GLDXTEncoder.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = GLDXTEncoder.c; sourceTree = "<group>"; };
 		BDDAEA8216160F7500FEC70D /* vpu.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = vpu.c; path = external/vpup/vpu.c; sourceTree = SOURCE_ROOT; };
 		BDDAEA8316160F7500FEC70D /* vpu.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = vpu.h; path = external/vpup/vpu.h; sourceTree = SOURCE_ROOT; };
 		BDDAEA891616104E00FEC70D /* lzf_c.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = lzf_c.c; path = external/lzf/lzf_c.c; sourceTree = SOURCE_ROOT; };
@@ -206,16 +217,16 @@
 		08FB77ADFE841716C02AAC07 /* Source */ = {
 			isa = PBXGroup;
 			children = (
-				E2210D1F15CAE8C5009DD434 /* YCoCg */,
-				BD833762136760CD0074367F /* squish */,
-				BD2FC7AF1372FB0B00099D34 /* vpu */,
 				FBFA8E620830F6D800560632 /* ReadMe-ExampleIPBCodec.txt */,
+				E2210D1F15CAE8C5009DD434 /* YCoCg */,
+				BD2FC7AF1372FB0B00099D34 /* vpu */,
+				BDDA19C216190D0E0068EBB3 /* DXT Encoders */,
+				BDDA19C716191C670068EBB3 /* PixelFormats.h */,
 				FBFA8C8B0829E75000560632 /* ExampleIPBCodecVersion.h */,
 				FBFA8C8C0829E75000560632 /* ExampleIPBCompressor.c */,
 				FBFA8C8D0829E75000560632 /* ExampleIPBCompressorDispatch.h */,
 				FBFA8C8E0829E75000560632 /* ExampleIPBDecompressor.c */,
 				FBFA8C8F0829E75000560632 /* ExampleIPBDecompressorDispatch.h */,
-				32BAE0B30371A71500C91783 /* VPUCodec_Prefix.pch */,
 				BDF1AF051376DD7C00C0F4D1 /* Buffers.h */,
 				BDF1AF041376DD7C00C0F4D1 /* Buffers.c */,
 				E2C99CA913789AC60077AC75 /* Tasks.h */,
@@ -224,6 +235,7 @@
 				E28C1FAA143B598500F2CD73 /* VPUCodecUtility.c */,
 				BD94BB62143357530064D679 /* VPUCodecGL.h */,
 				BDF48B1914377D0500E7EAB8 /* VPUCodecGL.c */,
+				32BAE0B30371A71500C91783 /* VPUCodec_Prefix.pch */,
 			);
 			name = Source;
 			path = source;
@@ -259,6 +271,23 @@
 			name = squish;
 			sourceTree = "<group>";
 		};
+		BDDA19C216190D0E0068EBB3 /* DXT Encoders */ = {
+			isa = PBXGroup;
+			children = (
+				BDDA19BF161904300068EBB3 /* DXTEncoder.h */,
+				BDDA19C416190DC10068EBB3 /* YCoCgDXTEncoder.h */,
+				BDDA19C516190E190068EBB3 /* YCoCgDXTEncoder.c */,
+				BDDA19C8161926FD0068EBB3 /* SquishEncoder.h */,
+				BDDA19C9161927080068EBB3 /* SquishEncoder.c */,
+				BDDA19CB1619A5B90068EBB3 /* GLDXTEncoder.h */,
+				BDDA19CC1619A5C90068EBB3 /* GLDXTEncoder.c */,
+				E2210D2A15CAE914009DD434 /* YCoCgDXT.h */,
+				E2210D2915CAE914009DD434 /* YCoCgDXT.c */,
+				BD833762136760CD0074367F /* squish */,
+			);
+			name = "DXT Encoders";
+			sourceTree = "<group>";
+		};
 		BDDAEA851616100100FEC70D /* lzf */ = {
 			isa = PBXGroup;
 			children = (
@@ -291,8 +320,6 @@
 			children = (
 				E2210D2815CAE914009DD434 /* YCoCg.h */,
 				E2210D2715CAE914009DD434 /* YCoCg.c */,
-				E2210D2A15CAE914009DD434 /* YCoCgDXT.h */,
-				E2210D2915CAE914009DD434 /* YCoCgDXT.c */,
 				E2210D3A15CAF913009DD434 /* ImageMath.h */,
 				E2210D3915CAF913009DD434 /* ImageMath.c */,
 			);
@@ -432,6 +459,9 @@
 				BDDAEA8416160F7500FEC70D /* vpu.c in Sources */,
 				BDDAEA8D1616104E00FEC70D /* lzf_c.c in Sources */,
 				BDDAEA8E1616104E00FEC70D /* lzf_d.c in Sources */,
+				BDDA19C616190E190068EBB3 /* YCoCgDXTEncoder.c in Sources */,
+				BDDA19CA161927080068EBB3 /* SquishEncoder.c in Sources */,
+				BDDA19CD1619A5C90068EBB3 /* GLDXTEncoder.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
