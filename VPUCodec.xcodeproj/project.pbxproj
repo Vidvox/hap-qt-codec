@@ -119,7 +119,7 @@
 		BDDA19BF161904300068EBB3 /* DXTEncoder.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DXTEncoder.h; sourceTree = "<group>"; };
 		BDDA19C416190DC10068EBB3 /* YCoCgDXTEncoder.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = YCoCgDXTEncoder.h; sourceTree = "<group>"; };
 		BDDA19C516190E190068EBB3 /* YCoCgDXTEncoder.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = YCoCgDXTEncoder.c; sourceTree = "<group>"; };
-		BDDA19C716191C670068EBB3 /* PixelFormats.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = PixelFormats.h; path = ../PixelFormats.h; sourceTree = "<group>"; };
+		BDDA19C716191C670068EBB3 /* PixelFormats.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PixelFormats.h; sourceTree = "<group>"; };
 		BDDA19C8161926FD0068EBB3 /* SquishEncoder.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SquishEncoder.h; sourceTree = "<group>"; };
 		BDDA19C9161927080068EBB3 /* SquishEncoder.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = SquishEncoder.c; sourceTree = "<group>"; };
 		BDDA19CB1619A5B90068EBB3 /* GLDXTEncoder.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GLDXTEncoder.h; sourceTree = "<group>"; };
