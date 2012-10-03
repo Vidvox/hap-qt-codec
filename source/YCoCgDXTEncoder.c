@@ -39,7 +39,7 @@ static OSType VPUPYCoCgDXTEncoderWantedPixelFormat(VPUPCodecDXTEncoderRef encode
 static void VPUPYCoCgDXTEncoderShow(VPUPCodecDXTEncoderRef encoder)
 {
 #pragma unused(encoder)
-    printf("YCoCg DXT Encoder\n");
+    printf("YCoCg DXT5 Encoder\n");
 }
 #endif
 
