@@ -305,4 +305,45 @@ resource 'cpix' (256) {
     }
 };
 
+// Settings controls for dialog
+#define kMyCodecDITLResID 129
+#define kMyCodecPopupCNTLResID 129
+#define kMyCodecPopupMENUResID 129
+ 
+#define POPUP_CONTROL_HEIGHT 22
+ 
+resource 'DITL' (kMyCodecDITLResID, "Compressor Options") {
+{
+ {0, 0,
+  POPUP_CONTROL_HEIGHT, 185},
+ Control { enabled, kMyCodecPopupCNTLResID },
+ };
+};
+ 
+resource 'CNTL' (kMyCodecPopupCNTLResID, "Compressor Popup") {
+ {0, 0, 20, 185},
+ 0,
+ visible,
+ 84,        /* title width */
+ kMyCodecPopupMENUResID,
+ popupMenuCDEFProc+popupFixedWidth,
+ 0,
+ "Compressor:"
+};
+ 
+resource 'MENU' (kMyCodecPopupMENUResID, "Compressor Popup") {
+ kMyCodecPopupMENUResID,
+ textMenuProc,
+ allEnabled,       /* Enable flags */
+ enabled,
+ "Compressor",
+ { /* array: 3 elements */
+  /* [1] */
+  "Snappy", noIcon, noKey, noMark, plain,
+  /* [2] */
+  "LZF", noIcon, noKey, noMark, plain,
+  /* [3] */
+  "ZLIB", noIcon, noKey, noMark, plain
+ }
+};
 #endif // COMP_BUILD

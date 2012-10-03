@@ -213,6 +213,8 @@ ExampleIPB_COpen(
     glob->dxtEncoder = NULL;
     glob->formatConvertPool = NULL;
     glob->dxtBufferPool = NULL;
+
+    glob->vpuCompressor = VPUCompressorSnappy;
     
 bail:
     debug_print_err(glob, err);
@@ -622,7 +624,22 @@ ExampleIPB_CPrepareToCompressFrames(
     glob->maxEncodedDataSize = VPUMaxEncodedLength(wantedDXTSize);
     
 #ifdef DEBUG
-    printf("VPU CODEC: Starting encoding session ");
+    char *compressor_str;
+    switch (glob->vpuCompressor) {
+        case VPUCompressorSnappy:
+            compressor_str = "snappy";
+            break;
+        case VPUCompressorLZF:
+            compressor_str = "LZF";
+            break;
+        case VPUCompressorZLIB:
+            compressor_str = "ZLIB";
+            break;
+        default:
+            err = internalComponentErr;
+            goto bail;
+    }
+    printf("VPU CODEC: start / %s / ", compressor_str);
     glob->dxtEncoder->show_function(glob->dxtEncoder);
 #endif // DEBUG
     
@@ -637,12 +654,6 @@ ExampleIPB_CPrepareToCompressFrames(
         goto bail;
     }
     
-    // TODO: if we support multiple compressor types, we could expose this in the compression settings UI
-    glob->vpuCompressor = VPUCompressorSnappy;
-    
-#ifdef DEBUG
-    printf("VPU CODEC: Secondary compressor: snappy\n");
-#endif
     VPUCodecWillStartTasks();
     glob->endTasksPending = true;
     
@@ -1045,4 +1056,167 @@ static VPUCodecBufferRef dequeueFrameNumber(ExampleIPBCompressorGlobals glob, in
         OSSpinLockUnlock(&glob->lock);
     }
     return found;
+}
+
+/*
+ These values are stored in users' compression settings, don't change them
+ */
+#define kVPUCompressorSnappy 1
+#define kVPUCompressorLZF 2
+#define kVPUCompressorZLIB 3
+
+static UInt8 storedConstantForCompressor(unsigned int compressor)
+{
+    switch (compressor) {
+        case VPUCompressorLZF:
+            return kVPUCompressorLZF;
+        case VPUCompressorZLIB:
+            return kVPUCompressorZLIB;
+        case VPUCompressorSnappy:
+        default:
+            return kVPUCompressorSnappy;
+    }
+}
+
+static unsigned int compressorForStoredConstant(UInt8 constant)
+{
+    switch (constant) {
+        case kVPUCompressorLZF:
+            return VPUCompressorLZF;
+        case kVPUCompressorZLIB:
+            return VPUCompressorZLIB;
+        case kVPUCompressorSnappy:
+        default:
+            return VPUCompressorSnappy;
+    }
+}
+
+ComponentResult ExampleIPB_CGetSettings(ExampleIPBCompressorGlobals glob, Handle settings)
+{
+    ComponentResult err = noErr;
+    
+    if (!settings)
+    {
+        err = paramErr;
+    }
+    else
+    {
+        SetHandleSize(settings, 5);
+        ((UInt32 *) *settings)[0] = 'VPUV';
+        ((UInt8 *) *settings)[4] = storedConstantForCompressor(glob->vpuCompressor);
+    }
+    
+    debug_print_err(glob, err);
+    return err;
+}
+
+ComponentResult ExampleIPB_CSetSettings(ExampleIPBCompressorGlobals glob, Handle settings)
+{
+    ComponentResult err = noErr;
+    
+    if (!settings || GetHandleSize(settings) == 0)
+    {
+        glob->vpuCompressor = VPUCompressorSnappy;
+    }
+    else if (GetHandleSize(settings) == 5 && ((UInt32 *) *settings)[0] == 'VPUV')
+    {
+        glob->vpuCompressor = compressorForStoredConstant(((UInt8 *) *settings)[4]);
+    }
+    else
+    {
+        err = paramErr;
+    }
+    
+    debug_print_err(glob, err);
+    return err;
+}
+
+#define kMyCodecDITLResID 129
+#define kMyCodecPopupCNTLResID 129
+#define kMyCodecPopupMENUResID 129
+
+ComponentResult ExampleIPB_CGetDITLForSize(ExampleIPBCompressorGlobals glob,
+                                           Handle *ditl,
+                                           Point *requestedSize)
+{
+    Handle h = NULL;
+    ComponentResult err = noErr;
+    
+    switch (requestedSize->h) {
+        case kSGSmallestDITLSize:
+            GetComponentResource((Component)(glob->self), FOUR_CHAR_CODE('DITL'),
+                                 kMyCodecDITLResID, &h);
+            if (NULL != h) *ditl = h;
+            else err = resNotFound;
+            break;
+        default:
+            err = badComponentSelector;
+            break;
+    }
+    
+    debug_print_err(glob, err);
+    return err;
+}
+
+#define kItemPopup 1
+
+ComponentResult ExampleIPB_CDITLInstall(ExampleIPBCompressorGlobals glob,
+                                        DialogRef d,
+                                        short itemOffset)
+{
+#pragma unused(glob)
+    ControlRef cRef;
+    
+    unsigned long popupValue = storedConstantForCompressor(glob->vpuCompressor);
+    
+    GetDialogItemAsControl(d, kItemPopup + itemOffset, &cRef);
+    SetControl32BitValue(cRef, popupValue);
+
+    return noErr;
+}
+
+ComponentResult ExampleIPB_CDITLEvent(ExampleIPBCompressorGlobals glob,
+                                      DialogRef d,
+                                      short itemOffset,
+                                      const EventRecord *theEvent,
+                                      short *itemHit,
+                                      Boolean *handled)
+{
+#pragma unused(glob, d, itemOffset, theEvent, itemHit)
+    *handled = false;
+    return noErr;
+}
+
+ComponentResult ExampleIPB_CDITLItem(ExampleIPBCompressorGlobals glob,
+                                     DialogRef d,
+                                     short itemOffset,
+                                     short itemNum)
+{
+#pragma unused(glob, d, itemOffset, itemNum)
+    
+    return noErr;
+}
+
+ComponentResult ExampleIPB_CDITLRemove(ExampleIPBCompressorGlobals glob,
+                                       DialogRef d,
+                                       short itemOffset)
+{
+    ControlRef cRef;
+    unsigned long popupValue;
+    
+    GetDialogItemAsControl(d, kItemPopup + itemOffset, &cRef);
+    popupValue = GetControl32BitValue(cRef);
+    
+    glob->vpuCompressor = compressorForStoredConstant(popupValue);
+
+    return noErr;
+}
+
+ComponentResult ExampleIPB_CDITLValidateInput(ExampleIPBCompressorGlobals storage,
+                                              Boolean *ok)
+{
+#pragma unused(storage)
+    if (ok)
+        *ok = true;
+    return noErr;
 }

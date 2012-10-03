@@ -95,8 +95,8 @@ SUCH DAMAGE.
 		ComponentError (GetSimilarity)
 		ComponentError (TrimImage)								// 10
 		ComponentError (RequestSettings)
-		ComponentError (GetSettings)
-		ComponentError (SetSettings)
+		ComponentCall (GetSettings)
+		ComponentCall (SetSettings)
 		ComponentError (Flush)
 		ComponentError (SetTimeCode)							// 15
 		ComponentError (IsImageDescriptionEquivalent)
@@ -129,12 +129,12 @@ SUCH DAMAGE.
 		ComponentError (GetDecompressLatency)
 		ComponentError (MergeFloatingImageOntoWindow)
 		ComponentError (RemoveFloatingImage)					// 45
-		ComponentError (GetDITLForSize)
-		ComponentError (DITLInstall)
-		ComponentError (DITLEvent)
-		ComponentError (DITLItem)
-		ComponentError (DITLRemove)								// 50
-		ComponentError (DITLValidateInput)
+		ComponentCall (GetDITLForSize)
+		ComponentCall (DITLInstall)
+		ComponentCall (DITLEvent)
+		ComponentCall (DITLItem)
+		ComponentCall (DITLRemove)								// 50
+		ComponentCall (DITLValidateInput)
 		ComponentError (52)
 		ComponentError (53)
 		ComponentError (GetPreferredChunkSizeAndAlignment)
