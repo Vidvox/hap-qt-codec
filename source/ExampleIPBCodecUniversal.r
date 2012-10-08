@@ -298,8 +298,10 @@ resource 'thnr' (256) {
 // TODO: This is RGB DXT1 and DXT5 (RGBA)
 resource 'cpix' (256) {
     {
+        'DXt1',
         'DXT1',
         'DXT5',
+        'DYT5',
         'RGBA',
         'BGRA'
     }
