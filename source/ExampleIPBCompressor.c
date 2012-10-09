@@ -597,6 +597,23 @@ ExampleIPB_CPrepareToCompressFrames(
         err = internalComponentErr;
         goto bail;
     }
+
+    // Currently we store the VPU frame type in the image description as discovering it otherwise
+    // would require reading a frame
+    
+    Handle stored = NewHandleClear(sizeof(UInt32));
+    if (stored == NULL)
+    {
+        err = memFullErr;
+        goto bail;
+    }
+    **(UInt32 **)stored = OSSwapHostToBigInt32(glob->dxtFormat);
+    err = AddImageDescriptionExtension(imageDescription, stored, kVPUCodecSampleDescriptionExtensionVPU);
+    DisposeHandle(stored);
+    if (err)
+    {
+        goto bail;
+    }
     
     // If we're allowed to, we output frames on a background thread
     err = ICMCompressionSessionOptionsGetProperty(glob->sessionOptions,

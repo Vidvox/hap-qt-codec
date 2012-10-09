@@ -417,43 +417,62 @@ pascal ComponentResult ExampleIPB_DPreflight(ExampleIPBDecompressorGlobals glob,
         }
 	}
 	p->wantedDestinationPixelTypes = (OSType **)glob->wantedDestinationPixelTypes;
+
+    unsigned int textureFormat = 0;
     
-    // TODO: this assumes frames have only been compressed using this compressor and
-    // dissallows some formats currently permitted in VPU - we need to either tighten the standard
-    // or be more flexible here
-    if ((*p->imageDescription)->depth == 32)
+    // First check for our extension to the image description which stores the frame type
+    Handle stored = NULL;
+    err = GetImageDescriptionExtension(p->imageDescription, &stored, kVPUCodecSampleDescriptionExtensionVPU, 1);
+    if (err == noErr)
     {
-        (*p->wantedDestinationPixelTypes)[0] = kVPUCVPixelFormat_RGBA_DXT5;
-        p->preferredOffscreenPixelSize = 8;
+        textureFormat = OSSwapBigToHostInt32(**(UInt32 **)stored);
+        DisposeHandle(stored);
     }
-    else
+    else if (err == codecExtensionNotFoundErr)
     {
-        unsigned int textureFormat = 0;
-        unsigned int result = VPUGetFrameTextureFormat(p->data, p->bufferSize, &textureFormat);
-        if (result != VPUResult_No_Error)
+        // It's not an error if the extension is missing, we just have to...
+        err = noErr;
+        if ((*p->imageDescription)->depth == 32)
         {
-            err = internalComponentErr;
-            goto bail;
+            // Currently our only with-alpha format is RGBA DXT5 so assume that
+            (*p->wantedDestinationPixelTypes)[0] = kVPUCVPixelFormat_RGBA_DXT5;
+            p->preferredOffscreenPixelSize = 8;
         }
-        switch (textureFormat) {
-            case VPUTextureFormat_RGB_DXT1:
-                (*p->wantedDestinationPixelTypes)[0] = kVPUCVPixelFormat_RGB_DXT1;
-                p->preferredOffscreenPixelSize = 4;
-                break;
-            case VPUTextureFormat_YCoCg_DXT5:
-                (*p->wantedDestinationPixelTypes)[0] = kVPUCVPixelFormat_YCoCg_DXT5;
-                p->preferredOffscreenPixelSize = 8;
-                break;
-            case VPUTextureFormat_RGBA_DXT5:
-                (*p->wantedDestinationPixelTypes)[0] = kVPUCVPixelFormat_RGBA_DXT5;
-                p->preferredOffscreenPixelSize = 8;
-                break;
-            default:
+        else
+        {
+            // If no extension was present we hope frame data is available and check that
+            unsigned int result = VPUGetFrameTextureFormat(p->data, p->bufferSize, &textureFormat);
+            if (result != VPUResult_No_Error)
+            {
                 err = internalComponentErr;
                 goto bail;
-                break;
+            }
         }
     }
+    else // err != codecExtensionNotFoundErr
+    {
+        goto bail;
+    }
+    
+    switch (textureFormat) {
+        case VPUTextureFormat_RGB_DXT1:
+            (*p->wantedDestinationPixelTypes)[0] = kVPUCVPixelFormat_RGB_DXT1;
+            p->preferredOffscreenPixelSize = 4;
+            break;
+        case VPUTextureFormat_YCoCg_DXT5:
+            (*p->wantedDestinationPixelTypes)[0] = kVPUCVPixelFormat_YCoCg_DXT5;
+            p->preferredOffscreenPixelSize = 8;
+            break;
+        case VPUTextureFormat_RGBA_DXT5:
+            (*p->wantedDestinationPixelTypes)[0] = kVPUCVPixelFormat_RGBA_DXT5;
+            p->preferredOffscreenPixelSize = 8;
+            break;
+        default:
+            err = internalComponentErr;
+            goto bail;
+            break;
+    }
+
     (*p->wantedDestinationPixelTypes)[1] = k32RGBAPixelFormat;
 	(*p->wantedDestinationPixelTypes)[2] = k32BGRAPixelFormat;
 	(*p->wantedDestinationPixelTypes)[3] = 0;

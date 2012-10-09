@@ -11,6 +11,8 @@
 
 #include <CoreFoundation/CoreFoundation.h>
 
+#define kVPUCodecSampleDescriptionExtensionVPU 'VPUe'
+
 void addNumberToDictionary( CFMutableDictionaryRef dictionary, CFStringRef key, SInt32 numberSInt32 );
 void addDoubleToDictionary( CFMutableDictionaryRef dictionary, CFStringRef key, double numberDouble );
 int roundUpToMultipleOf4( int n );
