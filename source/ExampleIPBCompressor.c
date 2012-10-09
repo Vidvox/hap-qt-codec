@@ -954,7 +954,10 @@ ExampleIPB_CCompleteFrame(
   UInt32 flags )
 {
 #pragma unused (sourceFrame, flags)
-    VPUCodecWaitForTasksToComplete(glob->taskGroup); // TODO: this waits for all pending frames rather than the particular frame
+    if (glob->taskGroup)
+    {
+        VPUCodecWaitForTasksToComplete(glob->taskGroup); // TODO: this waits for all pending frames rather than the particular frame
+    }
     VPUCodecBufferRef buffer;
     
     if (glob->allowAsyncCompletion == false)
