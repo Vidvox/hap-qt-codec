@@ -474,13 +474,6 @@ pascal ComponentResult ExampleIPB_DPreflight(ExampleIPBDecompressorGlobals glob,
     glob->dxtWidth = widthRoundedUp;
     glob->dxtHeight = heightRoundedUp;
     
-    // TODO: aren't we creating double-sized buffers when we have DXT1 here?
-    if (glob->dxtBufferPool == NULL || widthRoundedUp * heightRoundedUp != VPUCodecGetBufferPoolBufferSize(glob->dxtBufferPool))
-    {
-        VPUCodecDestroyBufferPool(glob->dxtBufferPool);
-        glob->dxtBufferPool = VPUCodecCreateBufferPool(widthRoundedUp * heightRoundedUp);
-    }
-    
     // TODO: cf *p->bufferGammaLevel
 bail:
     debug_print_err(glob, err);
@@ -531,17 +524,28 @@ pascal ComponentResult ExampleIPB_DBeginBand(ExampleIPBDecompressorGlobals glob,
     
     myDrp->destFormat = p->dstPixMap.pixelFormat;
     
-    if (!isDXTPixelFormat(myDrp->destFormat))
-    {
-        myDrp->dxtBuffer = VPUCodecGetBuffer(glob->dxtBufferPool);
-    }
-    
     // Inspect the frame header to discover the texture format
     unsigned int vpu_result = VPUGetFrameTextureFormat(drp->codecData, myDrp->dataSize, &myDrp->texFormat);
     if (vpu_result != VPUResult_No_Error)
     {
         err = internalComponentErr;
         goto bail;
+    }
+
+    if (!isDXTPixelFormat(myDrp->destFormat))
+    {
+        long dxtBufferLength = myDrp->dxtWidth * myDrp->dxtHeight;
+        if (myDrp->texFormat == VPUTextureFormat_RGB_DXT1 || myDrp->texFormat == VPUTextureFormat_RGBA_DXT1)
+        {
+            dxtBufferLength /= 2;
+        }
+        if (glob->dxtBufferPool == NULL || dxtBufferLength != VPUCodecGetBufferPoolBufferSize(glob->dxtBufferPool))
+        {
+            VPUCodecDestroyBufferPool(glob->dxtBufferPool);
+            glob->dxtBufferPool = VPUCodecCreateBufferPool(dxtBufferLength);
+        }
+        
+        myDrp->dxtBuffer = VPUCodecGetBuffer(glob->dxtBufferPool);
     }
     
     if (!isDXTPixelFormat(myDrp->destFormat) && myDrp->texFormat == VPUTextureFormat_YCoCg_DXT5)
