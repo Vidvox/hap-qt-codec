@@ -210,6 +210,8 @@ static void registerDXTPixelFormat(OSType fmt, UInt32 bits_per_pixel, SInt32 ope
     pixelInfo.size  = sizeof(ICMPixelFormatInfo);
     pixelInfo.formatFlags = (has_alpha ? kICMPixelFormatHasAlphaChannel : 0);
     pixelInfo.bitsPerPixel[0] = bits_per_pixel;
+    pixelInfo.cmpCount = 4;
+    pixelInfo.cmpSize = bits_per_pixel / 4;
     
     // Ignore any errors here as this could be a duplicate registration
     ICMSetPixelFormatInfo(fmt, &pixelInfo);
@@ -397,6 +399,12 @@ pascal ComponentResult ExampleIPB_DPreflight(ExampleIPBDecompressorGlobals glob,
 	capabilities->bandMin = (**p->imageDescription).height; // Only handle full frame-height (don't split into smaller parts)
 	capabilities->bandInc = capabilities->bandMin;
 
+    /*
+     http://lists.apple.com/archives/quicktime-api/2008/Sep/msg00130.html
+
+     In your codec's Preflight function, for some applications you also need to set the 'preferredOffscreenPixelSize' parameter
+     */
+    
 	// Indicate the pixel depth the component can use with the specified image
 	capabilities->wantedPixelSize = 0; // set this to zero when using wantedDestinationPixelTypes
 	if( NULL == glob->wantedDestinationPixelTypes )
@@ -416,6 +424,7 @@ pascal ComponentResult ExampleIPB_DPreflight(ExampleIPBDecompressorGlobals glob,
     if ((*p->imageDescription)->depth == 32)
     {
         (*p->wantedDestinationPixelTypes)[0] = kVPUCVPixelFormat_RGBA_DXT5;
+        p->preferredOffscreenPixelSize = 8;
     }
     else
     {
@@ -429,12 +438,15 @@ pascal ComponentResult ExampleIPB_DPreflight(ExampleIPBDecompressorGlobals glob,
         switch (textureFormat) {
             case VPUTextureFormat_RGB_DXT1:
                 (*p->wantedDestinationPixelTypes)[0] = kVPUCVPixelFormat_RGB_DXT1;
+                p->preferredOffscreenPixelSize = 4;
                 break;
             case VPUTextureFormat_YCoCg_DXT5:
                 (*p->wantedDestinationPixelTypes)[0] = kVPUCVPixelFormat_YCoCg_DXT5;
+                p->preferredOffscreenPixelSize = 8;
                 break;
             case VPUTextureFormat_RGBA_DXT5:
                 (*p->wantedDestinationPixelTypes)[0] = kVPUCVPixelFormat_RGBA_DXT5;
+                p->preferredOffscreenPixelSize = 8;
                 break;
             default:
                 err = internalComponentErr;
@@ -446,15 +458,6 @@ pascal ComponentResult ExampleIPB_DPreflight(ExampleIPBDecompressorGlobals glob,
 	(*p->wantedDestinationPixelTypes)[2] = k32BGRAPixelFormat;
 	(*p->wantedDestinationPixelTypes)[3] = 0;
     
-    /*
-     TODO: ?
-     http://lists.apple.com/archives/quicktime-api/2008/Sep/msg00130.html
-     
-     In your codec's Preflight function, for some applications you also need to set the 'preferredOffscreenPixelSize' parameter: 
-     
-     lParameters->preferredOffscreenPixelSize = QTGetPixelSize('b48r'); //your preferred pixel format
-     
-     */
 	// Specify the number of pixels the image must be extended in width and height if
 	// the component cannot accommodate the image at its given width and height.
 	// This codec must have output buffers that are rounded up to multiples of 4x4.
@@ -478,6 +481,7 @@ pascal ComponentResult ExampleIPB_DPreflight(ExampleIPBDecompressorGlobals glob,
         glob->dxtBufferPool = VPUCodecCreateBufferPool(widthRoundedUp * heightRoundedUp);
     }
     
+    // TODO: cf *p->bufferGammaLevel
 bail:
     debug_print_err(glob, err);
 	return err;
