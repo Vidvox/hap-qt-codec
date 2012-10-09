@@ -467,10 +467,13 @@ pascal ComponentResult ExampleIPB_DPreflight(ExampleIPBDecompressorGlobals glob,
     
     widthRoundedUp = roundUpToMultipleOf4(glob->width);
     heightRoundedUp = roundUpToMultipleOf4(glob->height);    
-    
-	capabilities->extendWidth = widthRoundedUp - glob->width;
-	capabilities->extendHeight = heightRoundedUp - glob->height;
-    
+
+    // Although ExampleIPBCodec creates extended pixels as the difference between the dimensions in the image description
+    // and the desired buffer dimensions, code using a home-made GWorld gets stuck because it appears to interpret the
+    // extended dimensions as relative to the GWorld, not the image description
+    capabilities->extendWidth = widthRoundedUp - p->dstPixMap.bounds.right;
+    capabilities->extendHeight = heightRoundedUp - p->dstPixMap.bounds.bottom;
+
     glob->dxtWidth = widthRoundedUp;
     glob->dxtHeight = heightRoundedUp;
     
