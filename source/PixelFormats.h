@@ -15,5 +15,5 @@
 #define kVPUCVPixelFormat_RGBA_DXT1 'DXT1'
 #define kVPUCVPixelFormat_RGBA_DXT5 'DXT5'
 #define kVPUCVPixelFormat_YCoCg_DXT5 'DYT5'
-#define kVPUCVPixelFormat_YCoCgX 'YCCX'
+#define kVPUCVPixelFormat_CoCgXY 'CCXY'
 #endif

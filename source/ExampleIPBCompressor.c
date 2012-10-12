@@ -744,7 +744,7 @@ static void Background_Encode(void *info)
         
         switch (wantedPixelFormat)
         {
-            case kVPUCVPixelFormat_YCoCgX:
+            case kVPUCVPixelFormat_CoCgXY:
                 if (sourcePixelFormat == k32BGRAPixelFormat)
                 {
                     ConvertBGR_ToCoCg_Y8888(sourceBaseAddress,

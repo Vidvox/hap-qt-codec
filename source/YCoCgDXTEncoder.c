@@ -24,7 +24,7 @@ static int VPUPYCoCgDXTEncoderEncode(VPUPCodecDXTEncoderRef encoder,
                                      unsigned int height)
 {
 #pragma unused(encoder)
-    if (src_pixel_format != kVPUCVPixelFormat_YCoCgX) return 1;
+    if (src_pixel_format != kVPUCVPixelFormat_CoCgXY) return 1;
     CompressYCoCgDXT5(src, dst, width, height, src_bytes_per_row);
     return 0;
 }
@@ -32,7 +32,7 @@ static int VPUPYCoCgDXTEncoderEncode(VPUPCodecDXTEncoderRef encoder,
 static OSType VPUPYCoCgDXTEncoderWantedPixelFormat(VPUPCodecDXTEncoderRef encoder, OSType sourceFormat)
 {
 #pragma unused(encoder, sourceFormat)
-    return kVPUCVPixelFormat_YCoCgX;
+    return kVPUCVPixelFormat_CoCgXY;
 }
 
 #if defined(DEBUG)
