@@ -131,6 +131,7 @@ typedef struct {
     VPUCodecBufferPoolRef           dxtBufferPool;
     
     Boolean                         allowAsyncCompletion;
+    int32_t                         backgroundError;
     unsigned int                    dxtFormat;
     unsigned int                    vpuCompressor;
     unsigned int                    taskGroup;
@@ -147,9 +148,9 @@ typedef struct {
 struct VPUCodecCompressTask
 {
     ExampleIPBCompressorGlobals glob;
-    int frameNumber;
     ICMCompressorSourceFrameRef sourceFrame;
     ICMMutableEncodedFrameRef encodedFrame;
+    ComponentResult error;
 };
 
 // Setup required for ComponentDispatchHelper.c
@@ -178,9 +179,11 @@ struct VPUCodecCompressTask
 #include <ComponentDispatchHelper.c>
 #endif
 
-static void emitFrame(VPUCodecBufferRef buffer, bool onBackgroundThread);
+static ComponentResult finishFrame(VPUCodecBufferRef buffer, bool onBackgroundThread);
 static void queueEncodedFrame(ExampleIPBCompressorGlobals glob, VPUCodecBufferRef frame);
 static VPUCodecBufferRef dequeueFrameNumber(ExampleIPBCompressorGlobals glob, int number);
+static void emitBackgroundError(ExampleIPBCompressorGlobals glob, ComponentResult error);
+static ComponentResult backgroundError(ExampleIPBCompressorGlobals glob);
 
 // Open a new instance of the component.
 // Allocate component instance storage ("globals") and associate it with the new instance so that other
@@ -215,6 +218,8 @@ ExampleIPB_COpen(
     glob->dxtBufferPool = NULL;
 
     glob->vpuCompressor = VPUCompressorSnappy;
+    
+    glob->backgroundError = noErr;
     
 bail:
     debug_print_err(glob, err);
@@ -695,13 +700,9 @@ static void Background_Encode(void *info)
     VPUCodecCompressTask *task = VPUCodecGetBufferBaseAddress((VPUCodecBufferRef)info);
     ExampleIPBCompressorGlobals glob = task->glob;
     
-    // TODO: Don't ignore errors here, feed them back to an API thread for reporting and to drop the frame
-    ///////// BEGIN QUICK AND DIRTY OUTPUT
     ComponentResult err = noErr;
     
-    ICMMutableEncodedFrameRef output = NULL;
-    
-    err = ICMEncodedFrameCreateMutable(glob->session, task->sourceFrame, glob->maxEncodedDataSize, &output);
+    err = ICMEncodedFrameCreateMutable(glob->session, task->sourceFrame, glob->maxEncodedDataSize, &task->encodedFrame);
     if (err)
         goto bail;
     
@@ -856,7 +857,7 @@ static void Background_Encode(void *info)
                                        codec_src_length,
                                        glob->dxtFormat,
                                        glob->vpuCompressor,
-                                       ICMEncodedFrameGetDataPtr(output),
+                                       ICMEncodedFrameGetDataPtr(task->encodedFrame),
                                        glob->maxEncodedDataSize,
                                        &actualEncodedDataSize);
     if (vpuResult != VPUResult_No_Error)
@@ -865,34 +866,22 @@ static void Background_Encode(void *info)
         goto bail;
     }
     
-    ICMEncodedFrameSetDataSize(output, actualEncodedDataSize);
+    ICMEncodedFrameSetDataSize(task->encodedFrame, actualEncodedDataSize);
     
     MediaSampleFlags mediaSampleFlags = 0;
     
     mediaSampleFlags |= mediaSampleDroppable;
     mediaSampleFlags |= mediaSampleDoesNotDependOnOthers;
 	
-	err = ICMEncodedFrameSetMediaSampleFlags(output, mediaSampleFlags );
+	err = ICMEncodedFrameSetMediaSampleFlags(task->encodedFrame, mediaSampleFlags );
 	if( err )
 		goto bail;
 	
-	err = ICMEncodedFrameSetFrameType( output, kICMFrameType_I );
+	err = ICMEncodedFrameSetFrameType( task->encodedFrame, kICMFrameType_I );
 	if (err)
         goto bail;
     
-	// Output the encoded frame.
-    task->encodedFrame = output;
-    output = NULL;
     // TODO: we could detach the source frame's pixel buffer at this point
-    
-    if (glob->allowAsyncCompletion)
-    {
-        emitFrame((VPUCodecBufferRef)info, true);
-    }
-    else
-    {
-        queueEncodedFrame(glob, (VPUCodecBufferRef)info);
-    }
     
 #ifdef DEBUG
     // TODO: do this on the "main" thread to avoid the lock
@@ -904,14 +893,26 @@ static void Background_Encode(void *info)
     if (actualEncodedDataSize < glob->debugSmallestFrameBytes || glob->debugSmallestFrameBytes == 0) glob->debugSmallestFrameBytes = actualEncodedDataSize;
     OSSpinLockUnlock(&glob->lock);
 #endif
-    ///////// END QUICK AND DIRTY OUTPUT
 bail:
+    debug_print_err(glob, err);
     if (sourceBuffer) CVPixelBufferUnlockBaseAddress(sourceBuffer, kCVPixelBufferLock_ReadOnly);
-    if (output) ICMEncodedFrameRelease( output );
     VPUCodecReturnBuffer(formatConvertBuffer);
     VPUCodecReturnBuffer(dxtBuffer);
-    debug_print_err(glob, err);
-    // TODO: do something with err
+    
+    // Output the encoded frame - or pass the error on
+    task->error = err;
+    if (glob->allowAsyncCompletion)
+    {
+        err = finishFrame((VPUCodecBufferRef)info, true);
+        if (err != noErr)
+        {
+            emitBackgroundError(glob, err);
+        }
+    }
+    else
+    {
+        queueEncodedFrame(glob, (VPUCodecBufferRef)info);
+    }
 }
 
 // Presents the compressor with a frame to encode.
@@ -938,7 +939,8 @@ ExampleIPB_CEncodeFrame(
     
     task->sourceFrame = ICMCompressorSourceFrameRetain(sourceFrame);
     task->glob = glob;
-    task->frameNumber = ICMCompressorSourceFrameGetDisplayNumber(sourceFrame); // TODO we could just call this whenever we need it and not store it
+    task->error = noErr;
+    task->encodedFrame = NULL;
     
     VPUCodecTask(Background_Encode, glob->taskGroup, buffer);
     
@@ -947,8 +949,16 @@ ExampleIPB_CEncodeFrame(
         do
         {
             buffer = dequeueFrameNumber(glob, glob->lastFrameOut + 1); // TODO: this function could just look up the next frame number from glob, ah well
-            emitFrame(buffer, false);
+            err = finishFrame(buffer, false);
+            if (err != noErr)
+            {
+                goto bail;
+            }
         } while (buffer != NULL);
+    }
+    else
+    {
+        err = backgroundError(glob);
     }
     
 bail:
@@ -971,6 +981,7 @@ ExampleIPB_CCompleteFrame(
   UInt32 flags )
 {
 #pragma unused (sourceFrame, flags)
+    ComponentResult err = noErr;
     if (glob->taskGroup)
     {
         VPUCodecWaitForTasksToComplete(glob->taskGroup); // TODO: this waits for all pending frames rather than the particular frame
@@ -983,32 +994,53 @@ ExampleIPB_CCompleteFrame(
         {
             buffer = dequeueFrameNumber(glob, glob->lastFrameOut + 1); // TODO: this function could just look up the next frame number from glob, ah well
             
-            emitFrame(buffer, false);
+            err = finishFrame(buffer, false);
+            if (err != noErr)
+            {
+                goto bail;
+            }
 
         } while (buffer != NULL);
     }
-	return noErr;
+    else
+    {
+        err = backgroundError(glob);
+    }
+bail:
+	return err;
 }
 
-static void emitFrame(VPUCodecBufferRef buffer, bool onBackgroundThread)
+static ComponentResult finishFrame(VPUCodecBufferRef buffer, bool onBackgroundThread)
 {
+    ComponentResult err = noErr;
     if (buffer != NULL)
     {
         VPUCodecCompressTask *task = VPUCodecGetBufferBaseAddress(buffer);
+        
+        err = task->error;
+        
         if (onBackgroundThread)
         {
             OSSpinLockLock(&task->glob->lock);
         }
-        task->glob->lastFrameOut = task->frameNumber;
+        task->glob->lastFrameOut = ICMCompressorSourceFrameGetDisplayNumber(task->sourceFrame);
         if (onBackgroundThread)
         {
             OSSpinLockUnlock(&task->glob->lock);
         }
-        ICMCompressorSessionEmitEncodedFrame(task->glob->session, task->encodedFrame, 1, &task->sourceFrame); // TODO: we could maybe emit multiple frames at once if we're able
+        if (task->error == noErr)
+        {
+            ICMCompressorSessionEmitEncodedFrame(task->glob->session, task->encodedFrame, 1, &task->sourceFrame);
+        }
+        else
+        {
+            ICMCompressorSessionDropFrame(task->glob->session, task->sourceFrame);
+        }
         ICMCompressorSourceFrameRelease(task->sourceFrame);
         ICMEncodedFrameRelease(task->encodedFrame);
         VPUCodecReturnBuffer(buffer);
     }
+    return err;
 }
 
 static void queueEncodedFrame(ExampleIPBCompressorGlobals glob, VPUCodecBufferRef frame)
@@ -1065,7 +1097,7 @@ static VPUCodecBufferRef dequeueFrameNumber(ExampleIPBCompressorGlobals glob, in
                 if (glob->finishedFrames[i] != NULL)
                 {
                     VPUCodecCompressTask *task = (VPUCodecCompressTask *)VPUCodecGetBufferBaseAddress(glob->finishedFrames[i]);
-                    if (task->frameNumber == number)
+                    if (ICMCompressorSourceFrameGetDisplayNumber(task->sourceFrame) == number)
                     {
                         found = glob->finishedFrames[i];
                         glob->finishedFrames[i] = NULL;
@@ -1076,6 +1108,21 @@ static VPUCodecBufferRef dequeueFrameNumber(ExampleIPBCompressorGlobals glob, in
         OSSpinLockUnlock(&glob->lock);
     }
     return found;
+}
+
+static void emitBackgroundError(ExampleIPBCompressorGlobals glob, ComponentResult error)
+{
+    // We ignore failure here - if we failed then there is already an error pending delivery
+    OSAtomicCompareAndSwap32(noErr, error, &glob->backgroundError);
+}
+
+static ComponentResult backgroundError(ExampleIPBCompressorGlobals glob)
+{
+    ComponentResult err;
+    do {
+        err = glob->backgroundError;
+    } while (OSAtomicCompareAndSwap32(err, noErr, &glob->backgroundError) == false);
+    return err;
 }
 
 /*
