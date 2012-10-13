@@ -845,6 +845,9 @@ static void Background_Encode(void *info)
     CVPixelBufferUnlockBaseAddress(sourceBuffer, kCVPixelBufferLock_ReadOnly);
     sourceBuffer = NULL;
     
+    // Detach the pixel buffer so it can be recycled
+    ICMCompressorSourceFrameDetachPixelBuffer(task->sourceFrame);
+    
     // Return the format conversion buffer as soon as we can to minimise the number created
     VPUCodecReturnBuffer(formatConvertBuffer);
     formatConvertBuffer = NULL;
@@ -881,10 +884,7 @@ static void Background_Encode(void *info)
 	if (err)
         goto bail;
     
-    // TODO: we could detach the source frame's pixel buffer at this point
-    
 #ifdef DEBUG
-    // TODO: do this on the "main" thread to avoid the lock
     OSSpinLockLock(&glob->lock);
     glob->debugFrameCount++;
     glob->debugLastFrameTime = mach_absolute_time();
