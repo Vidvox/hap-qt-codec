@@ -435,8 +435,7 @@ pascal ComponentResult ExampleIPB_DPreflight(ExampleIPBDecompressorGlobals glob,
         if ((*p->imageDescription)->depth == 32)
         {
             // Currently our only with-alpha format is RGBA DXT5 so assume that
-            (*p->wantedDestinationPixelTypes)[0] = kVPUCVPixelFormat_RGBA_DXT5;
-            p->preferredOffscreenPixelSize = 8;
+            textureFormat = VPUTextureFormat_RGBA_DXT5;
         }
         else
         {
