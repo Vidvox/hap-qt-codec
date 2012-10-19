@@ -453,18 +453,20 @@ pascal ComponentResult ExampleIPB_DPreflight(ExampleIPBDecompressorGlobals glob,
         goto bail;
     }
     
+    // List the QT-native formats first, otherwise QT will prefer our custom formats when transcoding,
+    // but not be able to do anything with them
+    (*p->wantedDestinationPixelTypes)[0] = k32RGBAPixelFormat;
+	(*p->wantedDestinationPixelTypes)[1] = k32BGRAPixelFormat;
+    
     switch (textureFormat) {
         case VPUTextureFormat_RGB_DXT1:
-            (*p->wantedDestinationPixelTypes)[0] = kVPUCVPixelFormat_RGB_DXT1;
-            p->preferredOffscreenPixelSize = 4;
+            (*p->wantedDestinationPixelTypes)[2] = kVPUCVPixelFormat_RGB_DXT1;
             break;
         case VPUTextureFormat_YCoCg_DXT5:
-            (*p->wantedDestinationPixelTypes)[0] = kVPUCVPixelFormat_YCoCg_DXT5;
-            p->preferredOffscreenPixelSize = 8;
+            (*p->wantedDestinationPixelTypes)[2] = kVPUCVPixelFormat_YCoCg_DXT5;
             break;
         case VPUTextureFormat_RGBA_DXT5:
-            (*p->wantedDestinationPixelTypes)[0] = kVPUCVPixelFormat_RGBA_DXT5;
-            p->preferredOffscreenPixelSize = 8;
+            (*p->wantedDestinationPixelTypes)[2] = kVPUCVPixelFormat_RGBA_DXT5;
             break;
         default:
             err = internalComponentErr;
@@ -472,8 +474,6 @@ pascal ComponentResult ExampleIPB_DPreflight(ExampleIPBDecompressorGlobals glob,
             break;
     }
 
-    (*p->wantedDestinationPixelTypes)[1] = k32RGBAPixelFormat;
-	(*p->wantedDestinationPixelTypes)[2] = k32BGRAPixelFormat;
 	(*p->wantedDestinationPixelTypes)[3] = 0;
     
 	// Specify the number of pixels the image must be extended in width and height if
