@@ -109,7 +109,6 @@ typedef struct {
 	ComponentInstance				target;
 	
 	ICMCompressorSessionRef 		session; // NOTE: we do not need to retain or release this
-	ICMCompressionSessionOptionsRef	sessionOptions;
 	
 	long							width;
 	long							height;
@@ -260,9 +259,6 @@ ExampleIPB_CClose(
             printf("uncompressed: %d\n", uncompressed);
         }
 #endif
-		ICMCompressionSessionOptionsRelease( glob->sessionOptions );
-		glob->sessionOptions = NULL;
-        
         VPUCodecDestroyBufferPool(glob->dxtBufferPool);
         
         if (glob->dxtEncoder && glob->dxtEncoder->destroy_function)
@@ -480,11 +476,6 @@ ExampleIPB_CPrepareToCompressFrames(
 	// Note: this is NOT a CF type and should NOT be CFRetained or CFReleased.
 	glob->session = session;
 	
-	// Retain the session options for later use.
-	ICMCompressionSessionOptionsRelease( glob->sessionOptions );
-	glob->sessionOptions = sessionOptions;
-	ICMCompressionSessionOptionsRetain( glob->sessionOptions );
-	
 	// Modify imageDescription
     
     /*
@@ -526,7 +517,7 @@ ExampleIPB_CPrepareToCompressFrames(
 	compressorPixelBufferAttributes = NULL;
 	
     UInt32 depth = 0;
-    err = ICMCompressionSessionOptionsGetProperty( glob->sessionOptions,
+    err = ICMCompressionSessionOptionsGetProperty(sessionOptions,
                                                   kQTPropertyClass_ICMCompressionSessionOptions,
                                                   kICMCompressionSessionOptionsPropertyID_Depth,
                                                   sizeof( depth ),
@@ -554,9 +545,9 @@ ExampleIPB_CPrepareToCompressFrames(
         (*imageDescription)->depth = 24;
     
     CodecQ quality;
-    if(glob->sessionOptions) {
+    if(sessionOptions) {
         
-		err = ICMCompressionSessionOptionsGetProperty(glob->sessionOptions,
+		err = ICMCompressionSessionOptionsGetProperty(sessionOptions,
                                                       kQTPropertyClass_ICMCompressionSessionOptions,
                                                       kICMCompressionSessionOptionsPropertyID_Quality,
                                                       sizeof( quality ),
@@ -621,7 +612,7 @@ ExampleIPB_CPrepareToCompressFrames(
     }
     
     // If we're allowed to, we output frames on a background thread
-    err = ICMCompressionSessionOptionsGetProperty(glob->sessionOptions,
+    err = ICMCompressionSessionOptionsGetProperty(sessionOptions,
                                                   kQTPropertyClass_ICMCompressionSessionOptions,
                                                   kICMCompressionSessionOptionsPropertyID_AllowAsyncCompletion,
                                                   sizeof( Boolean ),
