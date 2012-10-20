@@ -35,7 +35,7 @@ static int VPUPSquishEncoderEncode(VPUPCodecDXTEncoderRef encoder,
                                    unsigned int height)
 {
 #pragma unused(encoder)
-    if (src_pixel_format != k32RGBAPixelFormat || src_bytes_per_row != width * 4) return 1;
+    if (src_pixel_format != k32RGBAPixelFormat) return 1;
     // Squish won't tolerate extra bytes at the ends of rows
     // so we have to copy to a temporary buffer
     // TODO: probably easy to modify squish to take a rowBytes argument
@@ -61,7 +61,6 @@ static int VPUPSquishEncoderEncode(VPUPCodecDXTEncoderRef encoder,
             memcpy(bufferBaseAddress + (needed_bytes_per_row * i), src + (src_bytes_per_row * i), needed_bytes_per_row);
         }
         src = bufferBaseAddress;
-        src_bytes_per_row = needed_bytes_per_row;
     }
     
     // TODO: it may be faster to split the image into blocks ourself and do them in parallel
