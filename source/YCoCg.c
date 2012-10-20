@@ -127,7 +127,7 @@ void ConvertCoYCgA8888ToRGBA( uint8_t *src, uint8_t *dst, unsigned long width, u
 
 void ConvertBGRAToCoYCgA8888( uint8_t *src, uint8_t *dst, unsigned long width, unsigned long height, size_t src_rowbytes, size_t dst_rowbytes )
 {
-    const int32_t post_bias[4] = { 512, 512, 0, 0 };
+    const int32_t post_bias[4] = { 512, 0, 512, 0 };
 
     const int16_t matrix[16] = {
         -2,  1, -1,  0, // B
@@ -141,7 +141,7 @@ void ConvertBGRAToCoYCgA8888( uint8_t *src, uint8_t *dst, unsigned long width, u
 
 void ConvertCoYCgA8888ToBGRA( uint8_t *src, uint8_t *dst, unsigned long width, unsigned long height, size_t src_rowbytes, size_t dst_rowbytes )
 {
-    const int16_t pre_bias[4] = { -128, -128, 0, 0 };
+    const int16_t pre_bias[4] = { -128, 0, -128, 0 };
 
     const int16_t matrix[16] = {
         -1,  0,  1,  0, // Co
