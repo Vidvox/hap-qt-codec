@@ -565,25 +565,17 @@ ExampleIPB_CPrepareToCompressFrames(
     // This isn't a particularly clear way to highlite the speed gain it offers.
     // http://developer.apple.com/library/mac/#technotes/tn2081/_index.html if we want to remove the Quality slider and provide custom UI
     
-    if (quality < codecLowQuality)
+    if (quality <= codecLowQuality)
     {
         glob->dxtEncoder = VPUPGLEncoderCreate(glob->width, glob->height, alpha ? kVPUCVPixelFormat_RGBA_DXT5 : kVPUCVPixelFormat_RGB_DXT1);
         glob->dxtFormat = alpha ? VPUTextureFormat_RGBA_DXT5 : VPUTextureFormat_RGB_DXT1;
     }
-    if (glob->dxtEncoder == NULL && (quality < codecMaxQuality || alpha))
+    else if (quality < codecMaxQuality || alpha)
     {
-        VPUPCodecSquishEncoderQuality encoder_quality;
-        if (quality < codecNormalQuality)
-            encoder_quality = VPUPCodecSquishEncoderWorstQuality;
-        else if (quality < codecHighQuality)
-            encoder_quality = VPUPCodecSquishEncoderMediumQuality;
-        else
-            encoder_quality = VPUPCodecSquishEncoderBestQuality;
-        
-        glob->dxtEncoder = VPUPSquishEncoderCreate(encoder_quality, alpha ? kVPUCVPixelFormat_RGBA_DXT5 : kVPUCVPixelFormat_RGB_DXT1);
+        glob->dxtEncoder = VPUPSquishEncoderCreate(VPUPCodecSquishEncoderMediumQuality, alpha ? kVPUCVPixelFormat_RGBA_DXT5 : kVPUCVPixelFormat_RGB_DXT1);
         glob->dxtFormat = alpha ? VPUTextureFormat_RGBA_DXT5 : VPUTextureFormat_RGB_DXT1;
     }
-    if (glob->dxtEncoder == NULL)
+    else
     {
         glob->dxtEncoder = VPUPYCoCgDXTEncoderCreate();
         glob->dxtFormat = VPUTextureFormat_YCoCg_DXT5;
