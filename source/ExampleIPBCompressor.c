@@ -1331,7 +1331,6 @@ ComponentResult ExampleIPB_CDITLInstall(ExampleIPBCompressorGlobals glob,
         
         if (compressor && CFEqual(compressor, kSettingsSecondaryCompressorLZF)) compressorPopupIndex = 2;
         else if (compressor && CFEqual(compressor, kSettingsSecondaryCompressorZLIB)) compressorPopupIndex = 3;
-        else compressorPopupIndex = 1;
         
         CFBooleanRef preserveAlpha = CFDictionaryGetValue(glob->settings, kSettingsPreserveAlphaKey);
         if (preserveAlpha && CFEqual(preserveAlpha, kCFBooleanTrue))
@@ -1339,21 +1338,17 @@ ComponentResult ExampleIPB_CDITLInstall(ExampleIPBCompressorGlobals glob,
             alphaCheckboxValue = 1;
         }
         
-        CFNumberRef quality = CFDictionaryGetValue(glob->settings, kSettingsQualityKey);
-        if (quality && CFGetTypeID(quality) == CFNumberGetTypeID())
+        if (dictionaryHasValueForKeyOfTypeID(glob->settings, kSettingsQualityKey, CFNumberGetTypeID()))
         {
+            CFNumberRef quality = CFDictionaryGetValue(glob->settings, kSettingsQualityKey);
             SInt32 value = 0;
             if (CFNumberGetValue(quality, kCFNumberSInt32Type, &value))
             {
-                if (value < codecNormalQuality)
-                {
-                    qualitySliderValue = 0;
-                }
-                else if (value > codecNormalQuality)
+                if (value > codecNormalQuality)
                 {
                     qualitySliderValue = 2;
                 }
-                else
+                else if (value > codecLowQuality)
                 {
                     qualitySliderValue = 1;
                 }
