@@ -133,8 +133,10 @@ SUCH DAMAGE.
 // These flags specify the possible format of compressed data produced by the component
 // and the format of compressed files that the component can handle during decompression
 // The component can decompress from files at 24 and 32-bit depths
-#define kIPBFormatFlags	( codecInfoDepth24 | codecInfoDepth32 )
+//#define kIPBFormatFlags	( codecInfoDepth24 | codecInfoDepth32 )
+// We suppress codecInfoDepth32 to keep the depth selection out of the UI
 
+#define kIPBFormatFlags	( codecInfoDepth24 )
 #define kVPUNameResID 256
 #define kVPUDecompressorDescriptionResID 258
 #define kVPUCompressorDescriptionResID 259
@@ -290,8 +292,13 @@ resource 'dlle' (258) {
 resource 'thnr' (256) {
     {
         'cdci', 1, 0, 'cdci', 256, cmpResourceNoFlags,
-        'cpix', 1, 0, 'cpix', 256, cmpResourceNoFlags
+        'cpix', 1, 0, 'cpix', 256, cmpResourceNoFlags,
+        'ccop', 1, 0, 'ccop', 256, cmpResourceNoFlags,
     }
+};
+
+resource 'ccop' (256) {
+    kCodecCompressionNoQuality;
 };
 
 // TODO: if we only take RGBA we probably don't need this
@@ -311,14 +318,24 @@ resource 'cpix' (256) {
 #define kMyCodecDITLResID 129
 #define kMyCodecPopupCNTLResID 129
 #define kMyCodecPopupMENUResID 129
- 
-#define POPUP_CONTROL_HEIGHT 22
- 
+#define kMyCodecSliderCNTLResID 130
+
+#define POPUP_H 22
+#define SPACING 16
+#define TEXT_H 16
+#define SLIDER_H 26
+
 resource 'DITL' (kMyCodecDITLResID, "Compressor Options") {
 {
- {0, 0,
-  POPUP_CONTROL_HEIGHT, 185},
- Control { enabled, kMyCodecPopupCNTLResID },
+    {2, 0, 2 + TEXT_H, 50}, StaticText { disabled, "Quality:" },
+
+    {0, 50 + 8, SLIDER_H, 300}, Control { enabled, kMyCodecSliderCNTLResID },
+    
+    {SLIDER_H + SPACING, 0, SLIDER_H + SPACING + TEXT_H, 185}, CheckBox { enabled, "Preserve Alpha" },
+
+    {TEXT_H + SPACING + SLIDER_H + SPACING, 0, TEXT_H + SPACING + SLIDER_H + SPACING + POPUP_H, 185}, Control { enabled, kMyCodecPopupCNTLResID },
+    
+    {TEXT_H + SPACING + SLIDER_H + SPACING + POPUP_H + SPACING, 0, TEXT_H + SPACING + SLIDER_H + SPACING + POPUP_H + SPACING + TEXT_H, 185}, StaticText { disabled, "" },
  };
 };
  
@@ -348,4 +365,30 @@ resource 'MENU' (kMyCodecPopupMENUResID, "Compressor Popup") {
   "ZLIB", noIcon, noKey, noMark, plain
  }
 };
+
+resource 'CNTL' (kMyCodecSliderCNTLResID, "Quality Slider"){
+	{0,0,26,185},
+    3/*value:initially, # of ticks*/,
+    visible,
+    /*max*/0x2,
+    /*min*/0,
+    kControlSliderProc|kControlSliderHasTickMarks,
+    0,
+    ""
+};
+
+
+/*
+resource 'CNTL' (kMyCodecBoxCNTLResID, "Quality Box"){
+	{0,0,100,185},
+    0,
+    visible,
+    0,
+    0,
+    kControlGroupBoxTextTitleProc,
+    0,
+    "Quality"
+};
+*/
+
 #endif // COMP_BUILD

@@ -26,6 +26,19 @@ void addDoubleToDictionary( CFMutableDictionaryRef dictionary, CFStringRef key, 
 	CFRelease( number );
 }
 
+Boolean dictionaryHasValueForKeyOfTypeID( CFDictionaryRef dictionary, CFStringRef key, CFTypeID expectedCFType )
+{
+    if (dictionary)
+    {
+        CFTypeRef value = CFDictionaryGetValue(dictionary, key);
+        if (value && CFGetTypeID(value) == expectedCFType)
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
 // Utility to round up to a multiple of 16.
 int roundUpToMultipleOf16( int n )
 {

@@ -134,6 +134,8 @@ typedef struct {
     unsigned int                    dxtFormat;
     unsigned int                    vpuCompressor;
     unsigned int                    taskGroup;
+    
+    CFMutableDictionaryRef          settings; // Settings from our settings dialog if applicable
 #ifdef DEBUG
     unsigned int                    debugFrameCount;
     uint64_t                        debugStartTime;
@@ -178,6 +180,31 @@ struct VPUCodecCompressTask
 #include <ComponentDispatchHelper.c>
 #endif
 
+/*
+ kSettingsSecondaryCompressorKey
+ 
+ value is one of the following CFStrings
+ */
+#define kSettingsSecondaryCompressorKey CFSTR("com.vidvox.vpup.settings.secondary-compressor")
+
+#define kSettingsSecondaryCompressorSnappy CFSTR("snappy")
+#define kSettingsSecondaryCompressorLZF CFSTR("lzf")
+#define kSettingsSecondaryCompressorZLIB CFSTR("zlib")
+
+/*
+ kSettingsPreserveAlphaKey
+ 
+ value is a CFBoolean
+ */
+#define kSettingsPreserveAlphaKey CFSTR("com.vidvox.vpup.settings.preserve-alpha")
+
+/*
+ kSettingsQualityKey
+ 
+ value is a CFNumber representing a CodecQ
+ */
+#define kSettingsQualityKey CFSTR("com.vidvox.vpup.settings.quality")
+
 static ComponentResult finishFrame(VPUCodecBufferRef buffer, bool onBackgroundThread);
 static void queueEncodedFrame(ExampleIPBCompressorGlobals glob, VPUCodecBufferRef frame);
 static VPUCodecBufferRef dequeueFrameNumber(ExampleIPBCompressorGlobals glob, int number);
@@ -219,6 +246,8 @@ ExampleIPB_COpen(
     glob->vpuCompressor = VPUCompressorSnappy;
     
     glob->backgroundError = noErr;
+    
+    glob->settings = NULL;
     
 bail:
     debug_print_err(glob, err);
@@ -278,6 +307,12 @@ ExampleIPB_CClose(
             VPUCodecWillStopTasks();
         }
         
+        if (glob->settings)
+        {
+            CFRelease(glob->settings);
+            glob->settings = NULL;
+        }
+        
 		free( glob );
 	}
 	
@@ -335,6 +370,10 @@ ExampleIPB_CGetCodecInfo(ExampleIPBCompressorGlobals glob, CodecInfo *info)
         {
 			*info = **tempCodecInfo;
 			DisposeHandle((Handle)tempCodecInfo);
+            
+            // We suppress this from the resource to avoid having the user-confusing Millions+ menu
+            // but we can hand it out to any other interested parties
+            info->formatFlags |= codecInfoDepth32;
 		}
 	}
     
@@ -516,27 +555,37 @@ ExampleIPB_CPrepareToCompressFrames(
 	*compressorPixelBufferAttributesOut = compressorPixelBufferAttributes;
 	compressorPixelBufferAttributes = NULL;
 	
-    UInt32 depth = 0;
-    err = ICMCompressionSessionOptionsGetProperty(sessionOptions,
-                                                  kQTPropertyClass_ICMCompressionSessionOptions,
-                                                  kICMCompressionSessionOptionsPropertyID_Depth,
-                                                  sizeof( depth ),
-                                                  &depth,
-                                                  NULL );
-    if( err )
-        goto bail;
-    
     bool alpha;
-    // Different apps send different things here...
-    switch (depth) {
-        case k32BGRAPixelFormat:
-        case 32:
-            alpha = true;
-            break;
-        default:
-            // Treat any other depth as k24BGRPixelFormat
-            alpha = false;;
-            break;
+    
+    if (dictionaryHasValueForKeyOfTypeID(glob->settings, kSettingsPreserveAlphaKey, CFBooleanGetTypeID()))
+    {
+        CFBooleanRef alphaFromSettings = CFDictionaryGetValue(glob->settings, kSettingsPreserveAlphaKey);
+        alpha = CFBooleanGetValue(alphaFromSettings);
+    }
+    else
+    {
+        UInt32 depth = 0;
+        err = ICMCompressionSessionOptionsGetProperty(sessionOptions,
+                                                      kQTPropertyClass_ICMCompressionSessionOptions,
+                                                      kICMCompressionSessionOptionsPropertyID_Depth,
+                                                      sizeof( depth ),
+                                                      &depth,
+                                                      NULL );
+        if( err )
+            goto bail;
+        
+        
+        // Different apps send different things here...
+        switch (depth) {
+            case k32BGRAPixelFormat:
+            case 32:
+                alpha = true;
+                break;
+            default:
+                // Treat any other depth as k24BGRPixelFormat
+                alpha = false;;
+                break;
+        }
     }
     
     if (alpha)
@@ -545,32 +594,46 @@ ExampleIPB_CPrepareToCompressFrames(
         (*imageDescription)->depth = 24;
     
     CodecQ quality;
-    if(sessionOptions) {
-        
-		err = ICMCompressionSessionOptionsGetProperty(sessionOptions,
-                                                      kQTPropertyClass_ICMCompressionSessionOptions,
-                                                      kICMCompressionSessionOptionsPropertyID_Quality,
-                                                      sizeof( quality ),
-                                                      &quality,
-                                                      NULL );
-		if( err )
-			goto bail;
+    
+    if (dictionaryHasValueForKeyOfTypeID(glob->settings, kSettingsQualityKey, CFNumberGetTypeID()))
+    {
+        CFNumberRef qualityFromSettings = CFDictionaryGetValue(glob->settings, kSettingsQualityKey);
+        SInt32 qualitySInt;
+        if (CFNumberGetValue(qualityFromSettings, kCFNumberSInt32Type, &qualitySInt))
+        {
+            quality = qualitySInt;
+        }
+        else
+        {
+            err = internalComponentErr;
+            goto bail;
+        }
     }
     else
     {
-        quality = codecLosslessQuality;
+        if(sessionOptions) {
+            
+            err = ICMCompressionSessionOptionsGetProperty(sessionOptions,
+                                                          kQTPropertyClass_ICMCompressionSessionOptions,
+                                                          kICMCompressionSessionOptionsPropertyID_Quality,
+                                                          sizeof( quality ),
+                                                          &quality,
+                                                          NULL );
+            if( err )
+                goto bail;
+        }
+        else
+        {
+            quality = codecLosslessQuality;
+        }
     }
-    
-    // TODO: currently we use quality to enable the faster, lower quality compressor.
-    // This isn't a particularly clear way to highlite the speed gain it offers.
-    // http://developer.apple.com/library/mac/#technotes/tn2081/_index.html if we want to remove the Quality slider and provide custom UI
     
     if (quality <= codecLowQuality)
     {
         glob->dxtEncoder = VPUPGLEncoderCreate(glob->width, glob->height, alpha ? kVPUCVPixelFormat_RGBA_DXT5 : kVPUCVPixelFormat_RGB_DXT1);
         glob->dxtFormat = alpha ? VPUTextureFormat_RGBA_DXT5 : VPUTextureFormat_RGB_DXT1;
     }
-    else if (quality < codecMaxQuality || alpha)
+    else if (quality < codecHighQuality || alpha)
     {
         glob->dxtEncoder = VPUPSquishEncoderCreate(VPUPCodecSquishEncoderMediumQuality, alpha ? kVPUCVPixelFormat_RGBA_DXT5 : kVPUCVPixelFormat_RGB_DXT1);
         glob->dxtFormat = alpha ? VPUTextureFormat_RGBA_DXT5 : VPUTextureFormat_RGB_DXT1;
@@ -627,6 +690,27 @@ ExampleIPB_CPrepareToCompressFrames(
     }
     
     glob->maxEncodedDataSize = VPUMaxEncodedLength(wantedDXTSize);
+    
+    if (dictionaryHasValueForKeyOfTypeID(glob->settings, kSettingsSecondaryCompressorKey, CFStringGetTypeID()))
+    {
+        CFStringRef compressorFromSettings = CFDictionaryGetValue(glob->settings, kSettingsSecondaryCompressorKey);
+        if (CFEqual(compressorFromSettings, kSettingsSecondaryCompressorZLIB))
+        {
+            glob->vpuCompressor = VPUCompressorZLIB;
+        }
+        else if (CFEqual(compressorFromSettings, kSettingsSecondaryCompressorLZF))
+        {
+            glob->vpuCompressor = VPUCompressorLZF;
+        }
+        else
+        {
+            glob->vpuCompressor = VPUCompressorSnappy;
+        }
+    }
+    else
+    {
+        glob->vpuCompressor = VPUCompressorSnappy;
+    }
     
 #ifdef DEBUG
     char *compressor_str;
@@ -1109,37 +1193,11 @@ static ComponentResult backgroundError(ExampleIPBCompressorGlobals glob)
 }
 
 /*
- These values are stored in users' compression settings, don't change them
+ Compressor Settings
+ 
+ http://developer.apple.com/library/mac/#technotes/tn2081/_index.html
+ 
  */
-#define kVPUCompressorSnappy 1
-#define kVPUCompressorLZF 2
-#define kVPUCompressorZLIB 3
-
-static UInt8 storedConstantForCompressor(unsigned int compressor)
-{
-    switch (compressor) {
-        case VPUCompressorLZF:
-            return kVPUCompressorLZF;
-        case VPUCompressorZLIB:
-            return kVPUCompressorZLIB;
-        case VPUCompressorSnappy:
-        default:
-            return kVPUCompressorSnappy;
-    }
-}
-
-static unsigned int compressorForStoredConstant(UInt8 constant)
-{
-    switch (constant) {
-        case kVPUCompressorLZF:
-            return VPUCompressorLZF;
-        case kVPUCompressorZLIB:
-            return VPUCompressorZLIB;
-        case kVPUCompressorSnappy:
-        default:
-            return VPUCompressorSnappy;
-    }
-}
 
 ComponentResult ExampleIPB_CGetSettings(ExampleIPBCompressorGlobals glob, Handle settings)
 {
@@ -1151,9 +1209,29 @@ ComponentResult ExampleIPB_CGetSettings(ExampleIPBCompressorGlobals glob, Handle
     }
     else
     {
-        SetHandleSize(settings, 5);
-        ((UInt32 *) *settings)[0] = 'VPUV';
-        ((UInt8 *) *settings)[4] = storedConstantForCompressor(glob->vpuCompressor);
+        if (glob->settings)
+        {
+            CFDataRef data = CFPropertyListCreateData(kCFAllocatorDefault,
+                                                      glob->settings,
+                                                      kCFPropertyListXMLFormat_v1_0,
+                                                      0,
+                                                      NULL);
+            if (data)
+            {
+                CFIndex length = CFDataGetLength(data);
+                SetHandleSize(settings, length);
+                CFDataGetBytes(data, CFRangeMake(0, length), (UInt8 *)*settings);
+                CFRelease(data);
+            }
+            else
+            {
+                err = internalComponentErr;
+            }
+        }
+        else
+        {
+            SetHandleSize(settings, 0);
+        }
     }
     
     debug_print_err(glob, err);
@@ -1164,17 +1242,42 @@ ComponentResult ExampleIPB_CSetSettings(ExampleIPBCompressorGlobals glob, Handle
 {
     ComponentResult err = noErr;
     
-    if (!settings || GetHandleSize(settings) == 0)
+    if (glob->settings) CFRelease(glob->settings);
+    glob->settings = NULL;
+    
+    Size settingsSize;
+    
+    if (settings) settingsSize = GetHandleSize(settings);
+    else settingsSize = 0;
+    
+    if (settingsSize == 5 && ((UInt32 *) *settings)[0] == 'VPUV')
     {
-        glob->vpuCompressor = VPUCompressorSnappy;
+        // this was our old style of settings, never in a distributed build, we ignore them
     }
-    else if (GetHandleSize(settings) == 5 && ((UInt32 *) *settings)[0] == 'VPUV')
+    else if (settingsSize != 0)
     {
-        glob->vpuCompressor = compressorForStoredConstant(((UInt8 *) *settings)[4]);
-    }
-    else
-    {
-        err = paramErr;
+        CFDataRef data = CFDataCreateWithBytesNoCopy(kCFAllocatorDefault, (UInt8 *)*settings, GetHandleSize(settings), kCFAllocatorNull);
+        CFPropertyListRef propertyList = CFPropertyListCreateWithData(kCFAllocatorDefault,
+                                                                      data,
+                                                                      kCFPropertyListMutableContainers,
+                                                                      NULL,
+                                                                      NULL);
+        
+        if (data) CFRelease(data);
+        
+        if (propertyList)
+        {
+            if (CFGetTypeID(propertyList) == CFDictionaryGetTypeID())
+            {
+                glob->settings  = (CFMutableDictionaryRef)propertyList;
+            }
+            else
+            {
+                CFRelease(propertyList);
+            }
+        }
+        
+        if (glob->settings == NULL) err = internalComponentErr;
     }
     
     debug_print_err(glob, err);
@@ -1182,8 +1285,6 @@ ComponentResult ExampleIPB_CSetSettings(ExampleIPBCompressorGlobals glob, Handle
 }
 
 #define kMyCodecDITLResID 129
-#define kMyCodecPopupCNTLResID 129
-#define kMyCodecPopupMENUResID 129
 
 ComponentResult ExampleIPB_CGetDITLForSize(ExampleIPBCompressorGlobals glob,
                                            Handle *ditl,
@@ -1208,7 +1309,10 @@ ComponentResult ExampleIPB_CGetDITLForSize(ExampleIPBCompressorGlobals glob,
     return err;
 }
 
-#define kItemPopup 1
+#define kItemSlider 2
+#define kItemCheckbox 3
+#define kItemPopup 4
+#define kItemText 5
 
 ComponentResult ExampleIPB_CDITLInstall(ExampleIPBCompressorGlobals glob,
                                         DialogRef d,
@@ -1217,11 +1321,68 @@ ComponentResult ExampleIPB_CDITLInstall(ExampleIPBCompressorGlobals glob,
 #pragma unused(glob)
     ControlRef cRef;
     
-    unsigned long popupValue = storedConstantForCompressor(glob->vpuCompressor);
+    CFIndex compressorPopupIndex = 1;
+    unsigned long alphaCheckboxValue = 0;
+    unsigned long qualitySliderValue = 0;
+    
+    if (glob->settings)
+    {
+        CFStringRef compressor = CFDictionaryGetValue(glob->settings, kSettingsSecondaryCompressorKey);
+        
+        if (compressor && CFEqual(compressor, kSettingsSecondaryCompressorLZF)) compressorPopupIndex = 2;
+        else if (compressor && CFEqual(compressor, kSettingsSecondaryCompressorZLIB)) compressorPopupIndex = 3;
+        else compressorPopupIndex = 1;
+        
+        CFBooleanRef preserveAlpha = CFDictionaryGetValue(glob->settings, kSettingsPreserveAlphaKey);
+        if (preserveAlpha && CFEqual(preserveAlpha, kCFBooleanTrue))
+        {
+            alphaCheckboxValue = 1;
+        }
+        
+        CFNumberRef quality = CFDictionaryGetValue(glob->settings, kSettingsQualityKey);
+        if (quality && CFGetTypeID(quality) == CFNumberGetTypeID())
+        {
+            SInt32 value = 0;
+            if (CFNumberGetValue(quality, kCFNumberSInt32Type, &value))
+            {
+                if (value < codecNormalQuality)
+                {
+                    qualitySliderValue = 0;
+                }
+                else if (value > codecNormalQuality)
+                {
+                    qualitySliderValue = 2;
+                }
+                else
+                {
+                    qualitySliderValue = 1;
+                }
+            }
+        }
+    }
     
     GetDialogItemAsControl(d, kItemPopup + itemOffset, &cRef);
-    SetControl32BitValue(cRef, popupValue);
-
+    SetControl32BitValue(cRef, compressorPopupIndex);
+    
+    GetDialogItemAsControl(d, kItemCheckbox + itemOffset, &cRef);
+    SetControl32BitValue(cRef, alphaCheckboxValue);
+    
+    GetDialogItemAsControl(d, kItemSlider + itemOffset, &cRef);
+    SetControl32BitValue(cRef, qualitySliderValue);
+    
+    GetDialogItemAsControl(d, kItemText + itemOffset, &cRef);
+    
+    CFStringRef sizeString;
+    
+    if (alphaCheckboxValue == 1 || qualitySliderValue == 2)
+        sizeString = CFSTR("File Size: Large");
+    else
+        sizeString = CFSTR("File Size: Normal");
+    
+    HIViewSetText(cRef, sizeString);
+    HIViewSetNeedsDisplay(cRef, true);
+    HIViewRender(cRef);
+    
     return noErr;
 }
 
@@ -1242,8 +1403,15 @@ ComponentResult ExampleIPB_CDITLItem(ExampleIPBCompressorGlobals glob,
                                      short itemOffset,
                                      short itemNum)
 {
-#pragma unused(glob, d, itemOffset, itemNum)
+#pragma unused(glob)
+    ControlRef cRef;
     
+    switch (itemNum - itemOffset) {
+        case kItemCheckbox:
+            GetDialogItemAsControl(d, itemOffset + kItemCheckbox, &cRef);
+            SetControl32BitValue(cRef, !GetControl32BitValue(cRef));
+            break;
+    }
     return noErr;
 }
 
@@ -1253,12 +1421,68 @@ ComponentResult ExampleIPB_CDITLRemove(ExampleIPBCompressorGlobals glob,
 {
     ControlRef cRef;
     unsigned long popupValue;
+    unsigned long alphaCheckboxValue;
+    unsigned long qualitySliderValue;
     
     GetDialogItemAsControl(d, kItemPopup + itemOffset, &cRef);
     popupValue = GetControl32BitValue(cRef);
     
-    glob->vpuCompressor = compressorForStoredConstant(popupValue);
-
+    GetDialogItemAsControl(d, kItemCheckbox + itemOffset, &cRef);
+    alphaCheckboxValue = GetControl32BitValue(cRef);
+    
+    GetDialogItemAsControl(d, kItemSlider + itemOffset, &cRef);
+    qualitySliderValue = GetControl32BitValue(cRef);
+    
+    if (glob->settings == NULL)
+    {
+        glob->settings = CFDictionaryCreateMutable(kCFAllocatorDefault, 2, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
+    }
+    
+    if (glob->settings)
+    {
+        CFStringRef compressor;
+        
+        switch (popupValue) {
+            case 2:
+                compressor = kSettingsSecondaryCompressorLZF;
+                break;
+            case 3:
+                compressor = kSettingsSecondaryCompressorZLIB;
+                break;
+            default:
+                compressor = kSettingsSecondaryCompressorSnappy;
+        }
+        
+        CFDictionarySetValue(glob->settings, kSettingsSecondaryCompressorKey, compressor);
+        
+        CFBooleanRef alpha = alphaCheckboxValue ? kCFBooleanTrue : kCFBooleanFalse;
+        
+        CFDictionarySetValue(glob->settings, kSettingsPreserveAlphaKey, alpha);
+        
+        SInt32 value;
+        switch (qualitySliderValue) {
+            case 2:
+                value = codecHighQuality;
+                break;
+            case 1:
+                value = codecNormalQuality;
+                break;
+            default:
+                value = codecLowQuality;
+        }
+        
+        CFNumberRef quality = CFNumberCreate(kCFAllocatorDefault, kCFNumberSInt32Type, &value);
+        if (quality)
+        {
+            CFDictionarySetValue(glob->settings, kSettingsQualityKey, quality);
+            CFRelease(quality);
+        }
+        else
+        {
+            CFDictionaryRemoveValue(glob->settings, kSettingsQualityKey);
+        }
+    }
+    
     return noErr;
 }
 

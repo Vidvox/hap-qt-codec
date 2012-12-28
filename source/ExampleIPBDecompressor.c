@@ -953,6 +953,10 @@ pascal ComponentResult ExampleIPB_DGetCodecInfo(ExampleIPBDecompressorGlobals gl
         {
 			*info = **tempCodecInfo;
 			DisposeHandle((Handle)tempCodecInfo);
+            
+            // We suppress this from the resource to avoid having the user-confusing Millions+ menu
+            // but we can hand it out to any other interested parties
+            info->formatFlags |= codecInfoDepth32;
 		}
 	}
     
