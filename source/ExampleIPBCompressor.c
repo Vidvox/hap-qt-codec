@@ -421,7 +421,6 @@ createPixelBufferAttributesDictionary( SInt32 width, SInt32 height,
 	CFMutableDictionaryRef pixelBufferAttributes = NULL;
 	CFNumberRef number = NULL;
 	CFMutableArrayRef array = NULL;
-//	SInt32 widthRoundedUp, heightRoundedUp, extendRight, extendBottom;
 	
 	pixelBufferAttributes = CFDictionaryCreateMutable( 
                                                       NULL, 0, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks );
@@ -451,26 +450,9 @@ createPixelBufferAttributesDictionary( SInt32 width, SInt32 height,
 	addNumberToDictionary( pixelBufferAttributes, kCVPixelBufferWidthKey, width );
 	addNumberToDictionary( pixelBufferAttributes, kCVPixelBufferHeightKey, height );
 	
-	// If you want to require that extra scratch pixels be allocated on the edges of source pixel buffers,
-	// add the kCVPixelBufferExtendedPixels{Left,Top,Right,Bottom}Keys to indicate how much.
-	// Internally our encoded can only support multiples of 16x16 macroblocks; 
-	// we will round the compression dimensions up to a multiple of 16x16 and encode that size.  
-	// (Note that if your compressor needs to copy the pixels anyhow (eg, in order to convert to a different 
-	// format) you may get better performance if your copy routine does not require extended pixels.)
-//	widthRoundedUp = roundUpToMultipleOf16( width );
-//	heightRoundedUp = roundUpToMultipleOf16( height );
-//	extendRight = widthRoundedUp - width;
-//	extendBottom = heightRoundedUp - height;
-//	if( extendRight || extendBottom ) {
-//		addNumberToDictionary( pixelBufferAttributes, kCVPixelBufferExtendedPixelsRightKey, extendRight );
-//		addNumberToDictionary( pixelBufferAttributes, kCVPixelBufferExtendedPixelsBottomKey, extendBottom );
-//	}
-	
-	// Altivec code is most efficient reading data aligned at addresses that are multiples of 16.
-	// Pretending that we have some altivec code, we set kCVPixelBufferBytesPerRowAlignmentKey to
-	// ensure that each row of pixels starts at a 16-byte-aligned address.
-    // TODO: if we only require that we are 4-byte aligned then reduce this
-//	addNumberToDictionary( pixelBufferAttributes, kCVPixelBufferBytesPerRowAlignmentKey, 16 );
+	// If we will use vImage it prefers 16-byte alignment - we set it always, but we could only set it if
+    // the encoder needs it, however most buffers are 16-byte aligned anyway even without asking.
+	addNumberToDictionary( pixelBufferAttributes, kCVPixelBufferBytesPerRowAlignmentKey, 16 );
 	
 	// This codec accepts YCbCr input in the form of '2vuy' format pixel buffers.
 	// We recommend explicitly defining the gamma level and YCbCr matrix that should be used.
@@ -762,6 +744,7 @@ bail:
 static void Background_Encode(void *info)
 {
     VPUCodecBufferRef formatConvertBuffer = NULL;
+    size_t formatConvertBufferBytesPerRow;
     VPUCodecBufferRef dxtBuffer = NULL;
     CVPixelBufferRef sourceBuffer = NULL;
     VPUCodecCompressTask *task = VPUCodecGetBufferBaseAddress((VPUCodecBufferRef)info);
@@ -795,7 +778,8 @@ static void Background_Encode(void *info)
     {
         // TODO: right now all the pixel formats we accept have the same number of bits per pixel
         // but we will accept DXT etc buffers in, so this will have to be more flexible
-        size_t wantedBufferSize = glob->width * glob->height * 4;
+        formatConvertBufferBytesPerRow = roundUpToMultipleOf16(glob->width * 4);
+        size_t wantedBufferSize = formatConvertBufferBytesPerRow * glob->height;
         if (VPUCodecGetBufferPoolBufferSize(glob->formatConvertPool) != wantedBufferSize)
         {
             VPUCodecDestroyBufferPool(glob->formatConvertPool);
@@ -820,7 +804,7 @@ static void Background_Encode(void *info)
                                             glob->width,
                                             glob->height,
                                             sourceBytesPerRow,
-                                            glob->width * 4);
+                                            formatConvertBufferBytesPerRow);
                 }
                 else
                 {
@@ -829,7 +813,7 @@ static void Background_Encode(void *info)
                                             glob->width,
                                             glob->height,
                                             sourceBytesPerRow,
-                                            glob->width * 4);
+                                            formatConvertBufferBytesPerRow);
                 }
                 break;
             case k32RGBAPixelFormat:
@@ -846,7 +830,7 @@ static void Background_Encode(void *info)
                         VPUCodecGetBufferBaseAddress(formatConvertBuffer),
                         glob->height,
                         glob->width,
-                        glob->width * 4
+                        formatConvertBufferBytesPerRow
                     };
                     
                     uint8_t permuteMap[] = {2, 1, 0, 3};
@@ -885,7 +869,7 @@ static void Background_Encode(void *info)
     if (formatConvertBuffer)
     {
         encode_src = VPUCodecGetBufferBaseAddress(formatConvertBuffer);
-        encode_src_bytes_per_row = glob->width * 4;
+        encode_src_bytes_per_row = formatConvertBufferBytesPerRow;
     }
     else
     {
