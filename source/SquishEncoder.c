@@ -14,14 +14,12 @@
 struct VPUPCodecSquishEncoder {
     struct VPUPCodecDXTEncoder base;
     int flags;
-    VPUCodecBufferPoolRef pool;
 };
 
 static void VPUPSquishEncoderDestroy(VPUPCodecDXTEncoderRef encoder)
 {
     if (encoder)
     {
-        VPUCodecDestroyBufferPool(((struct VPUPCodecSquishEncoder *)encoder)->pool);
         free(encoder);
     }
 }
@@ -36,38 +34,71 @@ static int VPUPSquishEncoderEncode(VPUPCodecDXTEncoderRef encoder,
 {
 #pragma unused(encoder)
     if (src_pixel_format != k32RGBAPixelFormat) return 1;
-    // Squish won't tolerate extra bytes at the ends of rows
-    // so we have to copy to a temporary buffer
-    // TODO: probably easy to modify squish to take a rowBytes argument
-    // or just compress beyond the edge of the image if the extra bytes can pretend to be whole pixels
-    unsigned int needed_bytes_per_row = width * 4;
-    VPUCodecBufferRef buffer = NULL;
     
-    if (src_bytes_per_row != needed_bytes_per_row)
-    {
-        unsigned int wanted_buffer_size = height * needed_bytes_per_row;
-        if (VPUCodecGetBufferPoolBufferSize(((struct VPUPCodecSquishEncoder *)encoder)->pool) != wanted_buffer_size)
-        {
-            VPUCodecDestroyBufferPool(((struct VPUPCodecSquishEncoder *)encoder)->pool);
-            ((struct VPUPCodecSquishEncoder *)encoder)->pool = VPUCodecCreateBufferPool(wanted_buffer_size);
-        }
-        buffer = VPUCodecGetBuffer(((struct VPUPCodecSquishEncoder *)encoder)->pool);
-        if (buffer == NULL) return 1;
+    // We feed Squish block by block to handle extra bytes at the ends of rows
+    
+	uint8_t* dst_block = (uint8_t *)dst;
+	int bytes_per_block = ( ( ((struct VPUPCodecSquishEncoder *)encoder)->flags & kDxt1 ) != 0 ) ? 8 : 16;
+    
+	
+	for( int y = 0; y < height; y += 4 )
+	{
+        int remaining_height = height - y;
         
-        void *bufferBaseAddress = VPUCodecGetBufferBaseAddress(buffer);
-        
-        unsigned int i;
-        for (i = 0; i < height; i++) {
-            memcpy(bufferBaseAddress + (needed_bytes_per_row * i), src + (src_bytes_per_row * i), needed_bytes_per_row);
-        }
-        src = bufferBaseAddress;
-    }
-    
-    // TODO: it may be faster to split the image into blocks ourself and do them in parallel
-    SquishCompressImage(src, width, height, dst, ((struct VPUPCodecSquishEncoder *)encoder)->flags, NULL);
-    
-    VPUCodecReturnBuffer(buffer);
-    
+		for( int x = 0; x < width; x += 4 )
+		{
+            int remaining_width = width - x;
+            
+			// Pack the 4x4 pixel block
+			uint8_t block_rgba[16*4];
+            int mask;
+            
+            uint8_t *copy_src = (uint8_t *)src + (y * src_bytes_per_row) + (x * 4);
+            uint8_t *copy_dst = block_rgba;
+            
+            if ((remaining_height < 4) || (remaining_width < 4) )
+            {
+                // If the source has dimensions which aren't a multiple of 4 we only copy the existing
+                // pixels and use the mask argument to tell Squish to ignore the extras in the block
+                mask = 0;
+                for( int py = 0; py < 4; ++py )
+                {
+                    for( int px = 0; px < 4; ++px )
+                    {
+                        int sx = x + px;
+                        int sy = y + py;
+
+                        if( sx < width && sy < height )
+                        {
+                            for( int i = 0; i < 4; ++i )
+                                *copy_dst++ = *copy_src++;
+                            mask |= ( 1 << ( 4*py + px ) );
+                        }
+                        else
+                        {
+                            copy_dst += 4;
+                        }
+                    }
+                    copy_src += src_bytes_per_row - (MIN(remaining_width, 4) * 4);
+                }
+            }
+            else
+            {
+                // If all the pixels are in the frame, we can copy them in 4 x 4
+                for (int j = 0; j < 4; j++) {
+                    memcpy(copy_dst, copy_src, 4 * 4);
+                    copy_src += src_bytes_per_row;
+                    copy_dst += 4 * 4;
+                }
+                mask = 0xFFFF;
+            }
+			
+			// Compress the block
+			SquishCompressMasked( block_rgba, mask, dst_block, ((struct VPUPCodecSquishEncoder *)encoder)->flags, NULL );
+			
+			dst_block += bytes_per_block;
+		}
+	}
     return 0;
 }
 
@@ -105,14 +136,12 @@ VPUPCodecDXTEncoderRef VPUPSquishEncoderCreate(VPUPCodecSquishEncoderQuality qua
 #if defined(DEBUG)
         encoder->base.show_function = VPUPSquishEncoderShow;
 #endif
-        encoder->pool = NULL;
         
         switch (quality) {
             case VPUPCodecSquishEncoderWorstQuality:
                 encoder->flags = kColourRangeFit;
                 break;
             case VPUPCodecSquishEncoderBestQuality:
-                // TODO: consider quality versus time cost of kColourIterativeClusterFit
                 encoder->flags = kColourIterativeClusterFit;
                 break;
             default:
