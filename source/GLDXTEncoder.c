@@ -16,7 +16,7 @@ struct VPUPGLEncoder {
     dispatch_queue_t queue; // We use a queue to enforce serial access to the GL code
 };
 
-void VPUPGLEncoderDestroy(VPUPCodecDXTEncoderRef encoder)
+static void VPUPGLEncoderDestroy(VPUPCodecDXTEncoderRef encoder)
 {
     if (((struct VPUPGLEncoder *)encoder)->queue)
     {
@@ -26,7 +26,7 @@ void VPUPGLEncoderDestroy(VPUPCodecDXTEncoderRef encoder)
     free(encoder);
 }
 
-OSType VPUPGLEncoderWantedPixelFormat(VPUPCodecDXTEncoderRef encoder, OSType format)
+static OSType VPUPGLEncoderWantedPixelFormat(VPUPCodecDXTEncoderRef encoder, OSType format)
 {
 #pragma unused(encoder)
     switch (format) {
