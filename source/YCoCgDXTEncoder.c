@@ -54,6 +54,7 @@ VPUPCodecDXTEncoderRef VPUPYCoCgDXTEncoderCreate()
 #if defined(DEBUG)
         encoder->show_function = VPUPYCoCgDXTEncoderShow;
 #endif
+        encoder->pad_source_buffers = false;
     }
     return encoder;
 }

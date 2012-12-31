@@ -414,6 +414,7 @@ ExampleIPB_CGetMaxCompressionSize(
 static OSStatus 
 createPixelBufferAttributesDictionary( SInt32 width, SInt32 height,
                                       const OSType *pixelFormatList, int pixelFormatCount,
+                                      Boolean padBuffers,
                                       CFMutableDictionaryRef *pixelBufferAttributesOut )
 {
 	OSStatus err = memFullErr;
@@ -421,6 +422,7 @@ createPixelBufferAttributesDictionary( SInt32 width, SInt32 height,
 	CFMutableDictionaryRef pixelBufferAttributes = NULL;
 	CFNumberRef number = NULL;
 	CFMutableArrayRef array = NULL;
+    SInt32 extendRight, extendBottom;
 	
 	pixelBufferAttributes = CFDictionaryCreateMutable( 
                                                       NULL, 0, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks );
@@ -454,6 +456,24 @@ createPixelBufferAttributesDictionary( SInt32 width, SInt32 height,
     // the encoder needs it, however most buffers are 16-byte aligned anyway even without asking.
 	addNumberToDictionary( pixelBufferAttributes, kCVPixelBufferBytesPerRowAlignmentKey, 16 );
 	
+    // If you want to require that extra scratch pixels be allocated on the edges of source pixel buffers,
+	// add the kCVPixelBufferExtendedPixels{Left,Top,Right,Bottom}Keys to indicate how much.
+	// (Note that if your compressor needs to copy the pixels anyhow (eg, in order to convert to a different
+	// format) you may get better performance if your copy routine does not require extended pixels.)
+    if (padBuffers)
+    {
+        extendRight = roundUpToMultipleOf4(width) - width;
+        extendBottom = roundUpToMultipleOf4(height) - height;
+        if(extendRight)
+        {
+            addNumberToDictionary(pixelBufferAttributes, kCVPixelBufferExtendedPixelsRightKey, extendRight);
+        }
+        if (extendBottom)
+        {
+            addNumberToDictionary(pixelBufferAttributes, kCVPixelBufferExtendedPixelsBottomKey, extendBottom);
+        }
+    }
+    
 	// This codec accepts YCbCr input in the form of '2vuy' format pixel buffers.
 	// We recommend explicitly defining the gamma level and YCbCr matrix that should be used.
     // TODO: fix gamma
@@ -491,7 +511,6 @@ ExampleIPB_CPrepareToCompressFrames(
     // TODO: other pixel formats? non-A formats
     OSType pixelFormatList[] = { k32BGRAPixelFormat, k32RGBAPixelFormat };
 	Fixed gammaLevel;
-//	SInt32 widthRoundedUp, heightRoundedUp;
 	
 	// Record the compressor session for later calls to the ICM.
 	// Note: this is NOT a CF type and should NOT be CFRetained or CFReleased.
@@ -526,16 +545,6 @@ ExampleIPB_CPrepareToCompressFrames(
 	// Record the dimensions from the image description.
 	glob->width = (*imageDescription)->width;
 	glob->height = (*imageDescription)->height;
-    
-	// Create a pixel buffer attributes dictionary.
-	err = createPixelBufferAttributesDictionary( glob->width, glob->height, 
-			pixelFormatList, sizeof(pixelFormatList) / sizeof(OSType),
-			&compressorPixelBufferAttributes );
-	if( err ) 
-		goto bail;
-
-	*compressorPixelBufferAttributesOut = compressorPixelBufferAttributes;
-	compressorPixelBufferAttributes = NULL;
 	
     bool alpha;
     
@@ -630,7 +639,18 @@ ExampleIPB_CPrepareToCompressFrames(
         err = internalComponentErr;
         goto bail;
     }
-
+    
+    // Create a pixel buffer attributes dictionary.
+	err = createPixelBufferAttributesDictionary( glob->width, glob->height,
+                                                pixelFormatList, sizeof(pixelFormatList) / sizeof(OSType),
+                                                glob->dxtEncoder->pad_source_buffers,
+                                                &compressorPixelBufferAttributes );
+	if( err )
+		goto bail;
+    
+	*compressorPixelBufferAttributesOut = compressorPixelBufferAttributes;
+	compressorPixelBufferAttributes = NULL;
+    
     // Currently we store the VPU frame type in the image description as discovering it otherwise
     // would require reading a frame
     

@@ -119,6 +119,7 @@ VPUPCodecDXTEncoderRef VPUPGLEncoderCreate(unsigned int width, unsigned int heig
 #if defined(DEBUG)
         encoder->base.show_function = VPUPGLEncoderShow;
 #endif
+        encoder->base.pad_source_buffers = true;
         
         encoder->queue = dispatch_queue_create(NULL, DISPATCH_QUEUE_SERIAL);
         encoder->encoder = VPUCGLCreateEncoder(width, height, encoder_format);

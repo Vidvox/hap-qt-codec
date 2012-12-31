@@ -136,6 +136,7 @@ VPUPCodecDXTEncoderRef VPUPSquishEncoderCreate(VPUPCodecSquishEncoderQuality qua
 #if defined(DEBUG)
         encoder->base.show_function = VPUPSquishEncoderShow;
 #endif
+        encoder->base.pad_source_buffers = false;
         
         switch (quality) {
             case VPUPCodecSquishEncoderWorstQuality:

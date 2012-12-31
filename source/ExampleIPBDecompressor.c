@@ -604,7 +604,7 @@ pascal ComponentResult ExampleIPB_DBeginBand(ExampleIPBDecompressorGlobals glob,
         }
         if (glob->glDecoder == NULL)
         {
-            glob->glDecoder = VPUCGLCreateDecoder(myDrp->dxtWidth, myDrp->dxtHeight, texture_format);
+            glob->glDecoder = VPUCGLCreateDecoder(myDrp->width, myDrp->height, texture_format);
         }
 
 #ifndef VPU_SQUISH_DECODE

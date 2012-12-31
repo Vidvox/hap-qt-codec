@@ -13,7 +13,8 @@
 
 /*
  An encoder is simply a pointer to a struct which provides functions for the codec to call
- as needed.
+ as needed, and a boolean value which if true requires input buffers be padded to multiple-of-4
+ pixel dimensions.
  
  The encode function will be called in parallel so must be thread-safe.
  */
@@ -43,6 +44,7 @@ struct VPUPCodecDXTEncoder {
 #if defined(DEBUG)
     VPUPCodecDXTEncoder_ShowFunction show_function;
 #endif
+    bool pad_source_buffers;
 };
 
 

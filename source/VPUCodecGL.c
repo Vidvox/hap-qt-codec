@@ -102,8 +102,18 @@ VPUCGLRef VPUCGLCreate(unsigned int mode, unsigned int width, unsigned int heigh
         coder->context = NULL;
         coder->mode = mode;
         coder->texture = 0;
-        coder->width = width;
-        coder->height = height;
+        /*
+         See note in header re non-rounded buffers.
+         
+         In particular, glTexImage2D with NULL data followed by glTexSubImage2D produces enitirely corrupt output
+         for non-rounded dimensions on Intel HD 4000.
+         
+         Additionally glTexImage2D with NULL data followed by glCompressedTexSubImage2D produces corrupt edge blocks
+         for non-rounded dimensions on Intel HD 4000.
+         
+         */
+        coder->width = roundUpToMultipleOf4(width);
+        coder->height = roundUpToMultipleOf4(height);
         coder->format = compressed_format;
         
         CGLPixelFormatAttribute attribs[] = {
@@ -147,14 +157,11 @@ VPUCGLRef VPUCGLCreate(unsigned int mode, unsigned int width, unsigned int heigh
             glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
             glPixelStorei(GL_PACK_ALIGNMENT, 1);
             
-            GLuint rounded_width = roundUpToMultipleOf4(width);
-            GLuint rounded_height = roundUpToMultipleOf4(height);
-            
             glTexImage2D(GL_TEXTURE_2D,
                          0,
                          compressed_format,
-                         rounded_width,
-                         rounded_height,
+                         coder->width,
+                         coder->height,
                          0,
                          GL_BGRA,
                          GL_UNSIGNED_INT_8_8_8_8_REV,

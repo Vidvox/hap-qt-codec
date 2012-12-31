@@ -28,6 +28,12 @@ typedef unsigned int VPUCGLCompressedFormat;
 
 typedef struct VPUCGL *VPUCGLRef;
 
+/*
+ Note input buffers must be padded to a multiple of 4 bytes, as some hardware (eg Intel HD 4000) strongly dislikes
+ non multiple-of-4 dimensions and produces corrupt frames. You can pass non-rounded values to the create functions,
+ but the buffers provided to VPUCGLEncode and VPUCGLDecode must be padded appropriately.
+ */
+
 VPUCGLRef VPUCGLCreateEncoder(unsigned int width, unsigned int height, unsigned int compressed_format);
 VPUCGLRef VPUCGLCreateDecoder(unsigned int width, unsigned int height, unsigned int compressed_format);
 unsigned int VPUCGLGetWidth(VPUCGLRef coder);
