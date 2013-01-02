@@ -1392,8 +1392,25 @@ ComponentResult ExampleIPB_CDITLEvent(ExampleIPBCompressorGlobals glob,
                                       short *itemHit,
                                       Boolean *handled)
 {
-#pragma unused(glob, d, itemOffset, theEvent, itemHit)
-    *handled = false;
+#pragma unused(d, theEvent)
+    if (glob->settings == NULL && theEvent->what == nullEvent)
+    {
+        /*
+         We use QuickTime's mechanism to determine alpha and quality rather than our own
+         when no settings have been set. This allows our compressor to work with apps which
+         use their own (or no) UI.
+         
+         To make sure we always use our own settings once the settings dialog has been shown, we
+         need to force QuickTime to get and apply our settings, so we mark the first nullEvent in the
+         dialog as having been handled by us, so QuickTime thinks our settings have changed.
+         */
+        *itemHit = itemOffset + kItemText;
+        *handled = true;
+    }
+    else
+    {
+        *handled = false;
+    }
     return noErr;
 }
 
