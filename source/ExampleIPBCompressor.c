@@ -113,7 +113,6 @@ typedef struct {
 	long							width;
 	long							height;
 	size_t							maxEncodedDataSize;
-	int								nextDecodeNumber;
 	
     int                             lastFrameOut;
     VPUCodecBufferRef               *finishedFrames;
@@ -230,25 +229,27 @@ ExampleIPB_COpen(
 		goto bail;
 	}
 	SetComponentInstanceStorage( self, (Handle)glob );
-
+    
 	glob->self = self;
 	glob->target = self;
-	
-	glob->nextDecodeNumber = 1;
-    
-    glob->lock = OS_SPINLOCK_INIT;
+    glob->session = NULL;
+    glob->width = 0;
+    glob->height = 0;
+	glob->maxEncodedDataSize = 0;
+    glob->lastFrameOut = 0;
     glob->finishedFrames = NULL;
     glob->finishedFramesCapacity = 0;
+    glob->lock = OS_SPINLOCK_INIT;
     glob->endTasksPending = false;
-    
+    glob->compressTaskPool = NULL;
     glob->dxtEncoder = NULL;
     glob->formatConvertPool = NULL;
     glob->dxtBufferPool = NULL;
-
-    glob->vpuCompressor = VPUCompressorSnappy;
-    
+    glob->allowAsyncCompletion = false;
     glob->backgroundError = noErr;
-    
+    glob->dxtFormat = 0;
+    glob->vpuCompressor = VPUCompressorSnappy;
+    glob->taskGroup = 0;
     glob->settings = NULL;
     
 bail:
@@ -293,10 +294,7 @@ ExampleIPB_CClose(
         VPUCodecDestroyBufferPool(glob->dxtBufferPool);
         glob->dxtBufferPool = NULL;
         
-        if (glob->dxtEncoder && glob->dxtEncoder->destroy_function)
-        {
-            glob->dxtEncoder->destroy_function(glob->dxtEncoder);
-        }
+        VPUCodecDXTEncoderDestroy(glob->dxtEncoder);
         glob->dxtEncoder = NULL;
         
         VPUCodecDestroyBufferPool(glob->formatConvertPool);

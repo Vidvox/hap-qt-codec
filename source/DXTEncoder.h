@@ -47,5 +47,6 @@ struct VPUPCodecDXTEncoder {
     bool pad_source_buffers;
 };
 
+#define VPUCodecDXTEncoderDestroy(x) if ((x) && (x)->destroy_function) (x)->destroy_function((x))
 
 #endif
