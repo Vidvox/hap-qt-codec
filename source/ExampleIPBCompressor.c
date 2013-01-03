@@ -237,6 +237,8 @@ ExampleIPB_COpen(
 	glob->nextDecodeNumber = 1;
     
     glob->lock = OS_SPINLOCK_INIT;
+    glob->finishedFrames = NULL;
+    glob->finishedFramesCapacity = 0;
     glob->endTasksPending = false;
     
     glob->dxtEncoder = NULL;
@@ -289,6 +291,7 @@ ExampleIPB_CClose(
         }
 #endif
         VPUCodecDestroyBufferPool(glob->dxtBufferPool);
+        glob->dxtBufferPool = NULL;
         
         if (glob->dxtEncoder && glob->dxtEncoder->destroy_function)
         {
@@ -301,6 +304,9 @@ ExampleIPB_CClose(
         
         VPUCodecDestroyBufferPool(glob->compressTaskPool);
         glob->compressTaskPool = NULL;
+        
+        free(glob->finishedFrames);
+        glob->finishedFrames = NULL;
         
         if (glob->endTasksPending)
         {
@@ -474,8 +480,6 @@ createPixelBufferAttributesDictionary( SInt32 width, SInt32 height,
         }
     }
     
-	// This codec accepts YCbCr input in the form of '2vuy' format pixel buffers.
-	// We recommend explicitly defining the gamma level and YCbCr matrix that should be used.
     // TODO: fix gamma
 //	addDoubleToDictionary( pixelBufferAttributes, kCVImageBufferGammaLevelKey, 2.2 );
 //    addDoubleToDictionary( pixelBufferAttributes, kCVImageBufferGammaLevelKey, 1.0 );
@@ -750,8 +754,6 @@ ExampleIPB_CPrepareToCompressFrames(
     
     glob->taskGroup = VPUCodecNewTaskGroup();
     
-    glob->finishedFrames = NULL;
-    glob->finishedFramesCapacity = 0;
 #ifdef DEBUG    
     glob->debugStartTime = mach_absolute_time();
 #endif
