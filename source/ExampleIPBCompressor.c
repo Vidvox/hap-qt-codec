@@ -125,6 +125,7 @@ typedef struct {
     VPUPCodecDXTEncoderRef          dxtEncoder;
     
     VPUCodecBufferPoolRef           formatConvertPool;
+    size_t                          formatConvertBufferBytesPerRow;
     
     VPUCodecBufferPoolRef           dxtBufferPool;
     
@@ -244,6 +245,7 @@ ExampleIPB_COpen(
     glob->compressTaskPool = NULL;
     glob->dxtEncoder = NULL;
     glob->formatConvertPool = NULL;
+    glob->formatConvertBufferBytesPerRow = 0;
     glob->dxtBufferPool = NULL;
     glob->allowAsyncCompletion = false;
     glob->backgroundError = noErr;
@@ -695,6 +697,17 @@ ExampleIPB_CPrepareToCompressFrames(
     
     glob->maxEncodedDataSize = VPUMaxEncodedLength(wantedDXTSize);
     
+    // TODO: right now all the pixel formats we accept have the same number of bits per pixel
+    // but we will accept DXT etc buffers in, so this will have to be more flexible
+    size_t wantedConvertBufferBytesPerRow = roundUpToMultipleOf16(glob->width * 4);
+    size_t wantedBufferSize = wantedConvertBufferBytesPerRow * glob->height;
+    if (VPUCodecGetBufferPoolBufferSize(glob->formatConvertPool) != wantedBufferSize)
+    {
+        VPUCodecDestroyBufferPool(glob->formatConvertPool);
+        glob->formatConvertPool = VPUCodecCreateBufferPool(wantedBufferSize);
+        glob->formatConvertBufferBytesPerRow = wantedConvertBufferBytesPerRow;
+    }
+    
     if (dictionaryHasValueForKeyOfTypeID(glob->settings, kSettingsSecondaryCompressorKey, CFStringGetTypeID()))
     {
         CFStringRef compressorFromSettings = CFDictionaryGetValue(glob->settings, kSettingsSecondaryCompressorKey);
@@ -764,7 +777,6 @@ bail:
 static void Background_Encode(void *info)
 {
     VPUCodecBufferRef formatConvertBuffer = NULL;
-    size_t formatConvertBufferBytesPerRow;
     VPUCodecBufferRef dxtBuffer = NULL;
     CVPixelBufferRef sourceBuffer = NULL;
     VPUCodecCompressTask *task = VPUCodecGetBufferBaseAddress((VPUCodecBufferRef)info);
@@ -796,16 +808,6 @@ static void Background_Encode(void *info)
     // If necessary, convert the pixels to a format the encoder can ingest
     if (wantedPixelFormat != sourcePixelFormat)
     {
-        // TODO: right now all the pixel formats we accept have the same number of bits per pixel
-        // but we will accept DXT etc buffers in, so this will have to be more flexible
-        formatConvertBufferBytesPerRow = roundUpToMultipleOf16(glob->width * 4);
-        size_t wantedBufferSize = formatConvertBufferBytesPerRow * glob->height;
-        if (VPUCodecGetBufferPoolBufferSize(glob->formatConvertPool) != wantedBufferSize)
-        {
-            VPUCodecDestroyBufferPool(glob->formatConvertPool);
-            glob->formatConvertPool = VPUCodecCreateBufferPool(wantedBufferSize);
-        }
-        
         formatConvertBuffer = VPUCodecGetBuffer(glob->formatConvertPool);
         
         if (formatConvertBuffer == NULL)
@@ -824,7 +826,7 @@ static void Background_Encode(void *info)
                                             glob->width,
                                             glob->height,
                                             sourceBytesPerRow,
-                                            formatConvertBufferBytesPerRow);
+                                            glob->formatConvertBufferBytesPerRow);
                 }
                 else
                 {
@@ -833,7 +835,7 @@ static void Background_Encode(void *info)
                                             glob->width,
                                             glob->height,
                                             sourceBytesPerRow,
-                                            formatConvertBufferBytesPerRow);
+                                            glob->formatConvertBufferBytesPerRow);
                 }
                 break;
             case k32RGBAPixelFormat:
@@ -850,7 +852,7 @@ static void Background_Encode(void *info)
                         VPUCodecGetBufferBaseAddress(formatConvertBuffer),
                         glob->height,
                         glob->width,
-                        formatConvertBufferBytesPerRow
+                        glob->formatConvertBufferBytesPerRow
                     };
                     
                     uint8_t permuteMap[] = {2, 1, 0, 3};
@@ -889,7 +891,7 @@ static void Background_Encode(void *info)
     if (formatConvertBuffer)
     {
         encode_src = VPUCodecGetBufferBaseAddress(formatConvertBuffer);
-        encode_src_bytes_per_row = formatConvertBufferBytesPerRow;
+        encode_src_bytes_per_row = glob->formatConvertBufferBytesPerRow;
     }
     else
     {
