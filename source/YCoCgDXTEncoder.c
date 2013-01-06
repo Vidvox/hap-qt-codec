@@ -36,10 +36,10 @@ static OSType VPUPYCoCgDXTEncoderWantedPixelFormat(VPUPCodecDXTEncoderRef encode
 }
 
 #if defined(DEBUG)
-static void VPUPYCoCgDXTEncoderShow(VPUPCodecDXTEncoderRef encoder)
+static const char *VPUPYCoCgDXTEncoderDescribe(VPUPCodecDXTEncoderRef encoder)
 {
 #pragma unused(encoder)
-    printf("YCoCg DXT5 Encoder\n");
+    return "YCoCg DXT5 Encoder";
 }
 #endif
 
@@ -52,7 +52,7 @@ VPUPCodecDXTEncoderRef VPUPYCoCgDXTEncoderCreate()
         encoder->destroy_function = VPUPYCoCgEncoderDestroy;
         encoder->encode_function = VPUPYCoCgDXTEncoderEncode;
 #if defined(DEBUG)
-        encoder->show_function = VPUPYCoCgDXTEncoderShow;
+        encoder->describe_function = VPUPYCoCgDXTEncoderDescribe;
 #endif
         encoder->pad_source_buffers = false;
     }

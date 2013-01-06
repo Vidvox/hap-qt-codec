@@ -14,6 +14,9 @@
 struct VPUPCodecSquishEncoder {
     struct VPUPCodecDXTEncoder base;
     int flags;
+#if defined(DEBUG)
+    char description[255];
+#endif
 };
 
 static void VPUPSquishEncoderDestroy(VPUPCodecDXTEncoderRef encoder)
@@ -109,19 +112,9 @@ static OSType VPUPSquishEncoderWantedPixelFormat(VPUPCodecDXTEncoderRef encoder,
 }
 
 #if defined(DEBUG)
-static void VPUPSquishEncoderShow(VPUPCodecDXTEncoderRef encoder)
+static const char *VPUPSquishEncoderDescribe(VPUPCodecDXTEncoderRef encoder)
 {
-    int flags = ((struct VPUPCodecSquishEncoder *)encoder)->flags;
-    char *format = flags & kDxt1 ? "RGB DXT1" : "RGBA DXT5";
-    char *quality;
-    if (flags & kColourRangeFit)
-        quality = "ColourRangeFit";
-    else if (flags & kColourClusterFit)
-        quality = "ColourClusterFit";
-    else
-        quality = "ColourIterativeClusterFit";
-    
-    printf("Squish %s %s Encoder\n", format, quality);
+    return ((struct VPUPCodecSquishEncoder *)encoder)->description;
 }
 #endif
 
@@ -133,9 +126,6 @@ VPUPCodecDXTEncoderRef VPUPSquishEncoderCreate(VPUPCodecSquishEncoderQuality qua
         encoder->base.pixelformat_function = VPUPSquishEncoderWantedPixelFormat;
         encoder->base.encode_function = VPUPSquishEncoderEncode;
         encoder->base.destroy_function = VPUPSquishEncoderDestroy;
-#if defined(DEBUG)
-        encoder->base.show_function = VPUPSquishEncoderShow;
-#endif
         encoder->base.pad_source_buffers = false;
         
         switch (quality) {
@@ -161,6 +151,22 @@ VPUPCodecDXTEncoderRef VPUPSquishEncoderCreate(VPUPCodecSquishEncoderQuality qua
                 encoder = NULL;
                 break;
         }
+        
+#if defined(DEBUG)
+        char *format = encoder->flags & kDxt1 ? "RGB DXT1" : "RGBA DXT5";
+        
+        char *quality;
+        if (encoder->flags & kColourRangeFit)
+            quality = "ColourRangeFit";
+        else if (encoder->flags & kColourClusterFit)
+            quality = "ColourClusterFit";
+        else
+            quality = "ColourIterativeClusterFit";
+        
+        snprintf(encoder->description, sizeof(encoder->description), "Squish %s %s Encoder", format, quality);
+        
+        encoder->base.describe_function = VPUPSquishEncoderDescribe;
+#endif
     }
     return (VPUPCodecDXTEncoderRef)encoder;
 }

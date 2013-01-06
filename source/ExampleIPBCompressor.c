@@ -746,7 +746,11 @@ ExampleIPB_CPrepareToCompressFrames(
             goto bail;
     }
     printf("VPU CODEC: start / %s / ", compressor_str);
-    glob->dxtEncoder->show_function(glob->dxtEncoder);
+    if (glob->dxtEncoder->describe_function)
+    {
+        printf("%s", glob->dxtEncoder->describe_function(glob->dxtEncoder));
+    }
+    printf("\n");
 #endif // DEBUG
     
     if (glob->compressTaskPool == NULL)

@@ -34,7 +34,10 @@ typedef int(*VPUPCodecDXTEncoder_EncodeFunction)(VPUPCodecDXTEncoderRef encoder,
                                                  unsigned int height);
 
 #if defined(DEBUG)
-typedef void(*VPUPCodecDXTEncoder_ShowFunction)(VPUPCodecDXTEncoderRef encoder);
+/*
+ Returns a C-string description, valid for the lifetime of the encoder.
+ */
+typedef const char *(*VPUPCodecDXTEncoder_DescribeFunction)(VPUPCodecDXTEncoderRef encoder);
 #endif
 
 struct VPUPCodecDXTEncoder {
@@ -42,7 +45,7 @@ struct VPUPCodecDXTEncoder {
     VPUPCodecDXTEncoder_EncodeFunction encode_function;
     VPUPCodecDXTEncoder_DestroyFunction destroy_function;
 #if defined(DEBUG)
-    VPUPCodecDXTEncoder_ShowFunction show_function;
+    VPUPCodecDXTEncoder_DescribeFunction describe_function;
 #endif
     bool pad_source_buffers;
 };

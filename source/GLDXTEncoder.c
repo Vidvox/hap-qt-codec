@@ -14,6 +14,9 @@ struct VPUPGLEncoder {
     struct VPUPCodecDXTEncoder base;
     VPUCGLRef encoder;
     dispatch_queue_t queue; // We use a queue to enforce serial access to the GL code
+#ifdef DEBUG
+    char description[255];
+#endif
 };
 
 static void VPUPGLEncoderDestroy(VPUPCodecDXTEncoderRef encoder)
@@ -73,25 +76,9 @@ static int VPUPGLEncoderEncode(VPUPCodecDXTEncoderRef encoder,
 }
 
 #if defined(DEBUG)
-static void VPUPGLEncoderShow(VPUPCodecDXTEncoderRef encoder)
+static const char *VPUPGLEncoderDescribe(VPUPCodecDXTEncoderRef encoder)
 {
-    if (encoder)
-    {
-        VPUCGLCompressedFormat format = VPUCGLGetCompressedFormat(((struct VPUPGLEncoder *)encoder)->encoder);
-        char *format_str;
-        switch (format) {
-            case VPUCGLCompressedFormat_RGB_DXT1:
-                format_str = "RGB DXT1";
-                break;
-            case VPUCGLCompressedFormat_RGBA_DXT5:
-                format_str = "RGBA DXT5";
-                break;
-            default:
-                format_str = "Unknown format";
-                break;
-        }
-        printf("GL %s Encoder\n", format_str);
-    }
+    return ((struct VPUPGLEncoder *)encoder)->description;
 }
 #endif
 
@@ -116,9 +103,6 @@ VPUPCodecDXTEncoderRef VPUPGLEncoderCreate(unsigned int width, unsigned int heig
         encoder->base.destroy_function = VPUPGLEncoderDestroy;
         encoder->base.pixelformat_function = VPUPGLEncoderWantedPixelFormat;
         encoder->base.encode_function = VPUPGLEncoderEncode;
-#if defined(DEBUG)
-        encoder->base.show_function = VPUPGLEncoderShow;
-#endif
         encoder->base.pad_source_buffers = true;
         
         encoder->queue = dispatch_queue_create(NULL, DISPATCH_QUEUE_SERIAL);
@@ -128,6 +112,23 @@ VPUPCodecDXTEncoderRef VPUPGLEncoderCreate(unsigned int width, unsigned int heig
             VPUPGLEncoderDestroy((VPUPCodecDXTEncoderRef)encoder);
             encoder = NULL;
         }
+        
+#if defined(DEBUG)
+        char *format_str;
+        switch (encoder_format) {
+            case VPUCGLCompressedFormat_RGB_DXT1:
+                format_str = "RGB DXT1";
+                break;
+            case VPUCGLCompressedFormat_RGBA_DXT5:
+            default:
+                format_str = "RGBA DXT5";
+                break;
+        }
+        
+        snprintf(encoder->description, sizeof(encoder->description), "GL %s Encoder", format_str);
+        
+        encoder->base.describe_function = VPUPGLEncoderDescribe;
+#endif
     }
     
     return (VPUPCodecDXTEncoderRef)encoder;
