@@ -1,10 +1,12 @@
 //
-//  VPUCodecUtility.c
-//  VPUCodec
+//  Utility.c
+//  Hap Codec
 //
 //  Created by Tom Butterworth on 04/10/2011.
 //  Copyright 2011 __MyCompanyName__. All rights reserved.
 //
+
+#include "Utility.h"
 
 // Utility to add an SInt32 to a CFMutableDictionary.
 void addNumberToDictionary( CFMutableDictionaryRef dictionary, CFStringRef key, SInt32 numberSInt32 )

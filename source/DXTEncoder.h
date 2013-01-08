@@ -1,13 +1,13 @@
 //
 //  DXTEncoder.h
-//  VPUCodec
+//  Hap Codec
 //
 //  Created by Tom on 30/09/2012.
 //
 //
 
-#ifndef VPUCodec_DXTEncoder_h
-#define VPUCodec_DXTEncoder_h
+#ifndef HapCodec_DXTEncoder_h
+#define HapCodec_DXTEncoder_h
 
 #include <MacTypes.h>
 
@@ -19,13 +19,13 @@
  The encode function will be called in parallel so must be thread-safe.
  */
 
-typedef struct VPUPCodecDXTEncoder *VPUPCodecDXTEncoderRef;
+typedef struct HapCodecDXTEncoder *HapCodecDXTEncoderRef;
 
-typedef void(*VPUPCodecDXTEncoder_DestroyFunction)(VPUPCodecDXTEncoderRef encoder);
+typedef void(*HapCodecDXTEncoder_DestroyFunction)(HapCodecDXTEncoderRef encoder);
 
-typedef OSType(*VPUPCodecDXTEncoder_WantedPixelFormatFunction)(VPUPCodecDXTEncoderRef encoder, OSType sourcePixelFormat);
+typedef OSType(*HapCodecDXTEncoder_WantedPixelFormatFunction)(HapCodecDXTEncoderRef encoder, OSType sourcePixelFormat);
 
-typedef int(*VPUPCodecDXTEncoder_EncodeFunction)(VPUPCodecDXTEncoderRef encoder,
+typedef int(*HapCodecDXTEncoder_EncodeFunction)(HapCodecDXTEncoderRef encoder,
                                                  const void *src,
                                                  unsigned int src_bytes_per_row,
                                                  OSType src_pixel_format,
@@ -37,19 +37,19 @@ typedef int(*VPUPCodecDXTEncoder_EncodeFunction)(VPUPCodecDXTEncoderRef encoder,
 /*
  Returns a C-string description, valid for the lifetime of the encoder.
  */
-typedef const char *(*VPUPCodecDXTEncoder_DescribeFunction)(VPUPCodecDXTEncoderRef encoder);
+typedef const char *(*HapCodecDXTEncoder_DescribeFunction)(HapCodecDXTEncoderRef encoder);
 #endif
 
-struct VPUPCodecDXTEncoder {
-    VPUPCodecDXTEncoder_WantedPixelFormatFunction pixelformat_function;
-    VPUPCodecDXTEncoder_EncodeFunction encode_function;
-    VPUPCodecDXTEncoder_DestroyFunction destroy_function;
+struct HapCodecDXTEncoder {
+    HapCodecDXTEncoder_WantedPixelFormatFunction pixelformat_function;
+    HapCodecDXTEncoder_EncodeFunction encode_function;
+    HapCodecDXTEncoder_DestroyFunction destroy_function;
 #if defined(DEBUG)
-    VPUPCodecDXTEncoder_DescribeFunction describe_function;
+    HapCodecDXTEncoder_DescribeFunction describe_function;
 #endif
     bool pad_source_buffers;
 };
 
-#define VPUCodecDXTEncoderDestroy(x) if ((x) && (x)->destroy_function) (x)->destroy_function((x))
+#define HapCodecDXTEncoderDestroy(x) if ((x) && (x)->destroy_function) (x)->destroy_function((x))
 
 #endif

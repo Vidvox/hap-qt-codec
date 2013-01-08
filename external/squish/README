@@ -8,4 +8,4 @@ svn export -r 44 http://libsquish.googlecode.com/svn/trunk squish-source
 
 The only change to the source has been to remove the test and images directories.
 
-The script build-squish.sh is run from within Xcode to build a 32-bit version of the library suitable for use by the vpup codec.
+The script build-squish.sh is run from within Xcode to build a 32-bit version of the library suitable for use by the Hap codec.

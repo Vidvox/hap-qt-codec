@@ -1,6 +1,6 @@
 //
 //  YCoCgDXT.h
-//  Pxlz
+//  Hap Codec
 //
 //  Copyright (c) 2012 Tom Butterworth. All rights reserved.
 //  Based on code by J.M.P. van Waveren / id Software, Inc.
@@ -66,8 +66,8 @@
 /*
  * This code was modified by Electronic Arts Inc Copyright � 2009
  */
-#ifndef Pxlz_YCoCgDXT_h
-#define Pxlz_YCoCgDXT_h
+#ifndef HapCodec_YCoCgDXT_h
+#define HapCodec_YCoCgDXT_h
 
 #ifndef byte
 typedef unsigned char   byte;

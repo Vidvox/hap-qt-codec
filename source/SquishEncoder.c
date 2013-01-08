@@ -1,6 +1,6 @@
 //
 //  SquishEncoder.c
-//  VPUCodec
+//  Hap Codec
 //
 //  Created by Tom on 01/10/2012.
 //
@@ -11,15 +11,15 @@
 #include "squish-c.h"
 #include "Buffers.h"
 
-struct VPUPCodecSquishEncoder {
-    struct VPUPCodecDXTEncoder base;
+struct HapCodecSquishEncoder {
+    struct HapCodecDXTEncoder base;
     int flags;
 #if defined(DEBUG)
     char description[255];
 #endif
 };
 
-static void VPUPSquishEncoderDestroy(VPUPCodecDXTEncoderRef encoder)
+static void HapCodecSquishEncoderDestroy(HapCodecDXTEncoderRef encoder)
 {
     if (encoder)
     {
@@ -27,7 +27,7 @@ static void VPUPSquishEncoderDestroy(VPUPCodecDXTEncoderRef encoder)
     }
 }
 
-static int VPUPSquishEncoderEncode(VPUPCodecDXTEncoderRef encoder,
+static int HapCodecSquishEncoderEncode(HapCodecDXTEncoderRef encoder,
                                    const void *src,
                                    unsigned int src_bytes_per_row,
                                    OSType src_pixel_format,
@@ -41,7 +41,7 @@ static int VPUPSquishEncoderEncode(VPUPCodecDXTEncoderRef encoder,
     // We feed Squish block by block to handle extra bytes at the ends of rows
     
 	uint8_t* dst_block = (uint8_t *)dst;
-	int bytes_per_block = ( ( ((struct VPUPCodecSquishEncoder *)encoder)->flags & kDxt1 ) != 0 ) ? 8 : 16;
+	int bytes_per_block = ( ( ((struct HapCodecSquishEncoder *)encoder)->flags & kDxt1 ) != 0 ) ? 8 : 16;
     
 	
 	for( int y = 0; y < height; y += 4 )
@@ -97,7 +97,7 @@ static int VPUPSquishEncoderEncode(VPUPCodecDXTEncoderRef encoder,
             }
 			
 			// Compress the block
-			SquishCompressMasked( block_rgba, mask, dst_block, ((struct VPUPCodecSquishEncoder *)encoder)->flags, NULL );
+			SquishCompressMasked( block_rgba, mask, dst_block, ((struct HapCodecSquishEncoder *)encoder)->flags, NULL );
 			
 			dst_block += bytes_per_block;
 		}
@@ -105,34 +105,34 @@ static int VPUPSquishEncoderEncode(VPUPCodecDXTEncoderRef encoder,
     return 0;
 }
 
-static OSType VPUPSquishEncoderWantedPixelFormat(VPUPCodecDXTEncoderRef encoder, OSType sourceFormat)
+static OSType HapCodecSquishEncoderWantedPixelFormat(HapCodecDXTEncoderRef encoder, OSType sourceFormat)
 {
 #pragma unused(encoder, sourceFormat)
     return k32RGBAPixelFormat;
 }
 
 #if defined(DEBUG)
-static const char *VPUPSquishEncoderDescribe(VPUPCodecDXTEncoderRef encoder)
+static const char *HapCodecSquishEncoderDescribe(HapCodecDXTEncoderRef encoder)
 {
-    return ((struct VPUPCodecSquishEncoder *)encoder)->description;
+    return ((struct HapCodecSquishEncoder *)encoder)->description;
 }
 #endif
 
-VPUPCodecDXTEncoderRef VPUPSquishEncoderCreate(VPUPCodecSquishEncoderQuality quality, OSType pixelFormat)
+HapCodecDXTEncoderRef HapCodecSquishEncoderCreate(HapCodecSquishEncoderQuality quality, OSType pixelFormat)
 {
-    struct VPUPCodecSquishEncoder *encoder = malloc(sizeof(struct VPUPCodecSquishEncoder));
+    struct HapCodecSquishEncoder *encoder = malloc(sizeof(struct HapCodecSquishEncoder));
     if (encoder)
     {
-        encoder->base.pixelformat_function = VPUPSquishEncoderWantedPixelFormat;
-        encoder->base.encode_function = VPUPSquishEncoderEncode;
-        encoder->base.destroy_function = VPUPSquishEncoderDestroy;
+        encoder->base.pixelformat_function = HapCodecSquishEncoderWantedPixelFormat;
+        encoder->base.encode_function = HapCodecSquishEncoderEncode;
+        encoder->base.destroy_function = HapCodecSquishEncoderDestroy;
         encoder->base.pad_source_buffers = false;
         
         switch (quality) {
-            case VPUPCodecSquishEncoderWorstQuality:
+            case HapCodecSquishEncoderWorstQuality:
                 encoder->flags = kColourRangeFit;
                 break;
-            case VPUPCodecSquishEncoderBestQuality:
+            case HapCodecSquishEncoderBestQuality:
                 encoder->flags = kColourIterativeClusterFit;
                 break;
             default:
@@ -140,14 +140,14 @@ VPUPCodecDXTEncoderRef VPUPSquishEncoderCreate(VPUPCodecSquishEncoderQuality qua
                 break;
         }
         switch (pixelFormat) {
-            case kVPUCVPixelFormat_RGB_DXT1:
+            case kHapCVPixelFormat_RGB_DXT1:
                 encoder->flags |= kDxt1;
                 break;
-            case kVPUCVPixelFormat_RGBA_DXT5:
+            case kHapCVPixelFormat_RGBA_DXT5:
                 encoder->flags |= kDxt5;
                 break;
             default:
-                VPUPSquishEncoderDestroy((VPUPCodecDXTEncoderRef)encoder);
+                HapCodecSquishEncoderDestroy((HapCodecDXTEncoderRef)encoder);
                 encoder = NULL;
                 break;
         }
@@ -165,8 +165,8 @@ VPUPCodecDXTEncoderRef VPUPSquishEncoderCreate(VPUPCodecSquishEncoderQuality qua
         
         snprintf(encoder->description, sizeof(encoder->description), "Squish %s %s Encoder", format, quality);
         
-        encoder->base.describe_function = VPUPSquishEncoderDescribe;
+        encoder->base.describe_function = HapCodecSquishEncoderDescribe;
 #endif
     }
-    return (VPUPCodecDXTEncoderRef)encoder;
+    return (HapCodecDXTEncoderRef)encoder;
 }

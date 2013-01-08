@@ -1,6 +1,6 @@
 //
 //  Tasks.c
-//  VPUCodec
+//  Hap Codec
 //
 //  Created by Tom Butterworth on 09/05/2011.
 //  Copyright 2011 __MyCompanyName__. All rights reserved.
@@ -11,13 +11,13 @@
 #include <sys/sysctl.h>
 #include <libkern/OSAtomic.h>
 
-typedef struct VPUCodecTaskRecord
+typedef struct HapCodecTaskRecord
 {
     unsigned int                group;
-    VPUCodecTaskWorkFunction    func;
+    HapCodecTaskWorkFunction    func;
     void                        *context;
     unsigned int                running;
-} VPUCodecTaskRecord;
+} HapCodecTaskRecord;
 
 // TODO: contain these in a struct which we malloc/free reducing our loaded code footprint and
 // making init/cleanup faster (we can set the pointer fast then teardown outside the lock)
@@ -28,11 +28,11 @@ static unsigned int mThreadCount = 0U;
 static pthread_mutex_t mThreadLock;
 static pthread_cond_t mTaskWaitCond;
 static pthread_cond_t mFeedWaitCond;
-static VPUCodecTaskRecord *mTasks;
+static HapCodecTaskRecord *mTasks;
 
-static int _VPUCodecGetMaximumThreadCount();
+static int HapCodecTasksGetMaximumThreadCount();
 
-static void *_VPUCodecThread(void *info)
+static void *HapCodecTasksThread(void *info)
 {
 #pragma unused (info)
     int done = 0;
@@ -41,7 +41,7 @@ static void *_VPUCodecThread(void *info)
     {
         int i = 0;
         int ran = 0;
-        for (i = 0; i < _VPUCodecGetMaximumThreadCount(); i++)
+        for (i = 0; i < HapCodecTasksGetMaximumThreadCount(); i++)
         {
             if (mTasks[i].func != NULL && mTasks[i].running == 0)
             {
@@ -78,7 +78,7 @@ static void *_VPUCodecThread(void *info)
     return NULL;
 }
 
-static int _VPUCodecGetMaximumThreadCount()
+static int HapCodecTasksGetMaximumThreadCount()
 {
     static int mMaxThreadCount = 0;
     if (mMaxThreadCount == 0)
@@ -98,7 +98,7 @@ static int _VPUCodecGetMaximumThreadCount()
     return mMaxThreadCount;
 }
 
-static int _VPUCodecTasksInit()
+static int HapCodecTasksInit()
 {
     if (mInitted == 0)
     {
@@ -119,9 +119,9 @@ static int _VPUCodecTasksInit()
             pthread_cond_destroy(&mTaskWaitCond);
             return 1;
         }
-        mTasks = malloc(sizeof(VPUCodecTaskRecord) * _VPUCodecGetMaximumThreadCount());
+        mTasks = malloc(sizeof(HapCodecTaskRecord) * HapCodecTasksGetMaximumThreadCount());
         int i;
-        for (i = 0; i < _VPUCodecGetMaximumThreadCount(); i++)
+        for (i = 0; i < HapCodecTasksGetMaximumThreadCount(); i++)
         {
             mTasks[i].running = 0;
             mTasks[i].func = NULL;
@@ -131,7 +131,7 @@ static int _VPUCodecTasksInit()
     return 0;
 }
 
-static void _VPUCodecTasksCleanup()
+static void HapCodecTasksCleanup()
 {
     if (mInitted != 0)
     {
@@ -152,18 +152,18 @@ static void _VPUCodecTasksCleanup()
     }
 }
 
-void VPUCodecWillStartTasks()
+void HapCodecTasksWillStart()
 {
     OSSpinLockLock(&mGlobalLock);
     mSenderCount++;
     if (mSenderCount == 1U)
     {
-        _VPUCodecTasksInit();
+        HapCodecTasksInit();
     }
     OSSpinLockUnlock(&mGlobalLock);
 }
 
-void VPUCodecWillStopTasks()
+void HapCodecTasksWillStop()
 {
     OSSpinLockLock(&mGlobalLock);
     mSenderCount--;
@@ -171,22 +171,22 @@ void VPUCodecWillStopTasks()
     {
         // clear state and stop our threads outside of the lock
         // TODO:
-        _VPUCodecTasksCleanup();
+        HapCodecTasksCleanup();
     }
     OSSpinLockUnlock(&mGlobalLock);
 }
 
-void VPUCodecTask(VPUCodecTaskWorkFunction task, unsigned int group, void *context)
+void HapCodecTasksAddTask(HapCodecTaskWorkFunction task, unsigned int group, void *context)
 {
     pthread_mutex_lock(&mThreadLock);
     // Check to see if we can spawn a new thread for this task
-    if (mThreadCount < _VPUCodecGetMaximumThreadCount())
+    if (mThreadCount < HapCodecTasksGetMaximumThreadCount())
     {
         pthread_t thread;
         pthread_attr_t attr;
         pthread_attr_init(&attr);
         pthread_attr_setdetachstate(&attr,PTHREAD_CREATE_DETACHED);
-        if (pthread_create(&thread, &attr, _VPUCodecThread, NULL) == 0)
+        if (pthread_create(&thread, &attr, HapCodecTasksThread, NULL) == 0)
         {
             mThreadCount++;
         }
@@ -196,7 +196,7 @@ void VPUCodecTask(VPUCodecTaskWorkFunction task, unsigned int group, void *conte
     int found = 0;
     do
     {
-        for (i = 0; i < _VPUCodecGetMaximumThreadCount(); i++)
+        for (i = 0; i < HapCodecTasksGetMaximumThreadCount(); i++)
         {
             if (mTasks[i].func == NULL)
             {
@@ -220,7 +220,7 @@ void VPUCodecTask(VPUCodecTaskWorkFunction task, unsigned int group, void *conte
     
 }
 
-void VPUCodecWaitForTasksToComplete(unsigned int group)
+void HapCodecTasksWaitForGroupToComplete(unsigned int group)
 {
     pthread_mutex_lock(&mThreadLock);
     int done = 0;
@@ -228,7 +228,7 @@ void VPUCodecWaitForTasksToComplete(unsigned int group)
     {
         int i;
         done = 1;
-        for (i = 0; i < _VPUCodecGetMaximumThreadCount(); i++)
+        for (i = 0; i < HapCodecTasksGetMaximumThreadCount(); i++)
         {
             if (mTasks[i].func != NULL && mTasks[i].group == group)
             {
@@ -243,7 +243,7 @@ void VPUCodecWaitForTasksToComplete(unsigned int group)
     pthread_mutex_unlock(&mThreadLock);
 }
 
-unsigned int VPUCodecNewTaskGroup()
+unsigned int HapCodecTasksNewGroup()
 {
     static int32_t mGroup = 0;
     return OSAtomicIncrement32(&mGroup);

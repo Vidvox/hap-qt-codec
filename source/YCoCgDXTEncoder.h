@@ -1,16 +1,16 @@
 //
 //  YCoCgDXTEncoder.h
-//  VPUCodec
+//  Hap Codec
 //
 //  Created by Tom on 01/10/2012.
 //
 //
 
-#ifndef VPUCodec_YCoCgDXTEncoder_h
-#define VPUCodec_YCoCgDXTEncoder_h
+#ifndef HapCodec_YCoCgDXTEncoder_h
+#define HapCodec_YCoCgDXTEncoder_h
 
 #include "DXTEncoder.h"
 
-VPUPCodecDXTEncoderRef VPUPYCoCgDXTEncoderCreate();
+HapCodecDXTEncoderRef HapCodecYCoCgDXTEncoderCreate();
 
 #endif

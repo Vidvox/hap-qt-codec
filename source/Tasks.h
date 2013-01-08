@@ -1,15 +1,15 @@
 //
 //  Tasks.h
-//  VPUCodec
+//  Hap Codec
 //
 //  Created by Tom Butterworth on 09/05/2011.
 //  Copyright 2011 __MyCompanyName__. All rights reserved.
 //
 
-typedef void (*VPUCodecTaskWorkFunction)(void *context);
+typedef void (*HapCodecTaskWorkFunction)(void *context);
 
-void VPUCodecWillStartTasks();
-void VPUCodecWillStopTasks();
-unsigned int VPUCodecNewTaskGroup();
-void VPUCodecTask(VPUCodecTaskWorkFunction task, unsigned int group, void *context);
-void VPUCodecWaitForTasksToComplete(unsigned int group);
+void HapCodecTasksWillStart();
+void HapCodecTasksWillStop();
+unsigned int HapCodecTasksNewGroup();
+void HapCodecTasksAddTask(HapCodecTaskWorkFunction task, unsigned int group, void *context);
+void HapCodecTasksWaitForGroupToComplete(unsigned int group);

@@ -1,0 +1,6 @@
+//
+//  Hap_Codec_Prefix.pch
+//  Hap Codec
+//
+
+#include <Carbon/Carbon.h>

@@ -1,26 +1,26 @@
 //
 //  SquishEncoder.h
-//  VPUCodec
+//  Hap Codec
 //
 //  Created by Tom on 01/10/2012.
 //
 //
 
-#ifndef VPUCodec_SquishEncoder_h
-#define VPUCodec_SquishEncoder_h
+#ifndef HapCodec_SquishEncoder_h
+#define HapCodec_SquishEncoder_h
 
 #include "DXTEncoder.h"
 
-enum VPUPCodecSquishEncoderQuality {
-    VPUPCodecSquishEncoderWorstQuality = 0,
-    VPUPCodecSquishEncoderMediumQuality = 1,
-    VPUPCodecSquishEncoderBestQuality = 2
+enum HapCodecSquishEncoderQuality {
+    HapCodecSquishEncoderWorstQuality = 0,
+    HapCodecSquishEncoderMediumQuality = 1,
+    HapCodecSquishEncoderBestQuality = 2
 };
 
-typedef int VPUPCodecSquishEncoderQuality;
+typedef int HapCodecSquishEncoderQuality;
 
 // pixelFormat must be one of the vanilla DXT formats
 
-VPUPCodecDXTEncoderRef VPUPSquishEncoderCreate(VPUPCodecSquishEncoderQuality quality, OSType pixelFormat);
+HapCodecDXTEncoderRef HapCodecSquishEncoderCreate(HapCodecSquishEncoderQuality quality, OSType pixelFormat);
 
 #endif

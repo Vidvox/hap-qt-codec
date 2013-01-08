@@ -1,6 +1,6 @@
 //
 //  YCoCgDXT.c
-//  Pxlz
+//  Hap Codec
 //
 //  Copyright (c) 2012 Tom Butterworth. All rights reserved.
 //  Based on code by J.M.P. van Waveren / id Software, Inc.

@@ -1,28 +1,28 @@
 //
-//  VPUCodecGL.c
-//  VPUCodec
+//  HapCodecGL.c
+//  Hap Codec
 //
 //  Created by Tom Butterworth on 01/10/2011.
 //  Copyright 2011 Tom Butterworth. All rights reserved.
 //
 
-#include "VPUCodecGL.h"
+#include "HapCodecGL.h"
 #include <OpenGL/OpenGL.h>
 #include <OpenGL/CGLMacro.h>
 #include <stdbool.h>
 #include <string.h>
 #include <stdlib.h>
 
-static bool openGLFormatAndTypeForFormat(VPUCGLPixelFormat pixel_format, GLenum *format_out, GLenum *type_out) __attribute__((nonnull(2,3)));
+static bool openGLFormatAndTypeForFormat(HapCodecGLPixelFormat pixel_format, GLenum *format_out, GLenum *type_out) __attribute__((nonnull(2,3)));
 static int roundUpToMultipleOf4( int n );
 static bool openGLSupportsExtension(CGLContextObj cgl_ctx, const char *extension) __attribute__((nonnull(1,2)));
 
-enum VPUCGLCoderMode {
-    VPUCGLEncoder = 0,
-    VPUCGLDecoder = 1
+enum HapCodecGLCoderMode {
+    HapCodecGLEncoder = 0,
+    HapCodecGLDecoder = 1
 };
 
-struct VPUCGL {
+struct HapCodecGL {
     CGLContextObj   context;
     unsigned int    mode;
     GLuint          texture;
@@ -74,18 +74,18 @@ static bool openGLSupportsExtension(CGLContextObj cgl_ctx, const char *extension
 	return false;
 }
 
-static bool openGLFormatAndTypeForFormat(VPUCGLPixelFormat pixel_format, GLenum *format_out, GLenum *type_out)
+static bool openGLFormatAndTypeForFormat(HapCodecGLPixelFormat pixel_format, GLenum *format_out, GLenum *type_out)
 {
     switch (pixel_format) {
-        case VPUCGLPixelFormat_BGRA8:
+        case HapCodecGLPixelFormat_BGRA8:
             *format_out = GL_BGRA;
             *type_out = GL_UNSIGNED_INT_8_8_8_8_REV;
             return true;
-        case VPUCGLPixelFormat_RGBA8:
+        case HapCodecGLPixelFormat_RGBA8:
             *format_out = GL_RGBA;
             *type_out = GL_UNSIGNED_INT_8_8_8_8_REV;
             return true;
-        case VPUCGLPixelFormat_YCbCr422:
+        case HapCodecGLPixelFormat_YCbCr422:
             *format_out = GL_YCBCR_422_APPLE;
             *type_out = GL_UNSIGNED_SHORT_8_8_APPLE;
             return true;
@@ -94,9 +94,9 @@ static bool openGLFormatAndTypeForFormat(VPUCGLPixelFormat pixel_format, GLenum 
     }
 }
 
-VPUCGLRef VPUCGLCreate(unsigned int mode, unsigned int width, unsigned int height, unsigned int compressed_format)
+HapCodecGLRef HapCodecGLCreate(unsigned int mode, unsigned int width, unsigned int height, unsigned int compressed_format)
 {
-    VPUCGLRef coder = malloc(sizeof(struct VPUCGL));
+    HapCodecGLRef coder = malloc(sizeof(struct HapCodecGL));
     if (coder)
     {
         coder->context = NULL;
@@ -173,24 +173,24 @@ VPUCGLRef VPUCGLCreate(unsigned int mode, unsigned int width, unsigned int heigh
         }
         else
         {
-            VPUCGLDestroy(coder);
+            HapCodecGLDestroy(coder);
             coder = NULL;
         }
     }
     return coder;
 }
 
-VPUCGLRef VPUCGLCreateEncoder(unsigned int width, unsigned int height, unsigned int compressed_format)
+HapCodecGLRef HapCodecGLCreateEncoder(unsigned int width, unsigned int height, unsigned int compressed_format)
 {
-    return VPUCGLCreate(VPUCGLEncoder, width, height, compressed_format);
+    return HapCodecGLCreate(HapCodecGLEncoder, width, height, compressed_format);
 }
 
-VPUCGLRef VPUCGLCreateDecoder(unsigned int width, unsigned int height, unsigned int compressed_format)
+HapCodecGLRef HapCodecGLCreateDecoder(unsigned int width, unsigned int height, unsigned int compressed_format)
 {
-    return VPUCGLCreate(VPUCGLDecoder, width, height, compressed_format);
+    return HapCodecGLCreate(HapCodecGLDecoder, width, height, compressed_format);
 }
 
-void VPUCGLDestroy(VPUCGLRef coder)
+void HapCodecGLDestroy(HapCodecGLRef coder)
 {
     CGLContextObj cgl_ctx = coder->context;
     if (coder->texture != 0)
@@ -202,22 +202,22 @@ void VPUCGLDestroy(VPUCGLRef coder)
     free(coder);
 }
 
-unsigned int VPUCGLGetWidth(VPUCGLRef coder)
+unsigned int HapCodecGLGetWidth(HapCodecGLRef coder)
 {
     return coder->width;
 }
 
-unsigned int VPUCGLGetHeight(VPUCGLRef coder)
+unsigned int HapCodecGLGetHeight(HapCodecGLRef coder)
 {
     return coder->height;
 }
 
-unsigned int VPUCGLGetCompressedFormat(VPUCGLRef coder)
+unsigned int HapCodecGLGetCompressedFormat(HapCodecGLRef coder)
 {
     return coder->format;
 }
 
-void VPUCGLEncode(VPUCGLRef coder, unsigned int bytes_per_row, VPUCGLPixelFormat pixel_format, const void *source, void *destination)
+void HapCodecGLEncode(HapCodecGLRef coder, unsigned int bytes_per_row, HapCodecGLPixelFormat pixel_format, const void *source, void *destination)
 {
     // See http://www.oldunreal.com/editing/s3tc/ARB_texture_compression.pdf
     CGLContextObj cgl_ctx = coder->context;
@@ -227,7 +227,7 @@ void VPUCGLEncode(VPUCGLRef coder, unsigned int bytes_per_row, VPUCGLPixelFormat
     bool valid = openGLFormatAndTypeForFormat(pixel_format, &format_gl, &type_gl);
     if (!valid) return;
     
-    unsigned int bytes_per_pixel = (pixel_format == VPUCGLPixelFormat_YCbCr422 ? 2 : 4);
+    unsigned int bytes_per_pixel = (pixel_format == HapCodecGLPixelFormat_YCbCr422 ? 2 : 4);
     if (bytes_per_row != coder->width * bytes_per_pixel)
     {
         // Just by the by, 10.7 introduced universal support for GL_UNPACK_ROW_BYTES_APPLE
@@ -267,7 +267,7 @@ void VPUCGLEncode(VPUCGLRef coder, unsigned int bytes_per_row, VPUCGLPixelFormat
     glFlush();
 }
 
-void VPUCGLDecode(VPUCGLRef coder, unsigned int bytes_per_row, VPUCGLPixelFormat pixel_format, const void *source, void *destination)
+void HapCodecGLDecode(HapCodecGLRef coder, unsigned int bytes_per_row, HapCodecGLPixelFormat pixel_format, const void *source, void *destination)
 {
     CGLContextObj cgl_ctx = coder->context;
     

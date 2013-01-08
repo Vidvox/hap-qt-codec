@@ -1,69 +1,7 @@
-/*
-
-File: ExampleIPBCodecUniversal.r
-
-Abstract: Resource file for ExampleIPBCodec
-
-Version: 1.0
-
-© Copyright 2005 Apple Computer, Inc. All rights reserved.
-
-IMPORTANT:  This Apple software is supplied to 
-you by Apple Computer, Inc. ("Apple") in 
-consideration of your agreement to the following 
-terms, and your use, installation, modification 
-or redistribution of this Apple software 
-constitutes acceptance of these terms.  If you do 
-not agree with these terms, please do not use, 
-install, modify or redistribute this Apple 
-software.
-
-In consideration of your agreement to abide by 
-the following terms, and subject to these terms, 
-Apple grants you a personal, non-exclusive 
-license, under Apple's copyrights in this 
-original Apple software (the "Apple Software"), 
-to use, reproduce, modify and redistribute the 
-Apple Software, with or without modifications, in 
-source and/or binary forms; provided that if you 
-redistribute the Apple Software in its entirety 
-and without modifications, you must retain this 
-notice and the following text and disclaimers in 
-all such redistributions of the Apple Software. 
-Neither the name, trademarks, service marks or 
-logos of Apple Computer, Inc. may be used to 
-endorse or promote products derived from the 
-Apple Software without specific prior written 
-permission from Apple.  Except as expressly 
-stated in this notice, no other rights or 
-licenses, express or implied, are granted by 
-Apple herein, including but not limited to any 
-patent rights that may be infringed by your 
-derivative works or by other works in which the 
-Apple Software may be incorporated.
-
-The Apple Software is provided by Apple on an "AS 
-IS" basis.  APPLE MAKES NO WARRANTIES, EXPRESS OR 
-IMPLIED, INCLUDING WITHOUT LIMITATION THE IMPLIED 
-WARRANTIES OF NON-INFRINGEMENT, MERCHANTABILITY 
-AND FITNESS FOR A PARTICULAR PURPOSE, REGARDING 
-THE APPLE SOFTWARE OR ITS USE AND OPERATION ALONE 
-OR IN COMBINATION WITH YOUR PRODUCTS.
-
-IN NO EVENT SHALL APPLE BE LIABLE FOR ANY 
-SPECIAL, INDIRECT, INCIDENTAL OR CONSEQUENTIAL 
-DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS 
-OF USE, DATA, OR PROFITS; OR BUSINESS 
-INTERRUPTION) ARISING IN ANY WAY OUT OF THE USE, 
-REPRODUCTION, MODIFICATION AND/OR DISTRIBUTION OF 
-THE APPLE SOFTWARE, HOWEVER CAUSED AND WHETHER 
-UNDER THEORY OF CONTRACT, TORT (INCLUDING 
-NEGLIGENCE), STRICT LIABILITY OR OTHERWISE, EVEN 
-IF APPLE HAS BEEN ADVISED OF THE POSSIBILITY OF 
-SUCH DAMAGE.
-
-*/
+//
+//  HapCodecUniversal.r
+//  Hap Codec
+//
 
 // Mac OS X Mach-O Component: Set TARGET_REZ_CARBON_MACHO to 1
 //
@@ -79,6 +17,7 @@ SUCH DAMAGE.
 // ---------------------------------------------------
 
 // Set to 1 == building Mac OS X
+
 #define TARGET_REZ_CARBON_MACHO 1
 
 #if TARGET_REZ_CARBON_MACHO
@@ -103,7 +42,6 @@ SUCH DAMAGE.
     #define TARGET_REZ_WIN32 1
 #endif
 
-// TODO: re-enable decompressor here
 #define DECO_BUILD 1
 #define COMP_BUILD 1
 
@@ -119,16 +57,16 @@ SUCH DAMAGE.
     #include "ImageCodec.r"
 #endif
 
-#include "ExampleIPBCodecVersion.h"
+#include "HapCodecVersion.h"
 
-#define	kExampleIPBCodecFormatType	'VPUV'
-#define	kExampleIPBCodecFormatName	"VPU"
+#define	kHapCodecFormatType	'VPUV'
+#define	kHapCodecFormatName	"Hap"
 #define kCodecManufacturerType 'VDVX'
 
 // These flags specify information about the capabilities of the component
 // Works with 32-bit Pixel Maps
-#define kExampleIPBCompressorFlags ( codecInfoDoes32 )
-#define kExampleIPBDecompressorFlags ( codecInfoDoes32 )
+#define kHapCompressorFlags ( codecInfoDoes32 )
+#define kHapDecompressorFlags ( codecInfoDoes32 )
 
 // These flags specify the possible format of compressed data produced by the component
 // and the format of compressed files that the component can handle during decompression
@@ -137,18 +75,18 @@ SUCH DAMAGE.
 // We suppress codecInfoDepth32 to keep the depth selection out of the UI
 
 #define kIPBFormatFlags	( codecInfoDepth24 )
-#define kVPUNameResID 256
-#define kVPUDecompressorDescriptionResID 258
-#define kVPUCompressorDescriptionResID 259
+#define kHapNameResID 256
+#define kHapDecompressorDescriptionResID 258
+#define kHapCompressorDescriptionResID 259
 
 // Component Description
 resource 'cdci' (256) {
-	kExampleIPBCodecFormatName,		// Type
+	kHapCodecFormatName,            // Type
 	1,								// Version
 	1,								// Revision level
 	kCodecManufacturerType,			// Manufacturer
-	kExampleIPBDecompressorFlags,	// Decompression Flags
-	kExampleIPBCompressorFlags,		// Compression Flags
+	kHapDecompressorFlags,          // Decompression Flags
+	kHapCompressorFlags,            // Compression Flags
 	kIPBFormatFlags,				// Format Flags
 	128,							// Compression Accuracy
 	128,							// Decomression Accuracy
@@ -164,26 +102,26 @@ resource 'cdci' (256) {
 };
 
 // Component Name
-resource 'STR ' (kVPUNameResID) {
-	"VPU"
+resource 'STR ' (kHapNameResID) {
+	"Hap"
 };
 
 #if DECO_BUILD
 resource 'thng' (256) {
 	decompressorComponentType,				// Type			
-	kExampleIPBCodecFormatType,				// SubType
+	kHapCodecFormatType,                    // SubType
 	kCodecManufacturerType,					// Manufacturer
 	0,										// - use componentHasMultiplePlatforms
 	0,
 	0,
 	0,
 	'STR ',									// Name Type
-	kVPUNameResID,							// Name ID
+	kHapNameResID,							// Name ID
 	'STR ',									// Info Type
-	kVPUDecompressorDescriptionResID,		// Info ID
+	kHapDecompressorDescriptionResID,		// Info ID
 	0,										// Icon Type
 	0,										// Icon ID
-	kExampleIPBDecompressorVersion,
+	kHapDecompressorVersion,
 	componentHasMultiplePlatforms +			// Registration Flags 
 		componentDoAutoVersion,
 	0,										// Resource ID of Icon Family
@@ -194,13 +132,13 @@ resource 'thng' (256) {
     #endif
     
     #if TARGET_REZ_MAC_PPC
-        kExampleIPBDecompressorFlags | cmpThreadSafe, 
+        kHapDecompressorFlags | cmpThreadSafe, 
         'dlle',
         256,
         platformPowerPCNativeEntryPoint,
     #endif
     #if TARGET_REZ_MAC_X86
-        kExampleIPBDecompressorFlags | cmpThreadSafe, 
+        kHapDecompressorFlags | cmpThreadSafe, 
         'dlle',
         256,
         platformIA32NativeEntryPoint,
@@ -208,7 +146,7 @@ resource 'thng' (256) {
 #endif
 
 #if TARGET_OS_WIN32
-	kExampleIPBDecompressorFlags, 
+	kHapDecompressorFlags, 
 	'dlle',
 	256,
 	platformWin32,
@@ -218,33 +156,33 @@ resource 'thng' (256) {
 };
 
 // Component Information
-resource 'STR ' (kVPUDecompressorDescriptionResID) {
-	"VPU Decompressor."
+resource 'STR ' (kHapDecompressorDescriptionResID) {
+	"Hap Decompressor."
 };
 
 // Code Entry Point for Mach-O and Windows
 // TODO: change this
 resource 'dlle' (256) {
-	"ExampleIPB_DComponentDispatch"
+	"Hap_DComponentDispatch"
 };
 #endif // DECO_BUILD
 
 #if COMP_BUILD
 resource 'thng' (258) {
 	compressorComponentType,				// Type			
-	kExampleIPBCodecFormatType,				// SubType
+	kHapCodecFormatType,				// SubType
 	kCodecManufacturerType,					// Manufacturer
 	0,										// - use componentHasMultiplePlatforms
 	0,
 	0,
 	0,
 	'STR ',									// Name Type
-	kVPUNameResID,							// Name ID
+	kHapNameResID,							// Name ID
 	'STR ',									// Info Type
-	kVPUCompressorDescriptionResID,			// Info ID
+	kHapCompressorDescriptionResID,			// Info ID
 	0,										// Icon Type
 	0,										// Icon ID
-	kExampleIPBCompressorVersion,
+	kHapCompressorVersion,
 	componentHasMultiplePlatforms +			// Registration Flags 
 		componentDoAutoVersion,
 	0,										// Resource ID of Icon Family
@@ -255,13 +193,13 @@ resource 'thng' (258) {
     #endif
     
     #if TARGET_REZ_MAC_PPC    
-        kExampleIPBCompressorFlags | cmpThreadSafe, 
+        kHapCompressorFlags | cmpThreadSafe, 
         'dlle',
         258,
         platformPowerPCNativeEntryPoint,
     #endif
     #if TARGET_REZ_MAC_X86
-        kExampleIPBCompressorFlags | cmpThreadSafe, 
+        kHapCompressorFlags | cmpThreadSafe, 
         'dlle',
         258,
         platformIA32NativeEntryPoint,
@@ -269,7 +207,7 @@ resource 'thng' (258) {
 #endif
 
 #if TARGET_OS_WIN32
-	kExampleIPBCompressorFlags, 
+	kHapCompressorFlags, 
 	'dlle',
 	258,
 	platformWin32,
@@ -279,14 +217,14 @@ resource 'thng' (258) {
 };
 
 // Component Information
-resource 'STR ' (kVPUCompressorDescriptionResID) {
-	"VPU Compressor."
+resource 'STR ' (kHapCompressorDescriptionResID) {
+	"Hap Compressor."
 };
 
 // Code Entry Point for Mach-O and Windows
 // TODO: change this
 resource 'dlle' (258) {
-	"ExampleIPB_CComponentDispatch"
+	"Hap_CComponentDispatch"
 };
 
 resource 'thnr' (256) {
@@ -308,7 +246,7 @@ resource 'cpix' (256) {
         'DXt1',
         'DXT1',
         'DXT5',
-        'DYT5',
+        'DYt5',
         'RGBA',
         'BGRA'
     }

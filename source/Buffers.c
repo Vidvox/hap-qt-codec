@@ -1,6 +1,6 @@
 //
 //  Buffers.c
-//  VPUCodec
+//  Hap Codec
 //
 //  Created by Tom on 08/05/2011.
 //  Copyright 2011 Tom Butterworth. All rights reserved.
@@ -9,20 +9,20 @@
 #include "Buffers.h"
 #include <libkern/OSAtomic.h>
 
-typedef struct VPUCodecBufferPool {
+typedef struct HapCodecBufferPool {
     OSQueueHead             queue;
     long                    size;
-} VPUCodecBufferPool;
+} HapCodecBufferPool;
 
-typedef struct VPUCodecBuffer {
+typedef struct HapCodecBuffer {
     void                    *buffer;
     void                    *next;
-    VPUCodecBufferPoolRef   pool;
-} VPUCodecBuffer;
+    HapCodecBufferPoolRef   pool;
+} HapCodecBuffer;
 
-VPUCodecBufferPoolRef VPUCodecCreateBufferPool(long size)
+HapCodecBufferPoolRef HapCodecBufferPoolCreate(long size)
 {
-    VPUCodecBufferPoolRef pool = malloc(sizeof(VPUCodecBufferPool));
+    HapCodecBufferPoolRef pool = malloc(sizeof(HapCodecBufferPool));
     if (pool)
     {
         pool->queue.opaque1 = NULL; // OS_ATOMIC_QUEUE_INIT
@@ -32,14 +32,14 @@ VPUCodecBufferPoolRef VPUCodecCreateBufferPool(long size)
     return pool;
 }
 
-void VPUCodecDestroyBufferPool(VPUCodecBufferPoolRef pool)
+void HapCodecBufferPoolDestroy(HapCodecBufferPoolRef pool)
 {
     if (pool)
     {
-        VPUCodecBufferRef buffer;
+        HapCodecBufferRef buffer;
         do
         {
-            buffer = OSAtomicDequeue(&pool->queue, offsetof(VPUCodecBuffer, next));
+            buffer = OSAtomicDequeue(&pool->queue, offsetof(HapCodecBuffer, next));
             if (buffer)
             {
                 free(buffer->buffer);
@@ -50,7 +50,7 @@ void VPUCodecDestroyBufferPool(VPUCodecBufferPoolRef pool)
     }
 }
 
-long VPUCodecGetBufferPoolBufferSize(VPUCodecBufferPoolRef pool)
+long HapCodecBufferPoolGetBufferSize(HapCodecBufferPoolRef pool)
 {
     if (pool)
     {
@@ -62,14 +62,14 @@ long VPUCodecGetBufferPoolBufferSize(VPUCodecBufferPoolRef pool)
     }
 }
 
-VPUCodecBufferRef VPUCodecGetBuffer(VPUCodecBufferPoolRef pool)
+HapCodecBufferRef HapCodecBufferCreate(HapCodecBufferPoolRef pool)
 {
     if (pool)
     {
-        VPUCodecBuffer *buffer = OSAtomicDequeue(&pool->queue, offsetof(VPUCodecBuffer, next));
+        HapCodecBuffer *buffer = OSAtomicDequeue(&pool->queue, offsetof(HapCodecBuffer, next));
         if (buffer == NULL)
         {
-            buffer = malloc(sizeof(VPUCodecBuffer));
+            buffer = malloc(sizeof(HapCodecBuffer));
             if (buffer)
             {
                 buffer->next = NULL;
@@ -85,15 +85,15 @@ VPUCodecBufferRef VPUCodecGetBuffer(VPUCodecBufferPoolRef pool)
     }
 }
 
-void VPUCodecReturnBuffer(VPUCodecBufferRef buffer)
+void HapCodecBufferReturn(HapCodecBufferRef buffer)
 {
     if (buffer && buffer->pool)
     {
-        OSAtomicEnqueue(&buffer->pool->queue, buffer, offsetof(VPUCodecBuffer, next));
+        OSAtomicEnqueue(&buffer->pool->queue, buffer, offsetof(HapCodecBuffer, next));
     }
 }
 
-void *VPUCodecGetBufferBaseAddress(VPUCodecBufferRef buffer)
+void *HapCodecBufferGetBaseAddress(HapCodecBufferRef buffer)
 {
     if (buffer)
     {
@@ -105,7 +105,7 @@ void *VPUCodecGetBufferBaseAddress(VPUCodecBufferRef buffer)
     }
 }
 
-long VPUCodecGetBufferSize(VPUCodecBufferRef buffer)
+long HapCodecBufferGetSize(HapCodecBufferRef buffer)
 {
     if (buffer && buffer->pool)
     {

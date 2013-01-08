@@ -1,68 +1,8 @@
 /*
-
-File: ExampleIPBCompressor.c, part of ExampleIPBCodec
-
-Abstract: Example Image Compressor using new IPB-capable component interface in QuickTime 7.
-
-Version: 1.0
-
-© Copyright 2005 Apple Computer, Inc. All rights reserved.
-
-IMPORTANT:  This Apple software is supplied to 
-you by Apple Computer, Inc. ("Apple") in 
-consideration of your agreement to the following 
-terms, and your use, installation, modification 
-or redistribution of this Apple software 
-constitutes acceptance of these terms.  If you do 
-not agree with these terms, please do not use, 
-install, modify or redistribute this Apple 
-software.
-
-In consideration of your agreement to abide by 
-the following terms, and subject to these terms, 
-Apple grants you a personal, non-exclusive 
-license, under Apple's copyrights in this 
-original Apple software (the "Apple Software"), 
-to use, reproduce, modify and redistribute the 
-Apple Software, with or without modifications, in 
-source and/or binary forms; provided that if you 
-redistribute the Apple Software in its entirety 
-and without modifications, you must retain this 
-notice and the following text and disclaimers in 
-all such redistributions of the Apple Software. 
-Neither the name, trademarks, service marks or 
-logos of Apple Computer, Inc. may be used to 
-endorse or promote products derived from the 
-Apple Software without specific prior written 
-permission from Apple.  Except as expressly 
-stated in this notice, no other rights or 
-licenses, express or implied, are granted by 
-Apple herein, including but not limited to any 
-patent rights that may be infringed by your 
-derivative works or by other works in which the 
-Apple Software may be incorporated.
-
-The Apple Software is provided by Apple on an "AS 
-IS" basis.  APPLE MAKES NO WARRANTIES, EXPRESS OR 
-IMPLIED, INCLUDING WITHOUT LIMITATION THE IMPLIED 
-WARRANTIES OF NON-INFRINGEMENT, MERCHANTABILITY 
-AND FITNESS FOR A PARTICULAR PURPOSE, REGARDING 
-THE APPLE SOFTWARE OR ITS USE AND OPERATION ALONE 
-OR IN COMBINATION WITH YOUR PRODUCTS.
-
-IN NO EVENT SHALL APPLE BE LIABLE FOR ANY 
-SPECIAL, INDIRECT, INCIDENTAL OR CONSEQUENTIAL 
-DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS 
-OF USE, DATA, OR PROFITS; OR BUSINESS 
-INTERRUPTION) ARISING IN ANY WAY OUT OF THE USE, 
-REPRODUCTION, MODIFICATION AND/OR DISTRIBUTION OF 
-THE APPLE SOFTWARE, HOWEVER CAUSED AND WHETHER 
-UNDER THEORY OF CONTRACT, TORT (INCLUDING 
-NEGLIGENCE), STRICT LIABILITY OR OTHERWISE, EVEN 
-IF APPLE HAS BEEN ADVISED OF THE POSSIBILITY OF 
-SUCH DAMAGE.
-
+ 
+HapCompressor.c
+Hap Codec
+ 
 */
 
 
@@ -74,10 +14,10 @@ SUCH DAMAGE.
     #include <ImageCodec.h>
 #endif
 
-#include "ExampleIPBCodecVersion.h"
-#include "VPUCodecUtility.h"
+#include "HapCodecVersion.h"
+#include "Utility.h"
 #include "PixelFormats.h"
-#include "vpu.h"
+#include "hap.h"
 #include "Tasks.h"
 #include "Buffers.h"
 #include "DXTEncoder.h"
@@ -102,7 +42,7 @@ SUCH DAMAGE.
     #include <mach/mach_time.h>
 #endif
 
-typedef struct VPUCodecCompressTask VPUCodecCompressTask;
+typedef struct HapCodecCompressTask HapCodecCompressTask;
 
 typedef struct {
 	ComponentInstance				self;
@@ -115,24 +55,24 @@ typedef struct {
 	size_t							maxEncodedDataSize;
 	
     int                             lastFrameOut;
-    VPUCodecBufferRef               *finishedFrames;
+    HapCodecBufferRef               *finishedFrames;
     int                             finishedFramesCapacity;
     OSSpinLock                      lock;
     
     Boolean                         endTasksPending;
-    VPUCodecBufferPoolRef           compressTaskPool;
+    HapCodecBufferPoolRef           compressTaskPool;
     
-    VPUPCodecDXTEncoderRef          dxtEncoder;
+    HapCodecDXTEncoderRef           dxtEncoder;
     
-    VPUCodecBufferPoolRef           formatConvertPool;
+    HapCodecBufferPoolRef           formatConvertPool;
     size_t                          formatConvertBufferBytesPerRow;
     
-    VPUCodecBufferPoolRef           dxtBufferPool;
+    HapCodecBufferPoolRef           dxtBufferPool;
     
     Boolean                         allowAsyncCompletion;
     int32_t                         backgroundError;
     unsigned int                    dxtFormat;
-    unsigned int                    vpuCompressor;
+    unsigned int                    hapCompressor;
     unsigned int                    taskGroup;
     
     CFMutableDictionaryRef          settings; // Settings from our settings dialog if applicable
@@ -144,19 +84,19 @@ typedef struct {
     unsigned long                   debugLargestFrameBytes;
     unsigned long                   debugSmallestFrameBytes;    
 #endif
-} ExampleIPBCompressorGlobalsRecord, *ExampleIPBCompressorGlobals;
+} HapCompressorGlobalsRecord, *HapCompressorGlobals;
 
-struct VPUCodecCompressTask
+struct HapCodecCompressTask
 {
-    ExampleIPBCompressorGlobals glob;
-    ICMCompressorSourceFrameRef sourceFrame;
-    ICMMutableEncodedFrameRef encodedFrame;
-    ComponentResult error;
+    HapCompressorGlobals            glob;
+    ICMCompressorSourceFrameRef     sourceFrame;
+    ICMMutableEncodedFrameRef       encodedFrame;
+    ComponentResult                 error;
 };
 
 // Setup required for ComponentDispatchHelper.c
-#define IMAGECODEC_BASENAME() 		ExampleIPB_C
-#define IMAGECODEC_GLOBALS() 		ExampleIPBCompressorGlobals storage
+#define IMAGECODEC_BASENAME() 		Hap_C
+#define IMAGECODEC_GLOBALS() 		HapCompressorGlobals storage
 
 #define CALLCOMPONENT_BASENAME()	IMAGECODEC_BASENAME()
 #define	CALLCOMPONENT_GLOBALS()		IMAGECODEC_GLOBALS()
@@ -165,7 +105,7 @@ struct VPUCodecCompressTask
 #define QT_GLOBALS()				CALLCOMPONENT_GLOBALS()
 
 #define COMPONENT_UPP_PREFIX()		uppImageCodec
-#define COMPONENT_DISPATCH_FILE		"ExampleIPBCompressorDispatch.h"
+#define COMPONENT_DISPATCH_FILE		"HapCompressorDispatch.h"
 #define COMPONENT_SELECT_PREFIX()  	kImageCodec
 
 #if __APPLE_CC__
@@ -185,7 +125,7 @@ struct VPUCodecCompressTask
  
  value is one of the following CFStrings
  */
-#define kSettingsSecondaryCompressorKey CFSTR("com.vidvox.vpup.settings.secondary-compressor")
+#define kSettingsSecondaryCompressorKey CFSTR("com.vidvox.hap.settings.secondary-compressor")
 
 #define kSettingsSecondaryCompressorSnappy CFSTR("snappy")
 #define kSettingsSecondaryCompressorLZF CFSTR("lzf")
@@ -196,20 +136,20 @@ struct VPUCodecCompressTask
  
  value is a CFBoolean
  */
-#define kSettingsPreserveAlphaKey CFSTR("com.vidvox.vpup.settings.preserve-alpha")
+#define kSettingsPreserveAlphaKey CFSTR("com.vidvox.hap.settings.preserve-alpha")
 
 /*
  kSettingsQualityKey
  
  value is a CFNumber representing a CodecQ
  */
-#define kSettingsQualityKey CFSTR("com.vidvox.vpup.settings.quality")
+#define kSettingsQualityKey CFSTR("com.vidvox.hap.settings.quality")
 
-static ComponentResult finishFrame(VPUCodecBufferRef buffer, bool onBackgroundThread);
-static void queueEncodedFrame(ExampleIPBCompressorGlobals glob, VPUCodecBufferRef frame);
-static VPUCodecBufferRef dequeueFrameNumber(ExampleIPBCompressorGlobals glob, int number);
-static void emitBackgroundError(ExampleIPBCompressorGlobals glob, ComponentResult error);
-static ComponentResult backgroundError(ExampleIPBCompressorGlobals glob);
+static ComponentResult finishFrame(HapCodecBufferRef buffer, bool onBackgroundThread);
+static void queueEncodedFrame(HapCompressorGlobals glob, HapCodecBufferRef frame);
+static HapCodecBufferRef dequeueFrameNumber(HapCompressorGlobals glob, int number);
+static void emitBackgroundError(HapCompressorGlobals glob, ComponentResult error);
+static ComponentResult backgroundError(HapCompressorGlobals glob);
 
 // Open a new instance of the component.
 // Allocate component instance storage ("globals") and associate it with the new instance so that other
@@ -218,13 +158,13 @@ static ComponentResult backgroundError(ExampleIPBCompressorGlobals glob);
 // an instance, making that call and then closing the instance, so you should avoid performing very expensive
 // initialization operations in a component's Open function.
 ComponentResult 
-ExampleIPB_COpen(
-  ExampleIPBCompressorGlobals glob, 
+Hap_COpen(
+  HapCompressorGlobals glob,
   ComponentInstance self )
 {    
 	ComponentResult err = noErr;
 	    
-	glob = calloc( sizeof( ExampleIPBCompressorGlobalsRecord ), 1 );
+	glob = calloc( sizeof( HapCompressorGlobalsRecord ), 1 );
 	if( ! glob ) {
 		err = memFullErr;
 		goto bail;
@@ -250,7 +190,7 @@ ExampleIPB_COpen(
     glob->allowAsyncCompletion = false;
     glob->backgroundError = noErr;
     glob->dxtFormat = 0;
-    glob->vpuCompressor = VPUCompressorSnappy;
+    glob->hapCompressor = HapCompressorSnappy;
     glob->taskGroup = 0;
     glob->settings = NULL;
     
@@ -263,8 +203,8 @@ bail:
 // Release all storage associated with this instance.
 // Note that if a component's Open function fails with an error, its Close function will still be called.
 ComponentResult 
-ExampleIPB_CClose(
-  ExampleIPBCompressorGlobals glob, 
+Hap_CClose(
+  HapCompressorGlobals glob,
   ComponentInstance self )
 {
 #pragma unused (self)
@@ -284,25 +224,25 @@ ExampleIPB_CClose(
             
             double time = (double)UnsignedWideToUInt64(elapsedNano) / (double)NSEC_PER_SEC;
 
-            printf("VPU CODEC: %u frames over %.1f seconds %.1f FPS. ", glob->debugFrameCount, time, glob->debugFrameCount / time);
+            printf("HAP CODEC: %u frames over %.1f seconds %.1f FPS. ", glob->debugFrameCount, time, glob->debugFrameCount / time);
             printf("Largest frame bytes: %lu smallest: %lu average: %lu ",
                    glob->debugLargestFrameBytes, glob->debugSmallestFrameBytes, glob->debugTotalFrameBytes/ glob->debugFrameCount);
             unsigned int uncompressed = glob->width * glob->height;
-            if (glob->dxtFormat == VPUTextureFormat_RGB_DXT1) uncompressed /= 2;
-            uncompressed += 4U; // VPU uses 4 extra bytes
+            if (glob->dxtFormat == HapTextureFormat_RGB_DXT1) uncompressed /= 2;
+            uncompressed += 4U; // Hap uses 4 extra bytes
             printf("uncompressed: %d\n", uncompressed);
         }
 #endif
-        VPUCodecDestroyBufferPool(glob->dxtBufferPool);
+        HapCodecBufferPoolDestroy(glob->dxtBufferPool);
         glob->dxtBufferPool = NULL;
         
-        VPUCodecDXTEncoderDestroy(glob->dxtEncoder);
+        HapCodecDXTEncoderDestroy(glob->dxtEncoder);
         glob->dxtEncoder = NULL;
         
-        VPUCodecDestroyBufferPool(glob->formatConvertPool);
+        HapCodecBufferPoolDestroy(glob->formatConvertPool);
         glob->formatConvertPool = NULL;
         
-        VPUCodecDestroyBufferPool(glob->compressTaskPool);
+        HapCodecBufferPoolDestroy(glob->compressTaskPool);
         glob->compressTaskPool = NULL;
         
         free(glob->finishedFrames);
@@ -310,7 +250,7 @@ ExampleIPB_CClose(
         
         if (glob->endTasksPending)
         {
-            VPUCodecWillStopTasks();
+            HapCodecTasksWillStop();
         }
         
         if (glob->settings)
@@ -338,10 +278,10 @@ ExampleIPB_CClose(
 // We recommend bumping the low short of the component version every time you ship a release of a component.
 // The version number in the 'thng' resource should be the same as the number returned by this function.
 ComponentResult 
-ExampleIPB_CVersion(ExampleIPBCompressorGlobals glob)
+Hap_CVersion(HapCompressorGlobals glob)
 {
 #pragma unused (glob)
-	return kExampleIPBCompressorVersion;
+	return kHapCompressorVersion;
 }
 
 // Sets the target for a component instance.
@@ -349,7 +289,7 @@ ExampleIPB_CVersion(ExampleIPBCompressorGlobals glob)
 // This allows other components to delegate to the component.
 // By default, a component's target is itself -- see the Open function.
 ComponentResult 
-ExampleIPB_CTarget(ExampleIPBCompressorGlobals glob, ComponentInstance target)
+Hap_CTarget(HapCompressorGlobals glob, ComponentInstance target)
 {
 	glob->target = target;
 	return noErr;
@@ -359,7 +299,7 @@ ExampleIPB_CTarget(ExampleIPBCompressorGlobals glob, ComponentInstance target)
 // Your component should return a formatted compressor information structure defining its capabilities.
 // Both compressors and decompressors may receive this request.
 ComponentResult 
-ExampleIPB_CGetCodecInfo(ExampleIPBCompressorGlobals glob, CodecInfo *info)
+Hap_CGetCodecInfo(HapCompressorGlobals glob, CodecInfo *info)
 {
 	OSErr err = noErr;
 
@@ -393,8 +333,8 @@ ExampleIPB_CGetCodecInfo(ExampleIPBCompressorGlobals glob, CodecInfo *info)
 // Nevertheless, it's important to implement it because such clients need to know how much 
 // memory to allocate for compressed frame buffers.
 ComponentResult 
-ExampleIPB_CGetMaxCompressionSize(
-	ExampleIPBCompressorGlobals glob, 
+Hap_CGetMaxCompressionSize(
+	HapCompressorGlobals glob,
 	PixMapHandle        src,
 	const Rect *        srcRect,
 	short               depth,
@@ -407,7 +347,7 @@ ExampleIPB_CGetMaxCompressionSize(
 		return paramErr;
     int dxtSize = roundUpToMultipleOf4(srcRect->right - srcRect->left) * roundUpToMultipleOf4(srcRect->bottom - srcRect->top);
     if (depth == 24) dxtSize /= 2;
-	*size = VPUMaxEncodedLength(dxtSize);
+	*size = HapMaxEncodedLength(dxtSize);
     
 	return noErr;
 }
@@ -501,8 +441,8 @@ bail:
 // Compressor may modify imageDescription at this point.
 // Compressor may create and return pixel buffer options.
 ComponentResult 
-ExampleIPB_CPrepareToCompressFrames(
-  ExampleIPBCompressorGlobals glob,
+Hap_CPrepareToCompressFrames(
+  HapCompressorGlobals glob,
   ICMCompressorSessionRef session,
   ICMCompressionSessionOptionsRef sessionOptions,
   ImageDescriptionHandle imageDescription,
@@ -625,18 +565,18 @@ ExampleIPB_CPrepareToCompressFrames(
     
     if (quality <= codecLowQuality)
     {
-        glob->dxtEncoder = VPUPGLEncoderCreate(glob->width, glob->height, alpha ? kVPUCVPixelFormat_RGBA_DXT5 : kVPUCVPixelFormat_RGB_DXT1);
-        glob->dxtFormat = alpha ? VPUTextureFormat_RGBA_DXT5 : VPUTextureFormat_RGB_DXT1;
+        glob->dxtEncoder = HapCodecGLEncoderCreate(glob->width, glob->height, alpha ? kHapCVPixelFormat_RGBA_DXT5 : kHapCVPixelFormat_RGB_DXT1);
+        glob->dxtFormat = alpha ? HapTextureFormat_RGBA_DXT5 : HapTextureFormat_RGB_DXT1;
     }
     else if (quality < codecHighQuality || alpha)
     {
-        glob->dxtEncoder = VPUPSquishEncoderCreate(VPUPCodecSquishEncoderMediumQuality, alpha ? kVPUCVPixelFormat_RGBA_DXT5 : kVPUCVPixelFormat_RGB_DXT1);
-        glob->dxtFormat = alpha ? VPUTextureFormat_RGBA_DXT5 : VPUTextureFormat_RGB_DXT1;
+        glob->dxtEncoder = HapCodecSquishEncoderCreate(HapCodecSquishEncoderMediumQuality, alpha ? kHapCVPixelFormat_RGBA_DXT5 : kHapCVPixelFormat_RGB_DXT1);
+        glob->dxtFormat = alpha ? HapTextureFormat_RGBA_DXT5 : HapTextureFormat_RGB_DXT1;
     }
     else
     {
-        glob->dxtEncoder = VPUPYCoCgDXTEncoderCreate();
-        glob->dxtFormat = VPUTextureFormat_YCoCg_DXT5;
+        glob->dxtEncoder = HapCodecYCoCgDXTEncoderCreate();
+        glob->dxtFormat = HapTextureFormat_YCoCg_DXT5;
     }
     if (glob->dxtEncoder == NULL)
     {
@@ -655,7 +595,7 @@ ExampleIPB_CPrepareToCompressFrames(
 	*compressorPixelBufferAttributesOut = compressorPixelBufferAttributes;
 	compressorPixelBufferAttributes = NULL;
     
-    // Currently we store the VPU frame type in the image description as discovering it otherwise
+    // Currently we store the Hap frame type in the image description as discovering it otherwise
     // would require reading a frame
     
     Handle stored = NewHandleClear(sizeof(UInt32));
@@ -665,7 +605,7 @@ ExampleIPB_CPrepareToCompressFrames(
         goto bail;
     }
     **(UInt32 **)stored = OSSwapHostToBigInt32(glob->dxtFormat);
-    err = AddImageDescriptionExtension(imageDescription, stored, kVPUCodecSampleDescriptionExtensionVPU);
+    err = AddImageDescriptionExtension(imageDescription, stored, kHapCodecSampleDescriptionExtension);
     DisposeHandle(stored);
     if (err)
     {
@@ -682,12 +622,12 @@ ExampleIPB_CPrepareToCompressFrames(
     
 	// Work out the upper bound on encoded frame data size -- we'll allocate buffers of this size.
     long wantedDXTSize = roundUpToMultipleOf4(glob->width) * roundUpToMultipleOf4(glob->height);
-    if (glob->dxtFormat == VPUTextureFormat_RGB_DXT1) wantedDXTSize /= 2;
+    if (glob->dxtFormat == HapTextureFormat_RGB_DXT1) wantedDXTSize /= 2;
     
-    if (VPUCodecGetBufferPoolBufferSize(glob->dxtBufferPool) != wantedDXTSize)
+    if (HapCodecBufferPoolGetBufferSize(glob->dxtBufferPool) != wantedDXTSize)
     {
-        VPUCodecDestroyBufferPool(glob->dxtBufferPool);
-        glob->dxtBufferPool = VPUCodecCreateBufferPool(wantedDXTSize);
+        HapCodecBufferPoolDestroy(glob->dxtBufferPool);
+        glob->dxtBufferPool = HapCodecBufferPoolCreate(wantedDXTSize);
     }
     if (glob->dxtBufferPool == NULL)
     {
@@ -695,16 +635,16 @@ ExampleIPB_CPrepareToCompressFrames(
         goto bail;
     }
     
-    glob->maxEncodedDataSize = VPUMaxEncodedLength(wantedDXTSize);
+    glob->maxEncodedDataSize = HapMaxEncodedLength(wantedDXTSize);
     
     // TODO: right now all the pixel formats we accept have the same number of bits per pixel
     // but we will accept DXT etc buffers in, so this will have to be more flexible
     size_t wantedConvertBufferBytesPerRow = roundUpToMultipleOf16(glob->width * 4);
     size_t wantedBufferSize = wantedConvertBufferBytesPerRow * glob->height;
-    if (VPUCodecGetBufferPoolBufferSize(glob->formatConvertPool) != wantedBufferSize)
+    if (HapCodecBufferPoolGetBufferSize(glob->formatConvertPool) != wantedBufferSize)
     {
-        VPUCodecDestroyBufferPool(glob->formatConvertPool);
-        glob->formatConvertPool = VPUCodecCreateBufferPool(wantedBufferSize);
+        HapCodecBufferPoolDestroy(glob->formatConvertPool);
+        glob->formatConvertPool = HapCodecBufferPoolCreate(wantedBufferSize);
         glob->formatConvertBufferBytesPerRow = wantedConvertBufferBytesPerRow;
     }
     
@@ -713,39 +653,39 @@ ExampleIPB_CPrepareToCompressFrames(
         CFStringRef compressorFromSettings = CFDictionaryGetValue(glob->settings, kSettingsSecondaryCompressorKey);
         if (CFEqual(compressorFromSettings, kSettingsSecondaryCompressorZLIB))
         {
-            glob->vpuCompressor = VPUCompressorZLIB;
+            glob->hapCompressor = HapCompressorZLIB;
         }
         else if (CFEqual(compressorFromSettings, kSettingsSecondaryCompressorLZF))
         {
-            glob->vpuCompressor = VPUCompressorLZF;
+            glob->hapCompressor = HapCompressorLZF;
         }
         else
         {
-            glob->vpuCompressor = VPUCompressorSnappy;
+            glob->hapCompressor = HapCompressorSnappy;
         }
     }
     else
     {
-        glob->vpuCompressor = VPUCompressorSnappy;
+        glob->hapCompressor = HapCompressorSnappy;
     }
     
 #ifdef DEBUG
     char *compressor_str;
-    switch (glob->vpuCompressor) {
-        case VPUCompressorSnappy:
+    switch (glob->hapCompressor) {
+        case HapCompressorSnappy:
             compressor_str = "snappy";
             break;
-        case VPUCompressorLZF:
+        case HapCompressorLZF:
             compressor_str = "LZF";
             break;
-        case VPUCompressorZLIB:
+        case HapCompressorZLIB:
             compressor_str = "ZLIB";
             break;
         default:
             err = internalComponentErr;
             goto bail;
     }
-    printf("VPU CODEC: start / %s / ", compressor_str);
+    printf("HAP CODEC: start / %s / ", compressor_str);
     if (glob->dxtEncoder->describe_function)
     {
         printf("%s", glob->dxtEncoder->describe_function(glob->dxtEncoder));
@@ -755,7 +695,7 @@ ExampleIPB_CPrepareToCompressFrames(
     
     if (glob->compressTaskPool == NULL)
     {
-        glob->compressTaskPool = VPUCodecCreateBufferPool(sizeof(VPUCodecCompressTask));
+        glob->compressTaskPool = HapCodecBufferPoolCreate(sizeof(HapCodecCompressTask));
     }
     
     if (glob->compressTaskPool == NULL)
@@ -764,10 +704,10 @@ ExampleIPB_CPrepareToCompressFrames(
         goto bail;
     }
     
-    VPUCodecWillStartTasks();
+    HapCodecTasksWillStart();
     glob->endTasksPending = true;
     
-    glob->taskGroup = VPUCodecNewTaskGroup();
+    glob->taskGroup = HapCodecTasksNewGroup();
     
 #ifdef DEBUG    
     glob->debugStartTime = mach_absolute_time();
@@ -780,11 +720,11 @@ bail:
 
 static void Background_Encode(void *info)
 {
-    VPUCodecBufferRef formatConvertBuffer = NULL;
-    VPUCodecBufferRef dxtBuffer = NULL;
+    HapCodecBufferRef formatConvertBuffer = NULL;
+    HapCodecBufferRef dxtBuffer = NULL;
     CVPixelBufferRef sourceBuffer = NULL;
-    VPUCodecCompressTask *task = VPUCodecGetBufferBaseAddress((VPUCodecBufferRef)info);
-    ExampleIPBCompressorGlobals glob = task->glob;
+    HapCodecCompressTask *task = HapCodecBufferGetBaseAddress((HapCodecBufferRef)info);
+    HapCompressorGlobals glob = task->glob;
     
     ComponentResult err = noErr;
     
@@ -812,7 +752,7 @@ static void Background_Encode(void *info)
     // If necessary, convert the pixels to a format the encoder can ingest
     if (wantedPixelFormat != sourcePixelFormat)
     {
-        formatConvertBuffer = VPUCodecGetBuffer(glob->formatConvertPool);
+        formatConvertBuffer = HapCodecBufferCreate(glob->formatConvertPool);
         
         if (formatConvertBuffer == NULL)
         {
@@ -822,11 +762,11 @@ static void Background_Encode(void *info)
         
         switch (wantedPixelFormat)
         {
-            case kVPUCVPixelFormat_CoCgXY:
+            case kHapCVPixelFormat_CoCgXY:
                 if (sourcePixelFormat == k32BGRAPixelFormat)
                 {
                     ConvertBGR_ToCoCg_Y8888(sourceBaseAddress,
-                                            VPUCodecGetBufferBaseAddress(formatConvertBuffer),
+                                            HapCodecBufferGetBaseAddress(formatConvertBuffer),
                                             glob->width,
                                             glob->height,
                                             sourceBytesPerRow,
@@ -835,7 +775,7 @@ static void Background_Encode(void *info)
                 else
                 {
                     ConvertRGB_ToCoCg_Y8888(sourceBaseAddress,
-                                            VPUCodecGetBufferBaseAddress(formatConvertBuffer),
+                                            HapCodecBufferGetBaseAddress(formatConvertBuffer),
                                             glob->width,
                                             glob->height,
                                             sourceBytesPerRow,
@@ -853,7 +793,7 @@ static void Background_Encode(void *info)
                     };
                     
                     vImage_Buffer dst = {
-                        VPUCodecGetBufferBaseAddress(formatConvertBuffer),
+                        HapCodecBufferGetBaseAddress(formatConvertBuffer),
                         glob->height,
                         glob->width,
                         glob->formatConvertBufferBytesPerRow
@@ -885,7 +825,7 @@ static void Background_Encode(void *info)
     const void *encode_src;
     unsigned int encode_src_bytes_per_row;
     
-    dxtBuffer = VPUCodecGetBuffer(glob->dxtBufferPool);
+    dxtBuffer = HapCodecBufferCreate(glob->dxtBufferPool);
     if (dxtBuffer == NULL)
     {
         err = memFullErr;
@@ -894,7 +834,7 @@ static void Background_Encode(void *info)
     
     if (formatConvertBuffer)
     {
-        encode_src = VPUCodecGetBufferBaseAddress(formatConvertBuffer);
+        encode_src = HapCodecBufferGetBaseAddress(formatConvertBuffer);
         encode_src_bytes_per_row = glob->formatConvertBufferBytesPerRow;
     }
     else
@@ -907,7 +847,7 @@ static void Background_Encode(void *info)
                                                    encode_src,
                                                    encode_src_bytes_per_row,
                                                    wantedPixelFormat,
-                                                   VPUCodecGetBufferBaseAddress(dxtBuffer),
+                                                   HapCodecBufferGetBaseAddress(dxtBuffer),
                                                    glob->width,
                                                    glob->height);
     
@@ -926,21 +866,21 @@ static void Background_Encode(void *info)
     ICMCompressorSourceFrameDetachPixelBuffer(task->sourceFrame);
     
     // Return the format conversion buffer as soon as we can to minimise the number created
-    VPUCodecReturnBuffer(formatConvertBuffer);
+    HapCodecBufferReturn(formatConvertBuffer);
     formatConvertBuffer = NULL;
     
-    const void *codec_src = VPUCodecGetBufferBaseAddress(dxtBuffer);
-    unsigned int codec_src_length = VPUCodecGetBufferSize(dxtBuffer);
+    const void *codec_src = HapCodecBufferGetBaseAddress(dxtBuffer);
+    unsigned int codec_src_length = HapCodecBufferGetSize(dxtBuffer);
     
     unsigned long actualEncodedDataSize = 0;
-    unsigned int vpuResult = VPUEncode(codec_src,
+    unsigned int hapResult = HapEncode(codec_src,
                                        codec_src_length,
                                        glob->dxtFormat,
-                                       glob->vpuCompressor,
+                                       glob->hapCompressor,
                                        ICMEncodedFrameGetDataPtr(task->encodedFrame),
                                        glob->maxEncodedDataSize,
                                        &actualEncodedDataSize);
-    if (vpuResult != VPUResult_No_Error)
+    if (hapResult != HapResult_No_Error)
     {
         err = internalComponentErr;
         goto bail;
@@ -973,14 +913,14 @@ static void Background_Encode(void *info)
 bail:
     debug_print_err(glob, err);
     if (sourceBuffer) CVPixelBufferUnlockBaseAddress(sourceBuffer, kCVPixelBufferLock_ReadOnly);
-    VPUCodecReturnBuffer(formatConvertBuffer);
-    VPUCodecReturnBuffer(dxtBuffer);
+    HapCodecBufferReturn(formatConvertBuffer);
+    HapCodecBufferReturn(dxtBuffer);
     
     // Output the encoded frame - or pass the error on
     task->error = err;
     if (glob->allowAsyncCompletion)
     {
-        err = finishFrame((VPUCodecBufferRef)info, true);
+        err = finishFrame((HapCodecBufferRef)info, true);
         if (err != noErr)
         {
             emitBackgroundError(glob, err);
@@ -988,7 +928,7 @@ bail:
     }
     else
     {
-        queueEncodedFrame(glob, (VPUCodecBufferRef)info);
+        queueEncodedFrame(glob, (HapCodecBufferRef)info);
     }
 }
 
@@ -998,16 +938,16 @@ bail:
 // and release it when it is done with it (by calling ICMCompressorSourceFrameRelease).
 // Pixel buffers are guaranteed to conform to the pixel buffer options returned by ImageCodecPrepareToCompressFrames.
 ComponentResult 
-ExampleIPB_CEncodeFrame(
-  ExampleIPBCompressorGlobals glob,
+Hap_CEncodeFrame(
+  HapCompressorGlobals glob,
   ICMCompressorSourceFrameRef sourceFrame,
   UInt32 flags )
 {
 #pragma unused (flags)
 	ComponentResult err = noErr;
     
-    VPUCodecBufferRef buffer = VPUCodecGetBuffer(glob->compressTaskPool);
-    VPUCodecCompressTask *task = (VPUCodecCompressTask *)VPUCodecGetBufferBaseAddress(buffer);
+    HapCodecBufferRef buffer = HapCodecBufferCreate(glob->compressTaskPool);
+    HapCodecCompressTask *task = (HapCodecCompressTask *)HapCodecBufferGetBaseAddress(buffer);
     if (task == NULL)
     {
         err = memFullErr;
@@ -1019,7 +959,7 @@ ExampleIPB_CEncodeFrame(
     task->error = noErr;
     task->encodedFrame = NULL;
     
-    VPUCodecTask(Background_Encode, glob->taskGroup, buffer);
+    HapCodecTasksAddTask(Background_Encode, glob->taskGroup, buffer);
     
     if (glob->allowAsyncCompletion == false)
     {
@@ -1052,8 +992,8 @@ bail:
 //     does not permit more frames to be queued
 //   - the client has called ICMCompressionSessionCompleteFrames.
 ComponentResult 
-ExampleIPB_CCompleteFrame( 
-  ExampleIPBCompressorGlobals glob,
+Hap_CCompleteFrame( 
+  HapCompressorGlobals glob,
   ICMCompressorSourceFrameRef sourceFrame,
   UInt32 flags )
 {
@@ -1061,9 +1001,9 @@ ExampleIPB_CCompleteFrame(
     ComponentResult err = noErr;
     if (glob->taskGroup)
     {
-        VPUCodecWaitForTasksToComplete(glob->taskGroup); // TODO: this waits for all pending frames rather than the particular frame
+        HapCodecTasksWaitForGroupToComplete(glob->taskGroup); // TODO: this waits for all pending frames rather than the particular frame
     }
-    VPUCodecBufferRef buffer;
+    HapCodecBufferRef buffer;
     
     if (glob->allowAsyncCompletion == false)
     {
@@ -1087,12 +1027,12 @@ bail:
 	return err;
 }
 
-static ComponentResult finishFrame(VPUCodecBufferRef buffer, bool onBackgroundThread)
+static ComponentResult finishFrame(HapCodecBufferRef buffer, bool onBackgroundThread)
 {
     ComponentResult err = noErr;
     if (buffer != NULL)
     {
-        VPUCodecCompressTask *task = VPUCodecGetBufferBaseAddress(buffer);
+        HapCodecCompressTask *task = HapCodecBufferGetBaseAddress(buffer);
         
         err = task->error;
         
@@ -1115,12 +1055,12 @@ static ComponentResult finishFrame(VPUCodecBufferRef buffer, bool onBackgroundTh
         }
         ICMCompressorSourceFrameRelease(task->sourceFrame);
         ICMEncodedFrameRelease(task->encodedFrame);
-        VPUCodecReturnBuffer(buffer);
+        HapCodecBufferReturn(buffer);
     }
     return err;
 }
 
-static void queueEncodedFrame(ExampleIPBCompressorGlobals glob, VPUCodecBufferRef frame)
+static void queueEncodedFrame(HapCompressorGlobals glob, HapCodecBufferRef frame)
 {
     if (glob)
     {
@@ -1140,7 +1080,7 @@ static void queueEncodedFrame(ExampleIPBCompressorGlobals glob, VPUCodecBufferRe
         if (insertIndex == -1)
         {
             glob->finishedFramesCapacity++;
-            VPUCodecBufferRef *newFinishedFrames = malloc(sizeof(VPUCodecBufferRef) * glob->finishedFramesCapacity);
+            HapCodecBufferRef *newFinishedFrames = malloc(sizeof(HapCodecBufferRef) * glob->finishedFramesCapacity);
             for (i = 0; i < glob->finishedFramesCapacity; i++) {
                 if (i < (glob->finishedFramesCapacity - 1) && glob->finishedFrames != NULL)
                 {
@@ -1160,9 +1100,9 @@ static void queueEncodedFrame(ExampleIPBCompressorGlobals glob, VPUCodecBufferRe
     }
 }
 
-static VPUCodecBufferRef dequeueFrameNumber(ExampleIPBCompressorGlobals glob, int number)
+static HapCodecBufferRef dequeueFrameNumber(HapCompressorGlobals glob, int number)
 {
-    VPUCodecBufferRef found = NULL;
+    HapCodecBufferRef found = NULL;
     if (glob)
     {
         OSSpinLockLock(&glob->lock);
@@ -1173,7 +1113,7 @@ static VPUCodecBufferRef dequeueFrameNumber(ExampleIPBCompressorGlobals glob, in
             {
                 if (glob->finishedFrames[i] != NULL)
                 {
-                    VPUCodecCompressTask *task = (VPUCodecCompressTask *)VPUCodecGetBufferBaseAddress(glob->finishedFrames[i]);
+                    HapCodecCompressTask *task = (HapCodecCompressTask *)HapCodecBufferGetBaseAddress(glob->finishedFrames[i]);
                     if (ICMCompressorSourceFrameGetDisplayNumber(task->sourceFrame) == number)
                     {
                         found = glob->finishedFrames[i];
@@ -1187,13 +1127,13 @@ static VPUCodecBufferRef dequeueFrameNumber(ExampleIPBCompressorGlobals glob, in
     return found;
 }
 
-static void emitBackgroundError(ExampleIPBCompressorGlobals glob, ComponentResult error)
+static void emitBackgroundError(HapCompressorGlobals glob, ComponentResult error)
 {
     // We ignore failure here - if we failed then there is already an error pending delivery
     OSAtomicCompareAndSwap32(noErr, error, &glob->backgroundError);
 }
 
-static ComponentResult backgroundError(ExampleIPBCompressorGlobals glob)
+static ComponentResult backgroundError(HapCompressorGlobals glob)
 {
     ComponentResult err;
     do {
@@ -1209,7 +1149,7 @@ static ComponentResult backgroundError(ExampleIPBCompressorGlobals glob)
  
  */
 
-ComponentResult ExampleIPB_CGetSettings(ExampleIPBCompressorGlobals glob, Handle settings)
+ComponentResult Hap_CGetSettings(HapCompressorGlobals glob, Handle settings)
 {
     ComponentResult err = noErr;
     
@@ -1248,7 +1188,7 @@ ComponentResult ExampleIPB_CGetSettings(ExampleIPBCompressorGlobals glob, Handle
     return err;
 }
 
-ComponentResult ExampleIPB_CSetSettings(ExampleIPBCompressorGlobals glob, Handle settings)
+ComponentResult Hap_CSetSettings(HapCompressorGlobals glob, Handle settings)
 {
     ComponentResult err = noErr;
     
@@ -1296,7 +1236,7 @@ ComponentResult ExampleIPB_CSetSettings(ExampleIPBCompressorGlobals glob, Handle
 
 #define kMyCodecDITLResID 129
 
-ComponentResult ExampleIPB_CGetDITLForSize(ExampleIPBCompressorGlobals glob,
+ComponentResult Hap_CGetDITLForSize(HapCompressorGlobals glob,
                                            Handle *ditl,
                                            Point *requestedSize)
 {
@@ -1324,7 +1264,7 @@ ComponentResult ExampleIPB_CGetDITLForSize(ExampleIPBCompressorGlobals glob,
 #define kItemPopup 4
 #define kItemText 5
 
-ComponentResult ExampleIPB_CDITLInstall(ExampleIPBCompressorGlobals glob,
+ComponentResult Hap_CDITLInstall(HapCompressorGlobals glob,
                                         DialogRef d,
                                         short itemOffset)
 {
@@ -1391,7 +1331,7 @@ ComponentResult ExampleIPB_CDITLInstall(ExampleIPBCompressorGlobals glob,
     return noErr;
 }
 
-ComponentResult ExampleIPB_CDITLEvent(ExampleIPBCompressorGlobals glob,
+ComponentResult Hap_CDITLEvent(HapCompressorGlobals glob,
                                       DialogRef d,
                                       short itemOffset,
                                       const EventRecord *theEvent,
@@ -1420,7 +1360,7 @@ ComponentResult ExampleIPB_CDITLEvent(ExampleIPBCompressorGlobals glob,
     return noErr;
 }
 
-ComponentResult ExampleIPB_CDITLItem(ExampleIPBCompressorGlobals glob,
+ComponentResult Hap_CDITLItem(HapCompressorGlobals glob,
                                      DialogRef d,
                                      short itemOffset,
                                      short itemNum)
@@ -1437,7 +1377,7 @@ ComponentResult ExampleIPB_CDITLItem(ExampleIPBCompressorGlobals glob,
     return noErr;
 }
 
-ComponentResult ExampleIPB_CDITLRemove(ExampleIPBCompressorGlobals glob,
+ComponentResult Hap_CDITLRemove(HapCompressorGlobals glob,
                                        DialogRef d,
                                        short itemOffset)
 {
@@ -1508,7 +1448,7 @@ ComponentResult ExampleIPB_CDITLRemove(ExampleIPBCompressorGlobals glob,
     return noErr;
 }
 
-ComponentResult ExampleIPB_CDITLValidateInput(ExampleIPBCompressorGlobals storage,
+ComponentResult Hap_CDITLValidateInput(HapCompressorGlobals storage,
                                               Boolean *ok)
 {
 #pragma unused(storage)

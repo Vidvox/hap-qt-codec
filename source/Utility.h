@@ -1,17 +1,17 @@
 //
-//  VPUCodecUtility.h
-//  VPUCodec
+//  Utility.h
+//  Hap Codec
 //
 //  Created by Tom Butterworth on 04/10/2011.
 //  Copyright 2011 __MyCompanyName__. All rights reserved.
 //
 
-#ifndef VPUCodec_VPUCodecUtility_h
-#define VPUCodec_VPUCodecUtility_h
+#ifndef HapCodec_Utility_h
+#define HapCodec_Utility_h
 
 #include <CoreFoundation/CoreFoundation.h>
 
-#define kVPUCodecSampleDescriptionExtensionVPU 'VPUe'
+#define kHapCodecSampleDescriptionExtension 'HAPe'
 
 void addNumberToDictionary( CFMutableDictionaryRef dictionary, CFStringRef key, SInt32 numberSInt32 );
 void addDoubleToDictionary( CFMutableDictionaryRef dictionary, CFStringRef key, double numberDouble );

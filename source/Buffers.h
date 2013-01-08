@@ -1,22 +1,22 @@
 //
 //  Buffers.h
-//  VPUCodec
+//  Hap Codec
 //
 //  Created by Tom on 08/05/2011.
 //  Copyright 2011 Tom Butterworth. All rights reserved.
 //
 
 
-typedef struct VPUCodecBufferPool *VPUCodecBufferPoolRef;
+typedef struct HapCodecBufferPool *HapCodecBufferPoolRef;
 
-typedef struct VPUCodecBuffer *VPUCodecBufferRef;
+typedef struct HapCodecBuffer *HapCodecBufferRef;
 
 
-VPUCodecBufferPoolRef VPUCodecCreateBufferPool(long size);
-void VPUCodecDestroyBufferPool(VPUCodecBufferPoolRef pool);
-long VPUCodecGetBufferPoolBufferSize(VPUCodecBufferPoolRef pool);
+HapCodecBufferPoolRef HapCodecBufferPoolCreate(long size);
+void HapCodecBufferPoolDestroy(HapCodecBufferPoolRef pool);
+long HapCodecBufferPoolGetBufferSize(HapCodecBufferPoolRef pool);
 
-VPUCodecBufferRef VPUCodecGetBuffer(VPUCodecBufferPoolRef pool);
-void VPUCodecReturnBuffer(VPUCodecBufferRef buffer);
-void *VPUCodecGetBufferBaseAddress(VPUCodecBufferRef buffer);
-long VPUCodecGetBufferSize(VPUCodecBufferRef buffer);
+HapCodecBufferRef HapCodecBufferCreate(HapCodecBufferPoolRef pool);
+void HapCodecBufferReturn(HapCodecBufferRef buffer);
+void *HapCodecBufferGetBaseAddress(HapCodecBufferRef buffer);
+long HapCodecBufferGetSize(HapCodecBufferRef buffer);

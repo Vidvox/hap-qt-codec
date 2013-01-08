@@ -1,9 +1,8 @@
 /*
   squish-c.h
-  VPUCodec
+  Hap Codec
 
-  Created by Tom on 26/04/2011.
-  Copyright 2011 Tom Butterworth. All rights reserved.
+  Created by Tom Butterworth on 26/04/2011.
   A very simple C wrapper around squish. The original copyright for squish
   follows:
 

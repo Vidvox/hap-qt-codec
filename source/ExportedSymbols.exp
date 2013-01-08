@@ -1,7 +1,7 @@
 #  ExportedSymbols.exp
-#  VPUCodec
+#  Hap Codec
 #
 #  Created by Tom on 06/11/2012.
 #
-_ExampleIPB_CComponentDispatch
-_ExampleIPB_DComponentDispatch
+_Hap_CComponentDispatch
+_Hap_DComponentDispatch
