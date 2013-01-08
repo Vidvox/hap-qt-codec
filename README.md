@@ -1,2 +1,2 @@
-vpup-codec
+hap-codec
 ==========
