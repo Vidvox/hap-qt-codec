@@ -9,6 +9,7 @@
 #include "GLDXTEncoder.h"
 #include "VPUCodecGL.h"
 #include "PixelFormats.h"
+#include <CoreVideo/CoreVideo.h>
 
 struct VPUPGLEncoder {
     struct VPUPCodecDXTEncoder base;
