@@ -923,24 +923,3 @@ pascal ComponentResult Hap_DGetCodecInfo(HapDecompressorGlobals glob, CodecInfo 
     debug_print_err(glob, err);
 	return err;
 }
-
-#pragma mark-
-
-// When building the *Application Version Only* make our component available for use by applications (or other clients).
-// Once the Component Manager has registered a component, applications can find and open the component using standard
-// Component Manager routines.
-#if !STAND_ALONE && !TARGET_OS_WIN32
-void RegisterExampleIPBDecompressor(void);
-void RegisterExampleIPBDecompressor(void)
-{
-	ComponentDescription td;
-	
-	td.componentType = decompressorComponentType;
-	td.componentSubType = FOUR_CHAR_CODE('EIPB');
-	td.componentManufacturer = kAppleManufacturer;
-	td.componentFlags = cmpThreadSafe;
-	td.componentFlagsMask = 0;
-
-	RegisterComponent(&td,(ComponentRoutineUPP)Hap_DComponentDispatch, 0, NULL, NULL, NULL);
-}
-#endif // !STAND_ALONE && TARGET_OS_WIN32
