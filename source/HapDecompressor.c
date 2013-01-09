@@ -17,6 +17,7 @@
 #include "HapCodecVersion.h"
 #include "Utility.h"
 #include "PixelFormats.h"
+#include "HapCodecSubTypes.h"
 #include "hap.h"
 #include "Buffers.h"
 #include "YCoCg.h"
@@ -369,7 +370,7 @@ pascal ComponentResult Hap_DPreflight(HapDecompressorGlobals glob, CodecDecompre
 
     unsigned int textureFormat = 0;
     
-    if (glob->type == kHapYCoCgCodecSubtype)
+    if (glob->type == kHapYCoCgCodecSubType)
     {
         textureFormat = HapTextureFormat_YCoCg_DXT5;
     }
@@ -903,7 +904,7 @@ pascal ComponentResult Hap_DGetCodecInfo(HapDecompressorGlobals glob, CodecInfo 
 	else
     {
 		CodecInfo **tempCodecInfo;
-        SInt16 resourceID = glob->type == kHapCodecSubtype ? 256 : 356;
+        SInt16 resourceID = glob->type == kHapCodecSubType ? 256 : 356;
         
         err = GetComponentResource((Component)glob->self, codecInfoResourceType, resourceID, (Handle *)&tempCodecInfo);
         if (err == noErr)
@@ -911,7 +912,7 @@ pascal ComponentResult Hap_DGetCodecInfo(HapDecompressorGlobals glob, CodecInfo 
             *info = **tempCodecInfo;
             DisposeHandle((Handle)tempCodecInfo);
             
-            if (glob->type == kHapCodecSubtype)
+            if (glob->type == kHapCodecSubType)
             {
                 // We suppress this from the resource to avoid having the user-confusing Millions+ menu
                 // but we can hand it out to any other interested parties

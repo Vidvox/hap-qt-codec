@@ -17,6 +17,7 @@ Hap Codec
 #include "HapCodecVersion.h"
 #include "Utility.h"
 #include "PixelFormats.h"
+#include "HapCodecSubTypes.h"
 #include "hap.h"
 #include "Tasks.h"
 #include "Buffers.h"
@@ -319,7 +320,7 @@ Hap_CGetCodecInfo(HapCompressorGlobals glob, CodecInfo *info)
 	else
     {
 		CodecInfo **tempCodecInfo;
-        SInt16 resourceID = glob->type == kHapCodecSubtype ? 256 : 356;
+        SInt16 resourceID = glob->type == kHapCodecSubType ? 256 : 356;
         
         err = GetComponentResource((Component)glob->self, codecInfoResourceType, resourceID, (Handle *)&tempCodecInfo);
         if (err == noErr)
@@ -327,7 +328,7 @@ Hap_CGetCodecInfo(HapCompressorGlobals glob, CodecInfo *info)
             *info = **tempCodecInfo;
             DisposeHandle((Handle)tempCodecInfo);
             
-            if (glob->type == kHapCodecSubtype)
+            if (glob->type == kHapCodecSubType)
             {
                 // We suppress this from the resource to avoid having the user-confusing Millions+ menu
                 // but we can hand it out to any other interested parties
@@ -359,7 +360,7 @@ Hap_CGetMaxCompressionSize(
 	if( ! size )
 		return paramErr;
     int dxtSize = roundUpToMultipleOf4(srcRect->right - srcRect->left) * roundUpToMultipleOf4(srcRect->bottom - srcRect->top);
-    if (depth == 24 && glob->type == kHapCodecSubtype) dxtSize /= 2;
+    if (depth == 24 && glob->type == kHapCodecSubType) dxtSize /= 2;
 	*size = HapMaxEncodedLength(dxtSize);
     
 	return noErr;
@@ -505,7 +506,7 @@ Hap_CPrepareToCompressFrames(
 	
     bool alpha;
     
-    if (glob->type == kHapCodecSubtype)
+    if (glob->type == kHapCodecSubType)
     {
         if (dictionaryHasValueForKeyOfTypeID(glob->settings, kSettingsPreserveAlphaKey, CFBooleanGetTypeID()))
         {
@@ -548,7 +549,7 @@ Hap_CPrepareToCompressFrames(
     else
         (*imageDescription)->depth = 24;
     
-    if (glob->type == kHapCodecSubtype)
+    if (glob->type == kHapCodecSubType)
     {
         CodecQ quality;
         
@@ -618,7 +619,7 @@ Hap_CPrepareToCompressFrames(
 	*compressorPixelBufferAttributesOut = compressorPixelBufferAttributes;
 	compressorPixelBufferAttributes = NULL;
     
-    if (glob->type == kHapCodecSubtype)
+    if (glob->type == kHapCodecSubType)
     {
         // Currently we store the Hap frame type in the image description as discovering it otherwise
         // would require reading a frame
@@ -1226,7 +1227,7 @@ ComponentResult Hap_CSetSettings(HapCompressorGlobals glob, Handle settings)
     if (settings) settingsSize = GetHandleSize(settings);
     else settingsSize = 0;
     
-    if (settingsSize == 5 && ((UInt32 *) *settings)[0] == kHapCodecSubtype)
+    if (settingsSize == 5 && ((UInt32 *) *settings)[0] == kHapCodecSubType)
     {
         // this was our old style of settings, never in a distributed build, we ignore them
     }
@@ -1273,7 +1274,7 @@ ComponentResult Hap_CGetDITLForSize(HapCompressorGlobals glob,
     
     switch (requestedSize->h) {
         case kSGSmallestDITLSize:
-            if (glob->type == kHapCodecSubtype) resID = kHapCodecDITLResID;
+            if (glob->type == kHapCodecSubType) resID = kHapCodecDITLResID;
             else resID = kHapYCoCgCodecDITLResID;
             GetComponentResource((Component)(glob->self), FOUR_CHAR_CODE('DITL'),
                                  resID, &h);
@@ -1338,11 +1339,11 @@ ComponentResult Hap_CDITLInstall(HapCompressorGlobals glob,
         }
     }
     
-    DialogItemIndex popupIndex = glob->type == kHapCodecSubtype ? kItemHapPopup : kItemHapYCoCgPopup;
+    DialogItemIndex popupIndex = glob->type == kHapCodecSubType ? kItemHapPopup : kItemHapYCoCgPopup;
     GetDialogItemAsControl(d, popupIndex + itemOffset, &cRef);
     SetControl32BitValue(cRef, compressorPopupIndex);
     
-    if (glob->type == kHapCodecSubtype)
+    if (glob->type == kHapCodecSubType)
     {
         GetDialogItemAsControl(d, kItemHapCheckbox + itemOffset, &cRef);
         SetControl32BitValue(cRef, alphaCheckboxValue);
@@ -1404,7 +1405,7 @@ ComponentResult Hap_CDITLItem(HapCompressorGlobals glob,
 #pragma unused(glob)
     ControlRef cRef;
     
-    if (glob->type == kHapCodecSubtype)
+    if (glob->type == kHapCodecSubType)
     {
         switch (itemNum - itemOffset) {
             case kItemHapCheckbox:
@@ -1424,12 +1425,12 @@ ComponentResult Hap_CDITLRemove(HapCompressorGlobals glob,
     unsigned long popupValue;
     unsigned long alphaCheckboxValue;
     unsigned long qualitySliderValue;
-    DialogItemIndex popupIndex = glob->type == kHapCodecSubtype ? kItemHapPopup : kItemHapYCoCgPopup;
+    DialogItemIndex popupIndex = glob->type == kHapCodecSubType ? kItemHapPopup : kItemHapYCoCgPopup;
     
     GetDialogItemAsControl(d, popupIndex + itemOffset, &cRef);
     popupValue = GetControl32BitValue(cRef);
     
-    if (glob->type == kHapCodecSubtype)
+    if (glob->type == kHapCodecSubType)
     {
         GetDialogItemAsControl(d, kItemHapCheckbox + itemOffset, &cRef);
         alphaCheckboxValue = GetControl32BitValue(cRef);
@@ -1460,7 +1461,7 @@ ComponentResult Hap_CDITLRemove(HapCompressorGlobals glob,
         
         CFDictionarySetValue(glob->settings, kSettingsSecondaryCompressorKey, compressor);
         
-        if (glob->type == kHapCodecSubtype)
+        if (glob->type == kHapCodecSubType)
         {
             CFBooleanRef alpha = alphaCheckboxValue ? kCFBooleanTrue : kCFBooleanFalse;
             

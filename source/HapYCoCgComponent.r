@@ -5,7 +5,7 @@
 
 #include "HapResCommon.h"
 
-#define kHapYCoCgCodecFormatType 'HapY'
+#define kHapYCoCgCodecFormatType kHapYCoCgCodecSubType
 #define kHapYCoCgCodecFormatName "Hap (High Quality)"
 
 // These flags specify information about the capabilities of the component

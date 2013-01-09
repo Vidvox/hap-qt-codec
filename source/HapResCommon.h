@@ -57,6 +57,7 @@
     #include "ImageCodec.r"
 #endif
 
+#include "HapCodecSubTypes.h"
 #include "HapCodecVersion.h"
 
 #define kCodecManufacturerType 'VDVX'

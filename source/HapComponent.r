@@ -5,7 +5,7 @@
 
 #include "HapResCommon.h"
 
-#define    kHapCodecFormatType    'VPUV'
+#define    kHapCodecFormatType    kHapCodecSubType
 #define    kHapCodecFormatName    "Hap"
 
 // These flags specify information about the capabilities of the component

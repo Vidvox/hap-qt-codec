@@ -115,6 +115,7 @@
 		8D01CCD10486CAD60068D4B7 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		8D01CCD20486CAD60068D4B7 /* Hap.component */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = Hap.component; sourceTree = BUILT_PRODUCTS_DIR; };
 		BD4C0D32169D955B00CA6AAE /* HapResCommon.r */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.rez; path = HapResCommon.r; sourceTree = "<group>"; };
+		BD4C0D44169DCF5800CA6AAE /* HapCodecSubTypes.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = HapCodecSubTypes.h; sourceTree = "<group>"; };
 		BD51229816495811005F135B /* ExportedSymbols.exp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.exports; path = ExportedSymbols.exp; sourceTree = "<group>"; };
 		BD833763136760EA0074367F /* squish-c.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = "squish-c.cpp"; sourceTree = "<group>"; };
 		BD833764136760EA0074367F /* squish-c.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "squish-c.h"; sourceTree = "<group>"; };
@@ -231,6 +232,7 @@
 				BD2FC7AF1372FB0B00099D34 /* Hap */,
 				BDDA19C216190D0E0068EBB3 /* DXT */,
 				BDDA19C716191C670068EBB3 /* PixelFormats.h */,
+				BD4C0D44169DCF5800CA6AAE /* HapCodecSubTypes.h */,
 				FBFA8C8B0829E75000560632 /* HapCodecVersion.h */,
 				FBFA8C8C0829E75000560632 /* HapCompressor.c */,
 				FBFA8C8D0829E75000560632 /* HapCompressorDispatch.h */,
