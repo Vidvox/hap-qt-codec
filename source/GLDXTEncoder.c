@@ -108,11 +108,6 @@ HapCodecDXTEncoderRef HapCodecGLEncoderCreate(unsigned int width, unsigned int h
         
         encoder->queue = dispatch_queue_create(NULL, DISPATCH_QUEUE_SERIAL);
         encoder->encoder = HapCodecGLCreateEncoder(width, height, encoder_format);
-        if (encoder->encoder == NULL || encoder->queue == NULL)
-        {
-            HapCodecGLEncoderDestroy((HapCodecDXTEncoderRef)encoder);
-            encoder = NULL;
-        }
         
 #if defined(DEBUG)
         char *format_str;
@@ -130,6 +125,12 @@ HapCodecDXTEncoderRef HapCodecGLEncoderCreate(unsigned int width, unsigned int h
         
         encoder->base.describe_function = HapCodecGLEncoderDescribe;
 #endif
+        
+        if (encoder->encoder == NULL || encoder->queue == NULL)
+        {
+            HapCodecGLEncoderDestroy((HapCodecDXTEncoderRef)encoder);
+            encoder = NULL;
+        }
     }
     
     return (HapCodecDXTEncoderRef)encoder;
