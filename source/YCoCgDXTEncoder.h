@@ -11,6 +11,6 @@
 
 #include "DXTEncoder.h"
 
-HapCodecDXTEncoderRef HapCodecYCoCgDXTEncoderCreate();
+HapCodecDXTEncoderRef HapCodecYCoCgDXTEncoderCreate(void);
 
 #endif

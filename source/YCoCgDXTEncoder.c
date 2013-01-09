@@ -43,7 +43,7 @@ static const char *HapCodecYCoCgDXTEncoderDescribe(HapCodecDXTEncoderRef encoder
 }
 #endif
 
-HapCodecDXTEncoderRef HapCodecYCoCgDXTEncoderCreate()
+HapCodecDXTEncoderRef HapCodecYCoCgDXTEncoderCreate(void)
 {
     HapCodecDXTEncoderRef encoder = malloc(sizeof(struct HapCodecDXTEncoder));
     if (encoder)

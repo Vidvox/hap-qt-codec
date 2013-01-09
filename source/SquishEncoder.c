@@ -155,15 +155,15 @@ HapCodecDXTEncoderRef HapCodecSquishEncoderCreate(HapCodecSquishEncoderQuality q
 #if defined(DEBUG)
         char *format = encoder->flags & kDxt1 ? "RGB DXT1" : "RGBA DXT5";
         
-        char *quality;
+        char *qualityString;
         if (encoder->flags & kColourRangeFit)
-            quality = "ColourRangeFit";
+            qualityString = "ColourRangeFit";
         else if (encoder->flags & kColourClusterFit)
-            quality = "ColourClusterFit";
+            qualityString = "ColourClusterFit";
         else
-            quality = "ColourIterativeClusterFit";
+            qualityString = "ColourIterativeClusterFit";
         
-        snprintf(encoder->description, sizeof(encoder->description), "Squish %s %s Encoder", format, quality);
+        snprintf(encoder->description, sizeof(encoder->description), "Squish %s %s Encoder", format, qualityString);
         
         encoder->base.describe_function = HapCodecSquishEncoderDescribe;
 #endif

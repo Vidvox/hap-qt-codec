@@ -94,7 +94,7 @@ static bool openGLFormatAndTypeForFormat(HapCodecGLPixelFormat pixel_format, GLe
     }
 }
 
-HapCodecGLRef HapCodecGLCreate(unsigned int mode, unsigned int width, unsigned int height, unsigned int compressed_format)
+static HapCodecGLRef HapCodecGLCreate(unsigned int mode, unsigned int width, unsigned int height, unsigned int compressed_format)
 {
     HapCodecGLRef coder = malloc(sizeof(struct HapCodecGL));
     if (coder)

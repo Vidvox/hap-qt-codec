@@ -131,7 +131,7 @@ static int HapCodecTasksInit()
     return 0;
 }
 
-static void HapCodecTasksCleanup()
+static void HapCodecTasksCleanup(void)
 {
     if (mInitted != 0)
     {
@@ -152,7 +152,7 @@ static void HapCodecTasksCleanup()
     }
 }
 
-void HapCodecTasksWillStart()
+void HapCodecTasksWillStart(void)
 {
     OSSpinLockLock(&mGlobalLock);
     mSenderCount++;
@@ -163,7 +163,7 @@ void HapCodecTasksWillStart()
     OSSpinLockUnlock(&mGlobalLock);
 }
 
-void HapCodecTasksWillStop()
+void HapCodecTasksWillStop(void)
 {
     OSSpinLockLock(&mGlobalLock);
     mSenderCount--;
@@ -243,7 +243,7 @@ void HapCodecTasksWaitForGroupToComplete(unsigned int group)
     pthread_mutex_unlock(&mThreadLock);
 }
 
-unsigned int HapCodecTasksNewGroup()
+unsigned int HapCodecTasksNewGroup(void)
 {
     static int32_t mGroup = 0;
     return OSAtomicIncrement32(&mGroup);

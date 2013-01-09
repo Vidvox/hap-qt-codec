@@ -8,8 +8,8 @@
 
 typedef void (*HapCodecTaskWorkFunction)(void *context);
 
-void HapCodecTasksWillStart();
-void HapCodecTasksWillStop();
-unsigned int HapCodecTasksNewGroup();
+void HapCodecTasksWillStart(void);
+void HapCodecTasksWillStop(void);
+unsigned int HapCodecTasksNewGroup(void);
 void HapCodecTasksAddTask(HapCodecTaskWorkFunction task, unsigned int group, void *context);
 void HapCodecTasksWaitForGroupToComplete(unsigned int group);

@@ -134,7 +134,7 @@ static Boolean isDXTPixelFormat(OSType fmt)
     }
 }
 
-static void registerDXTPixelFormat(OSType fmt, UInt32 bits_per_pixel, SInt32 open_gl_internal_format, Boolean has_alpha)
+static void registerDXTPixelFormat(OSType fmt, short bits_per_pixel, SInt32 open_gl_internal_format, Boolean has_alpha)
 {
     /*
      * See http://developer.apple.com/library/mac/#qa/qa1401/_index.html
