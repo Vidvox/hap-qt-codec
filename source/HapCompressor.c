@@ -163,8 +163,10 @@ Hap_COpen(
   ComponentInstance self )
 {    
 	ComponentResult err = noErr;
-	    
-	glob = calloc( sizeof( HapCompressorGlobalsRecord ), 1 );
+    
+#ifndef __clang_analyzer__
+    glob = calloc( sizeof( HapCompressorGlobalsRecord ), 1 );
+#endif
 	if( ! glob ) {
 		err = memFullErr;
 		goto bail;

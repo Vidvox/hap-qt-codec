@@ -197,7 +197,10 @@ pascal ComponentResult Hap_DOpen(HapDecompressorGlobals glob, ComponentInstance 
     registerDXTPixelFormat(kHapCVPixelFormat_YCoCg_DXT5, 8, 0x83F3, false);
     
 	// Allocate memory for our globals, set them up and inform the component manager that we've done so
+    
+#ifndef __clang_analyzer__
 	glob = calloc( sizeof( HapDecompressorGlobalsRecord ), 1 );
+#endif
 	if( ! glob ) {
 		err = memFullErr;
 		goto bail;
