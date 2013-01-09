@@ -50,6 +50,8 @@ typedef struct {
 	
 	ICMCompressorSessionRef 		session; // NOTE: we do not need to retain or release this
 	
+    OSType                          type;
+    
 	long							width;
 	long							height;
 	size_t							maxEncodedDataSize;
@@ -173,9 +175,14 @@ Hap_COpen(
 	}
 	SetComponentInstanceStorage( self, (Handle)glob );
     
+    // Store the type of compressor we are (Hap or Hap YCoCg)
+    ComponentDescription componentDescription;
+    GetComponentInfo((Component)self, &componentDescription, 0, 0, 0);
+    
 	glob->self = self;
 	glob->target = self;
     glob->session = NULL;
+    glob->type = componentDescription.componentSubType;
     glob->width = 0;
     glob->height = 0;
 	glob->maxEncodedDataSize = 0;
@@ -312,18 +319,22 @@ Hap_CGetCodecInfo(HapCompressorGlobals glob, CodecInfo *info)
 	else
     {
 		CodecInfo **tempCodecInfo;
-
-		err = GetComponentResource((Component)glob->self, codecInfoResourceType, 256, (Handle *)&tempCodecInfo);
-		if (err == noErr)
+        SInt16 resourceID = glob->type == kHapCodecSubtype ? 256 : 356;
+        
+        err = GetComponentResource((Component)glob->self, codecInfoResourceType, resourceID, (Handle *)&tempCodecInfo);
+        if (err == noErr)
         {
-			*info = **tempCodecInfo;
-			DisposeHandle((Handle)tempCodecInfo);
+            *info = **tempCodecInfo;
+            DisposeHandle((Handle)tempCodecInfo);
             
-            // We suppress this from the resource to avoid having the user-confusing Millions+ menu
-            // but we can hand it out to any other interested parties
-            info->formatFlags |= codecInfoDepth32;
-		}
-	}
+            if (glob->type == kHapCodecSubtype)
+            {
+                // We suppress this from the resource to avoid having the user-confusing Millions+ menu
+                // but we can hand it out to any other interested parties
+                info->formatFlags |= codecInfoDepth32;
+            }
+        }
+    }
     
     debug_print_err(glob, err);
 	return err;
@@ -348,7 +359,7 @@ Hap_CGetMaxCompressionSize(
 	if( ! size )
 		return paramErr;
     int dxtSize = roundUpToMultipleOf4(srcRect->right - srcRect->left) * roundUpToMultipleOf4(srcRect->bottom - srcRect->top);
-    if (depth == 24) dxtSize /= 2;
+    if (depth == 24 && glob->type == kHapCodecSubtype) dxtSize /= 2;
 	*size = HapMaxEncodedLength(dxtSize);
     
 	return noErr;
@@ -494,35 +505,42 @@ Hap_CPrepareToCompressFrames(
 	
     bool alpha;
     
-    if (dictionaryHasValueForKeyOfTypeID(glob->settings, kSettingsPreserveAlphaKey, CFBooleanGetTypeID()))
+    if (glob->type == kHapCodecSubtype)
     {
-        CFBooleanRef alphaFromSettings = CFDictionaryGetValue(glob->settings, kSettingsPreserveAlphaKey);
-        alpha = CFBooleanGetValue(alphaFromSettings);
+        if (dictionaryHasValueForKeyOfTypeID(glob->settings, kSettingsPreserveAlphaKey, CFBooleanGetTypeID()))
+        {
+            CFBooleanRef alphaFromSettings = CFDictionaryGetValue(glob->settings, kSettingsPreserveAlphaKey);
+            alpha = CFBooleanGetValue(alphaFromSettings);
+        }
+        else
+        {
+            UInt32 depth = 0;
+            err = ICMCompressionSessionOptionsGetProperty(sessionOptions,
+                                                          kQTPropertyClass_ICMCompressionSessionOptions,
+                                                          kICMCompressionSessionOptionsPropertyID_Depth,
+                                                          sizeof( depth ),
+                                                          &depth,
+                                                          NULL );
+            if( err )
+                goto bail;
+            
+            
+            // Different apps send different things here...
+            switch (depth) {
+                case k32BGRAPixelFormat:
+                case 32:
+                    alpha = true;
+                    break;
+                default:
+                    // Treat any other depth as k24BGRPixelFormat
+                    alpha = false;;
+                    break;
+            }
+        }
     }
     else
     {
-        UInt32 depth = 0;
-        err = ICMCompressionSessionOptionsGetProperty(sessionOptions,
-                                                      kQTPropertyClass_ICMCompressionSessionOptions,
-                                                      kICMCompressionSessionOptionsPropertyID_Depth,
-                                                      sizeof( depth ),
-                                                      &depth,
-                                                      NULL );
-        if( err )
-            goto bail;
-        
-        
-        // Different apps send different things here...
-        switch (depth) {
-            case k32BGRAPixelFormat:
-            case 32:
-                alpha = true;
-                break;
-            default:
-                // Treat any other depth as k24BGRPixelFormat
-                alpha = false;;
-                break;
-        }
+        alpha = false;
     }
     
     if (alpha)
@@ -530,50 +548,53 @@ Hap_CPrepareToCompressFrames(
     else
         (*imageDescription)->depth = 24;
     
-    CodecQ quality;
-    
-    if (dictionaryHasValueForKeyOfTypeID(glob->settings, kSettingsQualityKey, CFNumberGetTypeID()))
+    if (glob->type == kHapCodecSubtype)
     {
-        CFNumberRef qualityFromSettings = CFDictionaryGetValue(glob->settings, kSettingsQualityKey);
-        SInt32 qualitySInt;
-        if (CFNumberGetValue(qualityFromSettings, kCFNumberSInt32Type, &qualitySInt))
+        CodecQ quality;
+        
+        if (dictionaryHasValueForKeyOfTypeID(glob->settings, kSettingsQualityKey, CFNumberGetTypeID()))
         {
-            quality = qualitySInt;
-        }
-        else
-        {
-            err = internalComponentErr;
-            goto bail;
-        }
-    }
-    else
-    {
-        if(sessionOptions) {
-            
-            err = ICMCompressionSessionOptionsGetProperty(sessionOptions,
-                                                          kQTPropertyClass_ICMCompressionSessionOptions,
-                                                          kICMCompressionSessionOptionsPropertyID_Quality,
-                                                          sizeof( quality ),
-                                                          &quality,
-                                                          NULL );
-            if( err )
+            CFNumberRef qualityFromSettings = CFDictionaryGetValue(glob->settings, kSettingsQualityKey);
+            SInt32 qualitySInt;
+            if (CFNumberGetValue(qualityFromSettings, kCFNumberSInt32Type, &qualitySInt))
+            {
+                quality = qualitySInt;
+            }
+            else
+            {
+                err = internalComponentErr;
                 goto bail;
+            }
         }
         else
         {
-            quality = codecLosslessQuality;
+            if(sessionOptions) {
+                
+                err = ICMCompressionSessionOptionsGetProperty(sessionOptions,
+                                                              kQTPropertyClass_ICMCompressionSessionOptions,
+                                                              kICMCompressionSessionOptionsPropertyID_Quality,
+                                                              sizeof( quality ),
+                                                              &quality,
+                                                              NULL );
+                if( err )
+                    goto bail;
+            }
+            else
+            {
+                quality = codecLosslessQuality;
+            }
         }
-    }
-    
-    if (quality <= codecLowQuality)
-    {
-        glob->dxtEncoder = HapCodecGLEncoderCreate(glob->width, glob->height, alpha ? kHapCVPixelFormat_RGBA_DXT5 : kHapCVPixelFormat_RGB_DXT1);
-        glob->dxtFormat = alpha ? HapTextureFormat_RGBA_DXT5 : HapTextureFormat_RGB_DXT1;
-    }
-    else if (quality < codecHighQuality || alpha)
-    {
-        glob->dxtEncoder = HapCodecSquishEncoderCreate(HapCodecSquishEncoderMediumQuality, alpha ? kHapCVPixelFormat_RGBA_DXT5 : kHapCVPixelFormat_RGB_DXT1);
-        glob->dxtFormat = alpha ? HapTextureFormat_RGBA_DXT5 : HapTextureFormat_RGB_DXT1;
+        
+        if (quality <= codecLowQuality)
+        {
+            glob->dxtEncoder = HapCodecGLEncoderCreate(glob->width, glob->height, alpha ? kHapCVPixelFormat_RGBA_DXT5 : kHapCVPixelFormat_RGB_DXT1);
+            glob->dxtFormat = alpha ? HapTextureFormat_RGBA_DXT5 : HapTextureFormat_RGB_DXT1;
+        }
+        else
+        {
+            glob->dxtEncoder = HapCodecSquishEncoderCreate(HapCodecSquishEncoderMediumQuality, alpha ? kHapCVPixelFormat_RGBA_DXT5 : kHapCVPixelFormat_RGB_DXT1);
+            glob->dxtFormat = alpha ? HapTextureFormat_RGBA_DXT5 : HapTextureFormat_RGB_DXT1;
+        }
     }
     else
     {
@@ -597,21 +618,24 @@ Hap_CPrepareToCompressFrames(
 	*compressorPixelBufferAttributesOut = compressorPixelBufferAttributes;
 	compressorPixelBufferAttributes = NULL;
     
-    // Currently we store the Hap frame type in the image description as discovering it otherwise
-    // would require reading a frame
-    
-    Handle stored = NewHandleClear(sizeof(UInt32));
-    if (stored == NULL)
+    if (glob->type == kHapCodecSubtype)
     {
-        err = memFullErr;
-        goto bail;
-    }
-    **(UInt32 **)stored = OSSwapHostToBigInt32(glob->dxtFormat);
-    err = AddImageDescriptionExtension(imageDescription, stored, kHapCodecSampleDescriptionExtension);
-    DisposeHandle(stored);
-    if (err)
-    {
-        goto bail;
+        // Currently we store the Hap frame type in the image description as discovering it otherwise
+        // would require reading a frame
+        
+        Handle stored = NewHandleClear(sizeof(UInt32));
+        if (stored == NULL)
+        {
+            err = memFullErr;
+            goto bail;
+        }
+        **(UInt32 **)stored = OSSwapHostToBigInt32(glob->dxtFormat);
+        err = AddImageDescriptionExtension(imageDescription, stored, kHapCodecSampleDescriptionExtension);
+        DisposeHandle(stored);
+        if (err)
+        {
+            goto bail;
+        }
     }
     
     // If we're allowed to, we output frames on a background thread
@@ -1202,7 +1226,7 @@ ComponentResult Hap_CSetSettings(HapCompressorGlobals glob, Handle settings)
     if (settings) settingsSize = GetHandleSize(settings);
     else settingsSize = 0;
     
-    if (settingsSize == 5 && ((UInt32 *) *settings)[0] == 'VPUV')
+    if (settingsSize == 5 && ((UInt32 *) *settings)[0] == kHapCodecSubtype)
     {
         // this was our old style of settings, never in a distributed build, we ignore them
     }
@@ -1236,7 +1260,8 @@ ComponentResult Hap_CSetSettings(HapCompressorGlobals glob, Handle settings)
     return err;
 }
 
-#define kMyCodecDITLResID 129
+#define kHapCodecDITLResID 129
+#define kHapYCoCgCodecDITLResID 329
 
 ComponentResult Hap_CGetDITLForSize(HapCompressorGlobals glob,
                                            Handle *ditl,
@@ -1244,11 +1269,14 @@ ComponentResult Hap_CGetDITLForSize(HapCompressorGlobals glob,
 {
     Handle h = NULL;
     ComponentResult err = noErr;
+    SInt16 resID;
     
     switch (requestedSize->h) {
         case kSGSmallestDITLSize:
+            if (glob->type == kHapCodecSubtype) resID = kHapCodecDITLResID;
+            else resID = kHapYCoCgCodecDITLResID;
             GetComponentResource((Component)(glob->self), FOUR_CHAR_CODE('DITL'),
-                                 kMyCodecDITLResID, &h);
+                                 resID, &h);
             if (NULL != h) *ditl = h;
             else err = resNotFound;
             break;
@@ -1261,10 +1289,12 @@ ComponentResult Hap_CGetDITLForSize(HapCompressorGlobals glob,
     return err;
 }
 
-#define kItemSlider 2
-#define kItemCheckbox 3
-#define kItemPopup 4
-#define kItemText 5
+#define kItemHapSlider 2
+#define kItemHapCheckbox 3
+#define kItemHapPopup 4
+#define kItemHapText 5
+
+#define kItemHapYCoCgPopup 1
 
 ComponentResult Hap_CDITLInstall(HapCompressorGlobals glob,
                                         DialogRef d,
@@ -1308,27 +1338,31 @@ ComponentResult Hap_CDITLInstall(HapCompressorGlobals glob,
         }
     }
     
-    GetDialogItemAsControl(d, kItemPopup + itemOffset, &cRef);
+    DialogItemIndex popupIndex = glob->type == kHapCodecSubtype ? kItemHapPopup : kItemHapYCoCgPopup;
+    GetDialogItemAsControl(d, popupIndex + itemOffset, &cRef);
     SetControl32BitValue(cRef, compressorPopupIndex);
     
-    GetDialogItemAsControl(d, kItemCheckbox + itemOffset, &cRef);
-    SetControl32BitValue(cRef, alphaCheckboxValue);
-    
-    GetDialogItemAsControl(d, kItemSlider + itemOffset, &cRef);
-    SetControl32BitValue(cRef, qualitySliderValue);
-    
-    GetDialogItemAsControl(d, kItemText + itemOffset, &cRef);
-    
-    CFStringRef sizeString;
-    
-    if (alphaCheckboxValue == 1 || qualitySliderValue == 2)
-        sizeString = CFSTR("File Size: Large");
-    else
-        sizeString = CFSTR("File Size: Normal");
-    
-    HIViewSetText(cRef, sizeString);
-    HIViewSetNeedsDisplay(cRef, true);
-    HIViewRender(cRef);
+    if (glob->type == kHapCodecSubtype)
+    {
+        GetDialogItemAsControl(d, kItemHapCheckbox + itemOffset, &cRef);
+        SetControl32BitValue(cRef, alphaCheckboxValue);
+        
+        GetDialogItemAsControl(d, kItemHapSlider + itemOffset, &cRef);
+        SetControl32BitValue(cRef, qualitySliderValue);
+        
+        GetDialogItemAsControl(d, kItemHapText + itemOffset, &cRef);
+        
+        CFStringRef sizeString;
+        
+        if (alphaCheckboxValue == 1)
+            sizeString = CFSTR("File Size: Large");
+        else
+            sizeString = CFSTR("File Size: Normal");
+        
+        HIViewSetText(cRef, sizeString);
+        HIViewSetNeedsDisplay(cRef, true);
+        HIViewRender(cRef);
+    }
     
     return noErr;
 }
@@ -1352,7 +1386,7 @@ ComponentResult Hap_CDITLEvent(HapCompressorGlobals glob,
          need to force QuickTime to get and apply our settings, so we mark the first nullEvent in the
          dialog as having been handled by us, so QuickTime thinks our settings have changed.
          */
-        *itemHit = itemOffset + kItemText;
+        *itemHit = itemOffset + 1;
         *handled = true;
     }
     else
@@ -1370,11 +1404,14 @@ ComponentResult Hap_CDITLItem(HapCompressorGlobals glob,
 #pragma unused(glob)
     ControlRef cRef;
     
-    switch (itemNum - itemOffset) {
-        case kItemCheckbox:
-            GetDialogItemAsControl(d, itemOffset + kItemCheckbox, &cRef);
-            SetControl32BitValue(cRef, !GetControl32BitValue(cRef));
-            break;
+    if (glob->type == kHapCodecSubtype)
+    {
+        switch (itemNum - itemOffset) {
+            case kItemHapCheckbox:
+                GetDialogItemAsControl(d, itemOffset + kItemHapCheckbox, &cRef);
+                SetControl32BitValue(cRef, !GetControl32BitValue(cRef));
+                break;
+        }
     }
     return noErr;
 }
@@ -1387,15 +1424,19 @@ ComponentResult Hap_CDITLRemove(HapCompressorGlobals glob,
     unsigned long popupValue;
     unsigned long alphaCheckboxValue;
     unsigned long qualitySliderValue;
+    DialogItemIndex popupIndex = glob->type == kHapCodecSubtype ? kItemHapPopup : kItemHapYCoCgPopup;
     
-    GetDialogItemAsControl(d, kItemPopup + itemOffset, &cRef);
+    GetDialogItemAsControl(d, popupIndex + itemOffset, &cRef);
     popupValue = GetControl32BitValue(cRef);
     
-    GetDialogItemAsControl(d, kItemCheckbox + itemOffset, &cRef);
-    alphaCheckboxValue = GetControl32BitValue(cRef);
-    
-    GetDialogItemAsControl(d, kItemSlider + itemOffset, &cRef);
-    qualitySliderValue = GetControl32BitValue(cRef);
+    if (glob->type == kHapCodecSubtype)
+    {
+        GetDialogItemAsControl(d, kItemHapCheckbox + itemOffset, &cRef);
+        alphaCheckboxValue = GetControl32BitValue(cRef);
+        
+        GetDialogItemAsControl(d, kItemHapSlider + itemOffset, &cRef);
+        qualitySliderValue = GetControl32BitValue(cRef);
+    }
     
     if (glob->settings == NULL)
     {
@@ -1419,31 +1460,34 @@ ComponentResult Hap_CDITLRemove(HapCompressorGlobals glob,
         
         CFDictionarySetValue(glob->settings, kSettingsSecondaryCompressorKey, compressor);
         
-        CFBooleanRef alpha = alphaCheckboxValue ? kCFBooleanTrue : kCFBooleanFalse;
-        
-        CFDictionarySetValue(glob->settings, kSettingsPreserveAlphaKey, alpha);
-        
-        SInt32 value;
-        switch (qualitySliderValue) {
-            case 2:
-                value = codecHighQuality;
-                break;
-            case 1:
-                value = codecNormalQuality;
-                break;
-            default:
-                value = codecLowQuality;
-        }
-        
-        CFNumberRef quality = CFNumberCreate(kCFAllocatorDefault, kCFNumberSInt32Type, &value);
-        if (quality)
+        if (glob->type == kHapCodecSubtype)
         {
-            CFDictionarySetValue(glob->settings, kSettingsQualityKey, quality);
-            CFRelease(quality);
-        }
-        else
-        {
-            CFDictionaryRemoveValue(glob->settings, kSettingsQualityKey);
+            CFBooleanRef alpha = alphaCheckboxValue ? kCFBooleanTrue : kCFBooleanFalse;
+            
+            CFDictionarySetValue(glob->settings, kSettingsPreserveAlphaKey, alpha);
+            
+            SInt32 value;
+            switch (qualitySliderValue) {
+                case 2:
+                    value = codecHighQuality;
+                    break;
+                case 1:
+                    value = codecNormalQuality;
+                    break;
+                default:
+                    value = codecLowQuality;
+            }
+            
+            CFNumberRef quality = CFNumberCreate(kCFAllocatorDefault, kCFNumberSInt32Type, &value);
+            if (quality)
+            {
+                CFDictionarySetValue(glob->settings, kSettingsQualityKey, quality);
+                CFRelease(quality);
+            }
+            else
+            {
+                CFDictionaryRemoveValue(glob->settings, kSettingsQualityKey);
+            }
         }
     }
     

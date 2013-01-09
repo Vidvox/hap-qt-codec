@@ -51,6 +51,7 @@ typedef struct	{
 	ComponentInstance			self;
 	ComponentInstance			delegateComponent;
 	ComponentInstance			target;
+    OSType                      type;
 	long						width;
 	long						height;
     long                        dxtWidth;
@@ -207,9 +208,14 @@ pascal ComponentResult Hap_DOpen(HapDecompressorGlobals glob, ComponentInstance 
 	}
 
 	SetComponentInstanceStorage(self, (Handle)glob);
-
+    
+    // Store the type of decompressor we are (Hap or Hap YCoCg)
+    ComponentDescription componentDescription;
+    GetComponentInfo((Component)self, &componentDescription, 0, 0, 0);
+    
 	glob->self = self;
 	glob->target = self;
+    glob->type = componentDescription.componentSubType;
 	glob->dxtBufferPool = NULL;
     glob->convertBufferPool = NULL;
     
@@ -363,37 +369,44 @@ pascal ComponentResult Hap_DPreflight(HapDecompressorGlobals glob, CodecDecompre
 
     unsigned int textureFormat = 0;
     
-    // First check for our extension to the image description which stores the frame type
-    Handle stored = NULL;
-    err = GetImageDescriptionExtension(p->imageDescription, &stored, kHapCodecSampleDescriptionExtension, 1);
-    if (err == noErr)
+    if (glob->type == kHapYCoCgCodecSubtype)
     {
-        textureFormat = OSSwapBigToHostInt32(**(UInt32 **)stored);
-        DisposeHandle(stored);
+        textureFormat = HapTextureFormat_YCoCg_DXT5;
     }
-    else if (err == codecExtensionNotFoundErr)
+    else
     {
-        // It's not an error if the extension is missing, we just have to...
-        err = noErr;
-        if ((*p->imageDescription)->depth == 32)
+        // First check for our extension to the image description which stores the frame type
+        Handle stored = NULL;
+        err = GetImageDescriptionExtension(p->imageDescription, &stored, kHapCodecSampleDescriptionExtension, 1);
+        if (err == noErr)
         {
-            // Currently our only with-alpha format is RGBA DXT5 so assume that
-            textureFormat = HapTextureFormat_RGBA_DXT5;
+            textureFormat = OSSwapBigToHostInt32(**(UInt32 **)stored);
+            DisposeHandle(stored);
         }
-        else
+        else if (err == codecExtensionNotFoundErr)
         {
-            // If no extension was present we hope frame data is available and check that
-            unsigned int result = HapGetFrameTextureFormat(p->data, p->bufferSize, &textureFormat);
-            if (result != HapResult_No_Error)
+            // It's not an error if the extension is missing, we just have to...
+            err = noErr;
+            if ((*p->imageDescription)->depth == 32)
             {
-                err = internalComponentErr;
-                goto bail;
+                // Currently our only with-alpha format is RGBA DXT5 so assume that
+                textureFormat = HapTextureFormat_RGBA_DXT5;
+            }
+            else
+            {
+                // If no extension was present we hope frame data is available and check that
+                unsigned int result = HapGetFrameTextureFormat(p->data, p->bufferSize, &textureFormat);
+                if (result != HapResult_No_Error)
+                {
+                    err = internalComponentErr;
+                    goto bail;
+                }
             }
         }
-    }
-    else // err != codecExtensionNotFoundErr
-    {
-        goto bail;
+        else // err != codecExtensionNotFoundErr
+        {
+            goto bail;
+        }
     }
     
     // List the QT-native formats first, otherwise QT will prefer our custom formats when transcoding,
@@ -890,17 +903,21 @@ pascal ComponentResult Hap_DGetCodecInfo(HapDecompressorGlobals glob, CodecInfo 
 	else
     {
 		CodecInfo **tempCodecInfo;
-
-		err = GetComponentResource((Component)glob->self, codecInfoResourceType, 256, (Handle *)&tempCodecInfo);
-		if (err == noErr)
+        SInt16 resourceID = glob->type == kHapCodecSubtype ? 256 : 356;
+        
+        err = GetComponentResource((Component)glob->self, codecInfoResourceType, resourceID, (Handle *)&tempCodecInfo);
+        if (err == noErr)
         {
-			*info = **tempCodecInfo;
-			DisposeHandle((Handle)tempCodecInfo);
+            *info = **tempCodecInfo;
+            DisposeHandle((Handle)tempCodecInfo);
             
-            // We suppress this from the resource to avoid having the user-confusing Millions+ menu
-            // but we can hand it out to any other interested parties
-            info->formatFlags |= codecInfoDepth32;
-		}
+            if (glob->type == kHapCodecSubtype)
+            {
+                // We suppress this from the resource to avoid having the user-confusing Millions+ menu
+                // but we can hand it out to any other interested parties
+                info->formatFlags |= codecInfoDepth32;
+            }
+        }
 	}
     
     debug_print_err(glob, err);

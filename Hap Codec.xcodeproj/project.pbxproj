@@ -22,9 +22,9 @@
 /* End PBXAggregateTarget section */
 
 /* Begin PBXBuildFile section */
-		2BBCFE9B08A92F20001CD3B3 /* HapCodecUniversal.r in Rez */ = {isa = PBXBuildFile; fileRef = 2BBCFE9A08A92F20001CD3B3 /* HapCodecUniversal.r */; };
 		8D01CCCA0486CAD60068D4B7 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 089C167DFE841241C02AAC07 /* InfoPlist.strings */; };
 		8D01CCCE0486CAD60068D4B7 /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 08EA7FFBFE8413EDC02AAC07 /* Carbon.framework */; };
+		BD4C0D33169D955B00CA6AAE /* HapResCommon.r in Rez */ = {isa = PBXBuildFile; fileRef = BD4C0D32169D955B00CA6AAE /* HapResCommon.r */; };
 		BD833765136760EA0074367F /* squish-c.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BD833763136760EA0074367F /* squish-c.cpp */; };
 		BD9464B916171F43009B26E6 /* libsquish.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = BDE9DE0A16169D82008DC368 /* libsquish.0.dylib */; };
 		BD9464BA16171F5F009B26E6 /* libsquish.0.dylib in CopyFiles */ = {isa = PBXBuildFile; fileRef = BDE9DE0A16169D82008DC368 /* libsquish.0.dylib */; };
@@ -36,6 +36,8 @@
 		BDDAEA8D1616104E00FEC70D /* lzf_c.c in Sources */ = {isa = PBXBuildFile; fileRef = BDDAEA891616104E00FEC70D /* lzf_c.c */; };
 		BDDAEA8E1616104E00FEC70D /* lzf_d.c in Sources */ = {isa = PBXBuildFile; fileRef = BDDAEA8A1616104E00FEC70D /* lzf_d.c */; };
 		BDDAEAA81616115100FEC70D /* libsnappy.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = BDDAEA971616108700FEC70D /* libsnappy.1.dylib */; };
+		BDEAB312169D8A6E007FE844 /* HapComponent.r in Rez */ = {isa = PBXBuildFile; fileRef = BDEAB311169D8A6E007FE844 /* HapComponent.r */; };
+		BDEAB314169D8A7D007FE844 /* HapYCoCgComponent.r in Rez */ = {isa = PBXBuildFile; fileRef = BDEAB313169D8A7D007FE844 /* HapYCoCgComponent.r */; };
 		BDF1AF061376DD7C00C0F4D1 /* Buffers.c in Sources */ = {isa = PBXBuildFile; fileRef = BDF1AF041376DD7C00C0F4D1 /* Buffers.c */; };
 		BDF48B1A14377D0500E7EAB8 /* HapCodecGL.c in Sources */ = {isa = PBXBuildFile; fileRef = BDF48B1914377D0500E7EAB8 /* HapCodecGL.c */; };
 		BDF48B1D14377E0E00E7EAB8 /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BDF48B1C14377E0E00E7EAB8 /* OpenGL.framework */; };
@@ -108,10 +110,11 @@
 /* Begin PBXFileReference section */
 		089C167EFE841241C02AAC07 /* English */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = English; path = English.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		08EA7FFBFE8413EDC02AAC07 /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = /System/Library/Frameworks/Carbon.framework; sourceTree = "<absolute>"; };
-		2BBCFE9A08A92F20001CD3B3 /* HapCodecUniversal.r */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.rez; path = HapCodecUniversal.r; sourceTree = "<group>"; };
+		2BBCFE9A08A92F20001CD3B3 /* HapResCommon.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = HapResCommon.h; sourceTree = "<group>"; };
 		32BAE0B30371A71500C91783 /* Hap_Codec_Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Hap_Codec_Prefix.pch; sourceTree = "<group>"; };
 		8D01CCD10486CAD60068D4B7 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		8D01CCD20486CAD60068D4B7 /* Hap.component */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = Hap.component; sourceTree = BUILT_PRODUCTS_DIR; };
+		BD4C0D32169D955B00CA6AAE /* HapResCommon.r */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.rez; path = HapResCommon.r; sourceTree = "<group>"; };
 		BD51229816495811005F135B /* ExportedSymbols.exp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.exports; path = ExportedSymbols.exp; sourceTree = "<group>"; };
 		BD833763136760EA0074367F /* squish-c.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = "squish-c.cpp"; sourceTree = "<group>"; };
 		BD833764136760EA0074367F /* squish-c.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "squish-c.h"; sourceTree = "<group>"; };
@@ -132,6 +135,8 @@
 		BDDAEA8B1616104E00FEC70D /* lzf.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = lzf.h; path = external/lzf/lzf.h; sourceTree = SOURCE_ROOT; };
 		BDDAEA8C1616104E00FEC70D /* lzfP.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = lzfP.h; path = external/lzf/lzfP.h; sourceTree = SOURCE_ROOT; };
 		BDDAEA8F1616108600FEC70D /* snappy.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = snappy.xcodeproj; path = external/snappy/snappy.xcodeproj; sourceTree = SOURCE_ROOT; };
+		BDEAB311169D8A6E007FE844 /* HapComponent.r */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.rez; path = HapComponent.r; sourceTree = "<group>"; };
+		BDEAB313169D8A7D007FE844 /* HapYCoCgComponent.r */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.rez; path = HapYCoCgComponent.r; sourceTree = "<group>"; };
 		BDF1AF041376DD7C00C0F4D1 /* Buffers.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = Buffers.c; sourceTree = "<group>"; };
 		BDF1AF051376DD7C00C0F4D1 /* Buffers.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Buffers.h; sourceTree = "<group>"; };
 		BDF48B1914377D0500E7EAB8 /* HapCodecGL.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = HapCodecGL.c; sourceTree = "<group>"; };
@@ -207,7 +212,10 @@
 		089C167CFE841241C02AAC07 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
-				2BBCFE9A08A92F20001CD3B3 /* HapCodecUniversal.r */,
+				2BBCFE9A08A92F20001CD3B3 /* HapResCommon.h */,
+				BD4C0D32169D955B00CA6AAE /* HapResCommon.r */,
+				BDEAB311169D8A6E007FE844 /* HapComponent.r */,
+				BDEAB313169D8A7D007FE844 /* HapYCoCgComponent.r */,
 				8D01CCD10486CAD60068D4B7 /* Info.plist */,
 				089C167DFE841241C02AAC07 /* InfoPlist.strings */,
 			);
@@ -421,7 +429,9 @@
 			isa = PBXRezBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				2BBCFE9B08A92F20001CD3B3 /* HapCodecUniversal.r in Rez */,
+				BDEAB312169D8A6E007FE844 /* HapComponent.r in Rez */,
+				BDEAB314169D8A7D007FE844 /* HapYCoCgComponent.r in Rez */,
+				BD4C0D33169D955B00CA6AAE /* HapResCommon.r in Rez */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

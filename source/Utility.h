@@ -11,6 +11,9 @@
 
 #include <CoreFoundation/CoreFoundation.h>
 
+#define kHapCodecSubtype 'VPUV'
+#define kHapYCoCgCodecSubtype 'HapY'
+
 #define kHapCodecSampleDescriptionExtension 'HAPe'
 
 void addNumberToDictionary( CFMutableDictionaryRef dictionary, CFStringRef key, SInt32 numberSInt32 );
