@@ -542,6 +542,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 10.6;
 				OTHER_REZFLAGS = "-d ppc_$(ppc) -d i386_$(i386)";
 				REZ_RESOURCE_MAP_READ_ONLY = YES;
+				RUN_CLANG_STATIC_ANALYZER = YES;
 				SDKROOT = macosx;
 			};
 			name = Debug;
@@ -588,6 +589,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 10.6;
 				OTHER_REZFLAGS = "-d ppc_$(ppc) -d i386_$(i386)";
 				REZ_RESOURCE_MAP_READ_ONLY = YES;
+				RUN_CLANG_STATIC_ANALYZER = YES;
 				SDKROOT = macosx;
 			};
 			name = Release;
