@@ -127,7 +127,6 @@ static Boolean isDXTPixelFormat(OSType fmt)
 {
     switch (fmt) {
         case kHapCVPixelFormat_RGB_DXT1:
-        case kHapCVPixelFormat_RGBA_DXT1:
         case kHapCVPixelFormat_RGBA_DXT5:
         case kHapCVPixelFormat_YCoCg_DXT5:
             return true;
@@ -194,7 +193,6 @@ pascal ComponentResult Hap_DOpen(HapDecompressorGlobals glob, ComponentInstance 
     // Register our DXT pixel buffer types if they're not already registered
     // arguments are: OSType, OpenGL internalFormat, alpha
     registerDXTPixelFormat(kHapCVPixelFormat_RGB_DXT1, 4, 0x83F0, false);
-    registerDXTPixelFormat(kHapCVPixelFormat_RGBA_DXT1, 4, 0x83F1, true);
     registerDXTPixelFormat(kHapCVPixelFormat_RGBA_DXT5, 8, 0x83F3, true);
     registerDXTPixelFormat(kHapCVPixelFormat_YCoCg_DXT5, 8, 0x83F3, false);
     
@@ -683,7 +681,7 @@ pascal ComponentResult Hap_DDrawBand(HapDecompressorGlobals glob, ImageSubCodecD
         // We only advertise the DXT type we contain, so we assume we never
         // get asked for the wrong one here
         unsigned int bufferSize = myDrp->dxtWidth * myDrp->dxtHeight;
-        if (myDrp->destFormat == kHapCVPixelFormat_RGB_DXT1 || myDrp->destFormat == kHapCVPixelFormat_RGBA_DXT1) bufferSize /= 2;
+        if (myDrp->destFormat == kHapCVPixelFormat_RGB_DXT1) bufferSize /= 2;
         unsigned int hapResult = HapDecode(drp->codecData, myDrp->dataSize, drp->baseAddr, bufferSize, NULL, &myDrp->texFormat);
         if (hapResult != HapResult_No_Error)
         {
