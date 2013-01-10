@@ -367,62 +367,20 @@ pascal ComponentResult Hap_DPreflight(HapDecompressorGlobals glob, CodecDecompre
         }
 	}
 	p->wantedDestinationPixelTypes = (OSType **)glob->wantedDestinationPixelTypes;
-
-    unsigned int textureFormat = 0;
-    
-    if (glob->type == kHapYCoCgCodecSubType)
-    {
-        textureFormat = HapTextureFormat_YCoCg_DXT5;
-    }
-    else
-    {
-        // First check for our extension to the image description which stores the frame type
-        Handle stored = NULL;
-        err = GetImageDescriptionExtension(p->imageDescription, &stored, kHapCodecSampleDescriptionExtension, 1);
-        if (err == noErr)
-        {
-            textureFormat = OSSwapBigToHostInt32(**(UInt32 **)stored);
-            DisposeHandle(stored);
-        }
-        else if (err == codecExtensionNotFoundErr)
-        {
-            // It's not an error if the extension is missing, we just have to...
-            err = noErr;
-            if ((*p->imageDescription)->depth == 32)
-            {
-                // Currently our only with-alpha format is RGBA DXT5 so assume that
-                textureFormat = HapTextureFormat_RGBA_DXT5;
-            }
-            else
-            {
-                // If no extension was present we hope frame data is available and check that
-                unsigned int result = HapGetFrameTextureFormat(p->data, p->bufferSize, &textureFormat);
-                if (result != HapResult_No_Error)
-                {
-                    err = internalComponentErr;
-                    goto bail;
-                }
-            }
-        }
-        else // err != codecExtensionNotFoundErr
-        {
-            goto bail;
-        }
-    }
     
     // List the QT-native formats first, otherwise QT will prefer our custom formats when transcoding,
     // but not be able to do anything with them
     (*p->wantedDestinationPixelTypes)[0] = k32RGBAPixelFormat;
 	(*p->wantedDestinationPixelTypes)[1] = k32BGRAPixelFormat;
     
-    switch (textureFormat) {
-        case HapTextureFormat_RGB_DXT1:
+    switch (glob->type) {
+        case kHapCodecSubType:
             (*p->wantedDestinationPixelTypes)[2] = kHapCVPixelFormat_RGB_DXT1;
             break;
-        case HapTextureFormat_YCoCg_DXT5:
+        case kHapYCoCgCodecSubType:
             (*p->wantedDestinationPixelTypes)[2] = kHapCVPixelFormat_YCoCg_DXT5;
             break;
-        case HapTextureFormat_RGBA_DXT5:
+        case kHapAlphaCodecSubType:
             (*p->wantedDestinationPixelTypes)[2] = kHapCVPixelFormat_RGBA_DXT5;
             break;
         default:
@@ -904,23 +862,21 @@ pascal ComponentResult Hap_DGetCodecInfo(HapDecompressorGlobals glob, CodecInfo 
 	else
     {
 		CodecInfo **tempCodecInfo;
-        SInt16 resourceID = glob->type == kHapCodecSubType ? 256 : 356;
+        SInt16 resourceID = resourceIDForComponentType(glob->type, codecInfoResourceType);
+        if (resourceID == 0)
+        {
+            err = internalComponentErr;
+            goto bail;
+        }
         
         err = GetComponentResource((Component)glob->self, codecInfoResourceType, resourceID, (Handle *)&tempCodecInfo);
         if (err == noErr)
         {
             *info = **tempCodecInfo;
             DisposeHandle((Handle)tempCodecInfo);
-            
-            if (glob->type == kHapCodecSubType)
-            {
-                // We suppress this from the resource to avoid having the user-confusing Millions+ menu
-                // but we can hand it out to any other interested parties
-                info->formatFlags |= codecInfoDepth32;
-            }
         }
 	}
-    
+bail:
     debug_print_err(glob, err);
 	return err;
 }

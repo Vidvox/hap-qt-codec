@@ -45,6 +45,7 @@
 		E2210D2B15CAE914009DD434 /* YCoCg.c in Sources */ = {isa = PBXBuildFile; fileRef = E2210D2715CAE914009DD434 /* YCoCg.c */; };
 		E2210D2C15CAE914009DD434 /* YCoCgDXT.c in Sources */ = {isa = PBXBuildFile; fileRef = E2210D2915CAE914009DD434 /* YCoCgDXT.c */; };
 		E2210D3B15CAF913009DD434 /* ImageMath.c in Sources */ = {isa = PBXBuildFile; fileRef = E2210D3915CAF913009DD434 /* ImageMath.c */; };
+		E22D0FEC169E13C6001C21D9 /* HapAlphaComponent.r in Rez */ = {isa = PBXBuildFile; fileRef = E22D0FEB169E13C6001C21D9 /* HapAlphaComponent.r */; };
 		E28C1FAB143B598500F2CD73 /* Utility.c in Sources */ = {isa = PBXBuildFile; fileRef = E28C1FAA143B598500F2CD73 /* Utility.c */; };
 		E2C99CAA13789AC60077AC75 /* Tasks.c in Sources */ = {isa = PBXBuildFile; fileRef = E2C99CA813789AC60077AC75 /* Tasks.c */; };
 		E2F397A8156A9C0D0064D018 /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = E2F397A7156A9C0D0064D018 /* libz.dylib */; };
@@ -149,6 +150,7 @@
 		E2210D2A15CAE914009DD434 /* YCoCgDXT.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = YCoCgDXT.h; sourceTree = "<group>"; };
 		E2210D3915CAF913009DD434 /* ImageMath.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ImageMath.c; sourceTree = "<group>"; };
 		E2210D3A15CAF913009DD434 /* ImageMath.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ImageMath.h; sourceTree = "<group>"; };
+		E22D0FEB169E13C6001C21D9 /* HapAlphaComponent.r */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.rez; path = HapAlphaComponent.r; sourceTree = "<group>"; };
 		E28C1FAA143B598500F2CD73 /* Utility.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = Utility.c; sourceTree = "<group>"; };
 		E2C99CA813789AC60077AC75 /* Tasks.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = Tasks.c; sourceTree = "<group>"; };
 		E2C99CA913789AC60077AC75 /* Tasks.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Tasks.h; sourceTree = "<group>"; };
@@ -216,6 +218,7 @@
 				2BBCFE9A08A92F20001CD3B3 /* HapResCommon.h */,
 				BD4C0D32169D955B00CA6AAE /* HapResCommon.r */,
 				BDEAB311169D8A6E007FE844 /* HapComponent.r */,
+				E22D0FEB169E13C6001C21D9 /* HapAlphaComponent.r */,
 				BDEAB313169D8A7D007FE844 /* HapYCoCgComponent.r */,
 				8D01CCD10486CAD60068D4B7 /* Info.plist */,
 				089C167DFE841241C02AAC07 /* InfoPlist.strings */,
@@ -434,6 +437,7 @@
 				BDEAB312169D8A6E007FE844 /* HapComponent.r in Rez */,
 				BDEAB314169D8A7D007FE844 /* HapYCoCgComponent.r in Rez */,
 				BD4C0D33169D955B00CA6AAE /* HapResCommon.r in Rez */,
+				E22D0FEC169E13C6001C21D9 /* HapAlphaComponent.r in Rez */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

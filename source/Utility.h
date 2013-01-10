@@ -19,6 +19,8 @@ Boolean dictionaryHasValueForKeyOfTypeID( CFDictionaryRef dictionary, CFStringRe
 int roundUpToMultipleOf4( int n );
 int roundUpToMultipleOf16( int n );
 
+SInt16 resourceIDForComponentType(OSType componentType, OSType resourceType);
+
 #ifdef DEBUG
 #define debug_print_function_call(glob) fprintf(stdout, "%p %s\n", (glob), __func__)
 #define debug_print(glob, s) fprintf(stdout, "%p %s %s\n", (glob), __func__, s)

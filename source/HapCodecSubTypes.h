@@ -9,7 +9,8 @@
 #ifndef Hap_Codec_HapCodecSubTypes_h
 #define Hap_Codec_HapCodecSubTypes_h
 
-#define kHapCodecSubType 'VPUV'
+#define kHapCodecSubType 'Hap1'
+#define kHapAlphaCodecSubType 'Hap5'
 #define kHapYCoCgCodecSubType 'HapY'
 
 #endif

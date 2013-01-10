@@ -66,14 +66,4 @@
 
 #define kCodecCompressorEntryPointResID 258
 
-// UI Parts - the DITL live in the individual component files and may refer
-// to these common resources
-
-#define kHapCodecPopupCNTLResID 129
-#define kHapCodecPopupMENUResID 129
-#define kHapCodecSliderCNTLResID 130
-
-#define POPUP_H 22
-#define SPACING 16
-#define TEXT_H 16
-#define SLIDER_H 26
+#define kHapCodecDITLResID 129

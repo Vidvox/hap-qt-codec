@@ -7,6 +7,8 @@
 //
 
 #include "Utility.h"
+#include <QuickTime/QuickTime.h>
+#include "HapCodecSubTypes.h"
 
 // Utility to add an SInt32 to a CFMutableDictionary.
 void addNumberToDictionary( CFMutableDictionaryRef dictionary, CFStringRef key, SInt32 numberSInt32 )
@@ -55,4 +57,22 @@ int roundUpToMultipleOf4( int n )
 	if( 0 != ( n & 3 ) )
 		n = ( n + 3 ) & ~3;
 	return n;
+}
+
+SInt16 resourceIDForComponentType(OSType componentType, OSType resourceType)
+{    
+    if (resourceType == codecInfoResourceType)
+    {
+        switch (componentType) {
+            case kHapCodecSubType:
+                return 256;
+            case kHapAlphaCodecSubType:
+                return 456;
+            case kHapYCoCgCodecSubType:
+                return 356;
+            default:
+                return 0;
+        }
+    }
+    return 0;
 }

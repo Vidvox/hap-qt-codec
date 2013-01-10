@@ -6,7 +6,7 @@
 #include "HapResCommon.h"
 
 #define kHapYCoCgCodecFormatType kHapYCoCgCodecSubType
-#define kHapYCoCgCodecFormatName "Hap (High Quality)"
+#define kHapYCoCgCodecFormatName "Hap Plus"
 
 // These flags specify information about the capabilities of the component
 // Works with 32-bit Pixel Maps
@@ -102,7 +102,7 @@ resource 'thng' (356) {
 
 // Component Information
 resource 'STR ' (kHapYCoCgDecompressorDescriptionResID) {
-    "Hap (High Quality) Decompressor."
+    "Hap Plus Decompressor"
 };
 
 #endif // DECO_BUILD
@@ -158,7 +158,7 @@ resource 'thng' (358) {
 
 // Component Information
 resource 'STR ' (kHapYCoCgCompressorDescriptionResID) {
-    "Hap (High Quality) Compressor."
+    "Hap Plus Compressor"
 };
 
 resource 'thnr' (356) {
@@ -180,15 +180,6 @@ resource 'cpix' (356) {
         'RGBA',
         'BGRA'
     }
-};
-
-// Settings controls for dialog
-#define kHapYCoCgCodecDITLResID 329
-
-resource 'DITL' (kHapYCoCgCodecDITLResID) {
-{
-    {0, 0, POPUP_H, 185}, Control { enabled, kHapCodecPopupCNTLResID },
- };
 };
 
 #endif // COMP_BUILD

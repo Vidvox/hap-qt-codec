@@ -21,9 +21,21 @@ resource 'dlle' (kCodecDecompressorEntryPointResID) {
 };
 #endif
 
-// UI Parts
-
 #if COMP_BUILD
+
+// Settings controls for dialog
+
+#define kHapCodecPopupCNTLResID 129
+#define kHapCodecPopupMENUResID 129
+
+#define POPUP_H 22
+
+resource 'DITL' (kHapCodecDITLResID) {
+    {
+        {0, 0, POPUP_H, 185}, Control { enabled, kHapCodecPopupCNTLResID },
+    };
+};
+
 resource 'CNTL' (kHapCodecPopupCNTLResID, "Compressor Popup") {
      {0, 0, 20, 185},
      0,
@@ -50,29 +62,5 @@ resource 'MENU' (kHapCodecPopupMENUResID, "Compressor Popup") {
         "ZLIB", noIcon, noKey, noMark, plain
     }
 };
-
-resource 'CNTL' (kHapCodecSliderCNTLResID, "Quality Slider"){
-    {0,0,26,185},
-    3/*value:initially, # of ticks*/,
-    visible,
-    /*max*/0x2,
-    /*min*/0,
-    kControlSliderProc|kControlSliderHasTickMarks,
-    0,
-    ""
-};
-
-/*
-resource 'CNTL' (kMyCodecBoxCNTLResID, "Quality Box"){
-    {0,0,100,185},
-    0,
-    visible,
-    0,
-    0,
-    kControlGroupBoxTextTitleProc,
-    0,
-    "Quality"
-};
-*/
 
 #endif
