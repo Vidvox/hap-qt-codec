@@ -15,7 +15,6 @@
 
 void addNumberToDictionary( CFMutableDictionaryRef dictionary, CFStringRef key, SInt32 numberSInt32 );
 void addDoubleToDictionary( CFMutableDictionaryRef dictionary, CFStringRef key, double numberDouble );
-Boolean dictionaryHasValueForKeyOfTypeID( CFDictionaryRef dictionary, CFStringRef key, CFTypeID expectedCFType );
 int roundUpToMultipleOf4( int n );
 int roundUpToMultipleOf16( int n );
 
