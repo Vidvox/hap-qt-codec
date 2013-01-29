@@ -75,10 +75,8 @@ typedef struct {
     Boolean                         allowAsyncCompletion;
     int32_t                         backgroundError;
     unsigned int                    dxtFormat;
-    unsigned int                    hapCompressor;
     unsigned int                    taskGroup;
     
-    CFMutableDictionaryRef          settings; // Settings from our settings dialog if applicable
 #ifdef DEBUG
     unsigned int                    debugFrameCount;
     uint64_t                        debugStartTime;
@@ -122,17 +120,6 @@ struct HapCodecCompressTask
 #include <ImageCompression.k.h>
 #include <ComponentDispatchHelper.c>
 #endif
-
-/*
- kSettingsSecondaryCompressorKey
- 
- value is one of the following CFStrings
- */
-#define kSettingsSecondaryCompressorKey CFSTR("com.vidvox.hap.settings.secondary-compressor")
-
-#define kSettingsSecondaryCompressorSnappy CFSTR("snappy")
-#define kSettingsSecondaryCompressorLZF CFSTR("lzf")
-#define kSettingsSecondaryCompressorZLIB CFSTR("zlib")
 
 static ComponentResult finishFrame(HapCodecBufferRef buffer, bool onBackgroundThread);
 static void queueEncodedFrame(HapCompressorGlobals glob, HapCodecBufferRef frame);
@@ -186,9 +173,7 @@ Hap_COpen(
     glob->allowAsyncCompletion = false;
     glob->backgroundError = noErr;
     glob->dxtFormat = 0;
-    glob->hapCompressor = HapCompressorSnappy;
     glob->taskGroup = 0;
-    glob->settings = NULL;
     
 bail:
     debug_print_err(glob, err);
@@ -247,12 +232,6 @@ Hap_CClose(
         if (glob->endTasksPending)
         {
             HapCodecTasksWillStop();
-        }
-        
-        if (glob->settings)
-        {
-            CFRelease(glob->settings);
-            glob->settings = NULL;
         }
         
 		free( glob );
@@ -583,44 +562,8 @@ Hap_CPrepareToCompressFrames(
         glob->formatConvertBufferBytesPerRow = wantedConvertBufferBytesPerRow;
     }
     
-    if (dictionaryHasValueForKeyOfTypeID(glob->settings, kSettingsSecondaryCompressorKey, CFStringGetTypeID()))
-    {
-        CFStringRef compressorFromSettings = CFDictionaryGetValue(glob->settings, kSettingsSecondaryCompressorKey);
-        if (CFEqual(compressorFromSettings, kSettingsSecondaryCompressorZLIB))
-        {
-            glob->hapCompressor = HapCompressorZLIB;
-        }
-        else if (CFEqual(compressorFromSettings, kSettingsSecondaryCompressorLZF))
-        {
-            glob->hapCompressor = HapCompressorLZF;
-        }
-        else
-        {
-            glob->hapCompressor = HapCompressorSnappy;
-        }
-    }
-    else
-    {
-        glob->hapCompressor = HapCompressorSnappy;
-    }
-    
 #ifdef DEBUG
-    char *compressor_str;
-    switch (glob->hapCompressor) {
-        case HapCompressorSnappy:
-            compressor_str = "snappy";
-            break;
-        case HapCompressorLZF:
-            compressor_str = "LZF";
-            break;
-        case HapCompressorZLIB:
-            compressor_str = "ZLIB";
-            break;
-        default:
-            err = internalComponentErr;
-            goto bail;
-    }
-    printf("HAP CODEC: start / %s / ", compressor_str);
+    printf("HAP CODEC: start / ");
     if (glob->dxtEncoder->describe_function)
     {
         printf("%s", glob->dxtEncoder->describe_function(glob->dxtEncoder));
@@ -811,7 +754,7 @@ static void Background_Encode(void *info)
     unsigned int hapResult = HapEncode(codec_src,
                                        codec_src_length,
                                        glob->dxtFormat,
-                                       glob->hapCompressor,
+                                       HapCompressorSnappy,
                                        ICMEncodedFrameGetDataPtr(task->encodedFrame),
                                        glob->maxEncodedDataSize,
                                        &actualEncodedDataSize);
@@ -1075,206 +1018,4 @@ static ComponentResult backgroundError(HapCompressorGlobals glob)
         err = glob->backgroundError;
     } while (OSAtomicCompareAndSwap32(err, noErr, &glob->backgroundError) == false);
     return err;
-}
-
-/*
- Compressor Settings
- 
- http://developer.apple.com/library/mac/#technotes/tn2081/_index.html
- 
- */
-
-ComponentResult Hap_CGetSettings(HapCompressorGlobals glob, Handle settings)
-{
-    ComponentResult err = noErr;
-    
-    if (!settings)
-    {
-        err = paramErr;
-    }
-    else
-    {
-        if (glob->settings)
-        {
-            CFDataRef data = CFPropertyListCreateData(kCFAllocatorDefault,
-                                                      glob->settings,
-                                                      kCFPropertyListXMLFormat_v1_0,
-                                                      0,
-                                                      NULL);
-            if (data)
-            {
-                CFIndex length = CFDataGetLength(data);
-                SetHandleSize(settings, length);
-                CFDataGetBytes(data, CFRangeMake(0, length), (UInt8 *)*settings);
-                CFRelease(data);
-            }
-            else
-            {
-                err = internalComponentErr;
-            }
-        }
-        else
-        {
-            SetHandleSize(settings, 0);
-        }
-    }
-    
-    debug_print_err(glob, err);
-    return err;
-}
-
-ComponentResult Hap_CSetSettings(HapCompressorGlobals glob, Handle settings)
-{
-    ComponentResult err = noErr;
-    
-    if (glob->settings) CFRelease(glob->settings);
-    glob->settings = NULL;
-    
-    Size settingsSize;
-    
-    if (settings) settingsSize = GetHandleSize(settings);
-    else settingsSize = 0;
-    
-    if (settingsSize != 0)
-    {
-        CFDataRef data = CFDataCreateWithBytesNoCopy(kCFAllocatorDefault, (UInt8 *)*settings, GetHandleSize(settings), kCFAllocatorNull);
-        CFPropertyListRef propertyList = CFPropertyListCreateWithData(kCFAllocatorDefault,
-                                                                      data,
-                                                                      kCFPropertyListMutableContainers,
-                                                                      NULL,
-                                                                      NULL);
-        
-        if (data) CFRelease(data);
-        
-        if (propertyList)
-        {
-            if (CFGetTypeID(propertyList) == CFDictionaryGetTypeID())
-            {
-                glob->settings  = (CFMutableDictionaryRef)propertyList;
-            }
-            else
-            {
-                CFRelease(propertyList);
-            }
-        }
-        
-        if (glob->settings == NULL) err = internalComponentErr;
-    }
-    
-    debug_print_err(glob, err);
-    return err;
-}
-
-ComponentResult Hap_CGetDITLForSize(HapCompressorGlobals glob,
-                                           Handle *ditl,
-                                           Point *requestedSize)
-{
-    Handle h = NULL;
-    ComponentResult err = noErr;
-    
-    switch (requestedSize->h) {
-        case kSGSmallestDITLSize:
-                GetComponentResource((Component)(glob->self), 'DITL',
-                                     129, &h);
-            if (NULL != h) *ditl = h;
-            else err = resNotFound;
-            break;
-        default:
-            err = badComponentSelector;
-            break;
-    }
-    
-    debug_print_err(glob, err);
-    return err;
-}
-
-#define kItemHapPopup 1
-
-ComponentResult Hap_CDITLInstall(HapCompressorGlobals glob,
-                                        DialogRef d,
-                                        short itemOffset)
-{
-#pragma unused(glob)
-    ControlRef cRef;
-    
-    CFIndex compressorPopupIndex = 1;
-    
-    if (glob->settings)
-    {
-        CFStringRef compressor = CFDictionaryGetValue(glob->settings, kSettingsSecondaryCompressorKey);
-        
-        if (compressor && CFEqual(compressor, kSettingsSecondaryCompressorLZF)) compressorPopupIndex = 2;
-        else if (compressor && CFEqual(compressor, kSettingsSecondaryCompressorZLIB)) compressorPopupIndex = 3;
-    }
-    
-    GetDialogItemAsControl(d, kItemHapPopup + itemOffset, &cRef);
-    SetControl32BitValue(cRef, compressorPopupIndex);
-    
-    return noErr;
-}
-
-ComponentResult Hap_CDITLEvent(HapCompressorGlobals glob,
-                                      DialogRef d,
-                                      short itemOffset,
-                                      const EventRecord *theEvent,
-                                      short *itemHit,
-                                      Boolean *handled)
-{
-#pragma unused(glob, d, itemOffset, theEvent, itemHit)
-    *handled = false;
-    return noErr;
-}
-
-ComponentResult Hap_CDITLItem(HapCompressorGlobals glob,
-                                     DialogRef d,
-                                     short itemOffset,
-                                     short itemNum)
-{
-#pragma unused(glob, d, itemOffset, itemNum)
-    return noErr;
-}
-
-ComponentResult Hap_CDITLRemove(HapCompressorGlobals glob,
-                                       DialogRef d,
-                                       short itemOffset)
-{
-    ControlRef cRef;
-    unsigned long popupValue;
-    
-    GetDialogItemAsControl(d, kItemHapPopup + itemOffset, &cRef);
-    popupValue = GetControl32BitValue(cRef);
-    
-    if (glob->settings == NULL)
-    {
-        glob->settings = CFDictionaryCreateMutable(kCFAllocatorDefault, 2, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
-    }
-    
-    if (glob->settings)
-    {
-        CFStringRef compressor;
-        
-        switch (popupValue) {
-            case 2:
-                compressor = kSettingsSecondaryCompressorLZF;
-                break;
-            case 3:
-                compressor = kSettingsSecondaryCompressorZLIB;
-                break;
-            default:
-                compressor = kSettingsSecondaryCompressorSnappy;
-        }
-        
-        CFDictionarySetValue(glob->settings, kSettingsSecondaryCompressorKey, compressor);
-    }
-    
-    return noErr;
-}
-
-ComponentResult Hap_CDITLValidateInput(HapCompressorGlobals storage,
-                                              Boolean *ok)
-{
-#pragma unused(storage)
-    if (ok)
-        *ok = true;
-    return noErr;
 }

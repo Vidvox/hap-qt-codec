@@ -65,5 +65,3 @@
 #define kCodecDecompressorEntryPointResID 256
 
 #define kCodecCompressorEntryPointResID 258
-
-#define kHapCodecDITLResID 129

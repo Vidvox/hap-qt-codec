@@ -35,8 +35,8 @@
 		ComponentError (GetSimilarity)
 		ComponentError (TrimImage)								// 10
 		ComponentError (RequestSettings)
-		ComponentCall (GetSettings)
-		ComponentCall (SetSettings)
+		ComponentError (GetSettings)
+		ComponentError (SetSettings)
 		ComponentError (Flush)
 		ComponentError (SetTimeCode)							// 15
 		ComponentError (IsImageDescriptionEquivalent)
@@ -69,12 +69,12 @@
 		ComponentError (GetDecompressLatency)
 		ComponentError (MergeFloatingImageOntoWindow)
 		ComponentError (RemoveFloatingImage)					// 45
-		ComponentCall (GetDITLForSize)
-		ComponentCall (DITLInstall)
-		ComponentCall (DITLEvent)
-		ComponentCall (DITLItem)
-		ComponentCall (DITLRemove)								// 50
-		ComponentCall (DITLValidateInput)
+		ComponentError (GetDITLForSize)
+		ComponentError (DITLInstall)
+		ComponentError (DITLEvent)
+		ComponentError (DITLItem)
+		ComponentError (DITLRemove)								// 50
+		ComponentError (DITLValidateInput)
 		ComponentError (52)
 		ComponentError (53)
 		ComponentError (GetPreferredChunkSizeAndAlignment)
