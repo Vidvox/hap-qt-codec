@@ -6,7 +6,7 @@
 #include "HapResCommon.h"
 
 #define kHapYCoCgCodecFormatType kHapYCoCgCodecSubType
-#define kHapYCoCgCodecFormatName "Hap Plus"
+#define kHapYCoCgCodecFormatName "Hap Q"
 
 // These flags specify information about the capabilities of the component
 // Works with 32-bit Pixel Maps
@@ -102,7 +102,7 @@ resource 'thng' (356) {
 
 // Component Information
 resource 'STR ' (kHapYCoCgDecompressorDescriptionResID) {
-    "Hap Plus Decompressor"
+    "Hap Q Decompressor"
 };
 
 #endif // DECO_BUILD
@@ -158,7 +158,7 @@ resource 'thng' (358) {
 
 // Component Information
 resource 'STR ' (kHapYCoCgCompressorDescriptionResID) {
-    "Hap Plus Compressor"
+    "Hap Q Compressor"
 };
 
 resource 'thnr' (356) {
