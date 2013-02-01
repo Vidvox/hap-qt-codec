@@ -72,8 +72,6 @@ typedef struct {
     
     HapCodecBufferPoolRef           dxtBufferPool;
     
-    Boolean                         allowAsyncCompletion;
-    int32_t                         backgroundError;
     unsigned int                    dxtFormat;
     unsigned int                    taskGroup;
     
@@ -124,8 +122,6 @@ struct HapCodecCompressTask
 static ComponentResult finishFrame(HapCodecBufferRef buffer, bool onBackgroundThread);
 static void queueEncodedFrame(HapCompressorGlobals glob, HapCodecBufferRef frame);
 static HapCodecBufferRef dequeueFrameNumber(HapCompressorGlobals glob, int number);
-static void emitBackgroundError(HapCompressorGlobals glob, ComponentResult error);
-static ComponentResult backgroundError(HapCompressorGlobals glob);
 
 // Open a new instance of the component.
 // Allocate component instance storage ("globals") and associate it with the new instance so that other
@@ -170,8 +166,6 @@ Hap_COpen(
     glob->formatConvertPool = NULL;
     glob->formatConvertBufferBytesPerRow = 0;
     glob->dxtBufferPool = NULL;
-    glob->allowAsyncCompletion = false;
-    glob->backgroundError = noErr;
     glob->dxtFormat = 0;
     glob->taskGroup = 0;
     
@@ -526,14 +520,6 @@ Hap_CPrepareToCompressFrames(
 	*compressorPixelBufferAttributesOut = compressorPixelBufferAttributes;
 	compressorPixelBufferAttributes = NULL;
     
-    // If we're allowed to, we output frames on a background thread
-    err = ICMCompressionSessionOptionsGetProperty(sessionOptions,
-                                                  kQTPropertyClass_ICMCompressionSessionOptions,
-                                                  kICMCompressionSessionOptionsPropertyID_AllowAsyncCompletion,
-                                                  sizeof( Boolean ),
-                                                  &glob->allowAsyncCompletion,
-                                                  NULL );
-    
 	// Work out the upper bound on encoded frame data size -- we'll allocate buffers of this size.
     long wantedDXTSize = roundUpToMultipleOf4(glob->width) * roundUpToMultipleOf4(glob->height);
     if (glob->dxtFormat == HapTextureFormat_RGB_DXT1) wantedDXTSize /= 2;
@@ -794,20 +780,10 @@ bail:
     HapCodecBufferReturn(formatConvertBuffer);
     HapCodecBufferReturn(dxtBuffer);
     
-    // Output the encoded frame - or pass the error on
     task->error = err;
-    if (glob->allowAsyncCompletion)
-    {
-        err = finishFrame((HapCodecBufferRef)info, true);
-        if (err != noErr)
-        {
-            emitBackgroundError(glob, err);
-        }
-    }
-    else
-    {
-        queueEncodedFrame(glob, (HapCodecBufferRef)info);
-    }
+    
+    // Queue the encoded frame for output
+    queueEncodedFrame(glob, (HapCodecBufferRef)info);
 }
 
 // Presents the compressor with a frame to encode.
@@ -839,22 +815,15 @@ Hap_CEncodeFrame(
     
     HapCodecTasksAddTask(Background_Encode, glob->taskGroup, buffer);
     
-    if (glob->allowAsyncCompletion == false)
+    do
     {
-        do
+        buffer = dequeueFrameNumber(glob, glob->lastFrameOut + 1); // TODO: this function could just look up the next frame number from glob, ah well
+        err = finishFrame(buffer, false);
+        if (err != noErr)
         {
-            buffer = dequeueFrameNumber(glob, glob->lastFrameOut + 1); // TODO: this function could just look up the next frame number from glob, ah well
-            err = finishFrame(buffer, false);
-            if (err != noErr)
-            {
-                goto bail;
-            }
-        } while (buffer != NULL);
-    }
-    else
-    {
-        err = backgroundError(glob);
-    }
+            goto bail;
+        }
+    } while (buffer != NULL);
     
 bail:
     debug_print_err(glob, err);
@@ -883,24 +852,18 @@ Hap_CCompleteFrame(
     }
     HapCodecBufferRef buffer;
     
-    if (glob->allowAsyncCompletion == false)
+    do
     {
-        do
+        buffer = dequeueFrameNumber(glob, glob->lastFrameOut + 1); // TODO: this function could just look up the next frame number from glob, ah well
+        
+        err = finishFrame(buffer, false);
+        if (err != noErr)
         {
-            buffer = dequeueFrameNumber(glob, glob->lastFrameOut + 1); // TODO: this function could just look up the next frame number from glob, ah well
-            
-            err = finishFrame(buffer, false);
-            if (err != noErr)
-            {
-                goto bail;
-            }
+            goto bail;
+        }
 
-        } while (buffer != NULL);
-    }
-    else
-    {
-        err = backgroundError(glob);
-    }
+    } while (buffer != NULL);
+    
 bail:
 	return err;
 }
@@ -996,6 +959,7 @@ static HapCodecBufferRef dequeueFrameNumber(HapCompressorGlobals glob, int numbe
                     {
                         found = glob->finishedFrames[i];
                         glob->finishedFrames[i] = NULL;
+                        break;
                     }
                 }
             }
@@ -1003,19 +967,4 @@ static HapCodecBufferRef dequeueFrameNumber(HapCompressorGlobals glob, int numbe
         OSSpinLockUnlock(&glob->lock);
     }
     return found;
-}
-
-static void emitBackgroundError(HapCompressorGlobals glob, ComponentResult error)
-{
-    // We ignore failure here - if we failed then there is already an error pending delivery
-    OSAtomicCompareAndSwap32(noErr, error, &glob->backgroundError);
-}
-
-static ComponentResult backgroundError(HapCompressorGlobals glob)
-{
-    ComponentResult err;
-    do {
-        err = glob->backgroundError;
-    } while (OSAtomicCompareAndSwap32(err, noErr, &glob->backgroundError) == false);
-    return err;
 }
