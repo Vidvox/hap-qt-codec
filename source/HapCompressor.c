@@ -391,10 +391,7 @@ createPixelBufferAttributesDictionary( SInt32 width, SInt32 height,
         }
     }
     
-    // TODO: fix gamma
-//	addDoubleToDictionary( pixelBufferAttributes, kCVImageBufferGammaLevelKey, 2.2 );
-//    addDoubleToDictionary( pixelBufferAttributes, kCVImageBufferGammaLevelKey, 1.0 );
-//	CFDictionaryAddValue( pixelBufferAttributes, kCVImageBufferYCbCrMatrixKey, kCVImageBufferYCbCrMatrix_ITU_R_601_4 );
+	addDoubleToDictionary( pixelBufferAttributes, kCVImageBufferGammaLevelKey, 2.2 );
 	
 	err = noErr;
 	*pixelBufferAttributesOut = pixelBufferAttributes;
@@ -433,22 +430,7 @@ Hap_CPrepareToCompressFrames(
 	
 	// Modify imageDescription
     
-    /*
-    Fixed gammaLevelIn = 0;
-    err = ICMImageDescriptionGetProperty(imageDescription, kQTPropertyClass_ImageDescription, kICMImageDescriptionPropertyID_GammaLevel, sizeof(gammaLevelIn), &gammaLevelIn, NULL);
-    if (err == noErr)
-    {
-        printf("input gamma level %f\n", FixedToFloat(gammaLevelIn));
-    }
-    else if (err == codecExtensionNotFoundErr)
-    {
-        printf("no input gamma level\n");
-    }
-     */
-	// We describe gamma as platform default, as that's what we get in
-    // and we don't convert it. More solid solutions welcome...
-    
-	gammaLevel = kQTUsePlatformDefaultGammaLevel;
+	gammaLevel = kQTCCIR601VideoGammaLevel;
 	err = ICMImageDescriptionSetProperty( imageDescription,
 			kQTPropertyClass_ImageDescription,
 			kICMImageDescriptionPropertyID_GammaLevel,
