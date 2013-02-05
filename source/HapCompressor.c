@@ -58,8 +58,7 @@ typedef struct {
 	size_t							maxEncodedDataSize;
 	
     int                             lastFrameOut;
-    HapCodecBufferRef               *finishedFrames;
-    int                             finishedFramesCapacity;
+    HapCodecBufferRef               finishedFrames;
     OSSpinLock                      lock;
     
     Boolean                         endTasksPending;
@@ -91,6 +90,7 @@ struct HapCodecCompressTask
     ICMCompressorSourceFrameRef     sourceFrame;
     ICMMutableEncodedFrameRef       encodedFrame;
     ComponentResult                 error;
+    HapCodecBufferRef               next; // Used to queue finished tasks
 };
 
 // Setup required for ComponentDispatchHelper.c
@@ -119,9 +119,10 @@ struct HapCodecCompressTask
 #include <ComponentDispatchHelper.c>
 #endif
 
-static ComponentResult finishFrame(HapCodecBufferRef buffer, bool onBackgroundThread);
+static void releaseTaskFrames(HapCodecCompressTask *task);
+static ComponentResult finishFrame(HapCodecBufferRef buffer);
 static void queueEncodedFrame(HapCompressorGlobals glob, HapCodecBufferRef frame);
-static HapCodecBufferRef dequeueFrameNumber(HapCompressorGlobals glob, int number);
+static HapCodecBufferRef dequeueNextFrameOut(HapCompressorGlobals glob);
 
 // Open a new instance of the component.
 // Allocate component instance storage ("globals") and associate it with the new instance so that other
@@ -158,7 +159,6 @@ Hap_COpen(
 	glob->maxEncodedDataSize = 0;
     glob->lastFrameOut = 0;
     glob->finishedFrames = NULL;
-    glob->finishedFramesCapacity = 0;
     glob->lock = OS_SPINLOCK_INIT;
     glob->endTasksPending = false;
     glob->compressTaskPool = NULL;
@@ -217,16 +217,33 @@ Hap_CClose(
         HapCodecBufferPoolDestroy(glob->formatConvertPool);
         glob->formatConvertPool = NULL;
         
-        HapCodecBufferPoolDestroy(glob->compressTaskPool);
-        glob->compressTaskPool = NULL;
-        
-        free(glob->finishedFrames);
-        glob->finishedFrames = NULL;
-        
         if (glob->endTasksPending)
         {
             HapCodecTasksWillStop();
         }
+        
+        // We should never have queued frames when we are closed
+        // but we check and properly release the memory if we do
+        
+        HapCodecBufferRef this = glob->finishedFrames;
+        HapCodecBufferRef next = NULL;
+        while (this) {
+            HapCodecCompressTask *task = (HapCodecCompressTask *)HapCodecBufferGetBaseAddress(this);
+            if (task)
+            {
+                releaseTaskFrames(task);
+                next = task->next;
+            }
+            else
+            {
+                next = NULL;
+            }
+            HapCodecBufferReturn(this);
+            this = next;
+        }
+        
+        HapCodecBufferPoolDestroy(glob->compressTaskPool);
+        glob->compressTaskPool = NULL;
         
 		free( glob );
 	}
@@ -794,13 +811,15 @@ Hap_CEncodeFrame(
     task->glob = glob;
     task->error = noErr;
     task->encodedFrame = NULL;
+    task->next = NULL;
     
     HapCodecTasksAddTask(Background_Encode, glob->taskGroup, buffer);
     
     do
     {
-        buffer = dequeueFrameNumber(glob, glob->lastFrameOut + 1); // TODO: this function could just look up the next frame number from glob, ah well
-        err = finishFrame(buffer, false);
+        buffer = dequeueNextFrameOut(glob);
+        err = finishFrame(buffer);
+        HapCodecBufferReturn(buffer);
         if (err != noErr)
         {
             goto bail;
@@ -836,9 +855,10 @@ Hap_CCompleteFrame(
     
     do
     {
-        buffer = dequeueFrameNumber(glob, glob->lastFrameOut + 1); // TODO: this function could just look up the next frame number from glob, ah well
+        buffer = dequeueNextFrameOut(glob);
         
-        err = finishFrame(buffer, false);
+        err = finishFrame(buffer);
+        HapCodecBufferReturn(buffer);
         if (err != noErr)
         {
             goto bail;
@@ -850,7 +870,16 @@ bail:
 	return err;
 }
 
-static ComponentResult finishFrame(HapCodecBufferRef buffer, bool onBackgroundThread)
+static void releaseTaskFrames(HapCodecCompressTask *task)
+{
+    if (task)
+    {
+        ICMCompressorSourceFrameRelease(task->sourceFrame);
+        ICMEncodedFrameRelease(task->encodedFrame);
+    }
+}
+
+static ComponentResult finishFrame(HapCodecBufferRef buffer)
 {
     ComponentResult err = noErr;
     if (buffer != NULL)
@@ -859,15 +888,8 @@ static ComponentResult finishFrame(HapCodecBufferRef buffer, bool onBackgroundTh
         
         err = task->error;
         
-        if (onBackgroundThread)
-        {
-            OSSpinLockLock(&task->glob->lock);
-        }
         task->glob->lastFrameOut = ICMCompressorSourceFrameGetDisplayNumber(task->sourceFrame);
-        if (onBackgroundThread)
-        {
-            OSSpinLockUnlock(&task->glob->lock);
-        }
+        
         if (task->error == noErr)
         {
             ICMCompressorSessionEmitEncodedFrame(task->glob->session, task->encodedFrame, 1, &task->sourceFrame);
@@ -876,75 +898,50 @@ static ComponentResult finishFrame(HapCodecBufferRef buffer, bool onBackgroundTh
         {
             ICMCompressorSessionDropFrame(task->glob->session, task->sourceFrame);
         }
-        ICMCompressorSourceFrameRelease(task->sourceFrame);
-        ICMEncodedFrameRelease(task->encodedFrame);
-        HapCodecBufferReturn(buffer);
+        releaseTaskFrames(task);
     }
     return err;
 }
 
 static void queueEncodedFrame(HapCompressorGlobals glob, HapCodecBufferRef frame)
 {
-    if (glob)
+    HapCodecCompressTask *task = (HapCodecCompressTask *)HapCodecBufferGetBaseAddress(frame);
+    if (glob && task)
     {
         OSSpinLockLock(&glob->lock);
-        int i;
-        int insertIndex = -1; // -1 == not found
-        // Look for a free slot
-        for (i = 0; i < glob->finishedFramesCapacity; i++)
-        {
-            if (glob->finishedFrames[i] == NULL)
-            {
-                insertIndex = i;
-                break;
-            }
-        }
-        // If no slot available then grow finishedFrames by one
-        if (insertIndex == -1)
-        {
-            glob->finishedFramesCapacity++;
-            HapCodecBufferRef *newFinishedFrames = malloc(sizeof(HapCodecBufferRef) * glob->finishedFramesCapacity);
-            for (i = 0; i < glob->finishedFramesCapacity; i++) {
-                if (i < (glob->finishedFramesCapacity - 1) && glob->finishedFrames != NULL)
-                {
-                    newFinishedFrames[i] = glob->finishedFrames[i];
-                }
-                else
-                {
-                    newFinishedFrames[i] = NULL;
-                }
-            }
-            free(glob->finishedFrames);
-            glob->finishedFrames = newFinishedFrames;
-            insertIndex = glob->finishedFramesCapacity - 1;
-        }
-        glob->finishedFrames[insertIndex] = frame;
+        task->next = glob->finishedFrames;
+        glob->finishedFrames = frame;
         OSSpinLockUnlock(&glob->lock);
     }
 }
 
-static HapCodecBufferRef dequeueFrameNumber(HapCompressorGlobals glob, int number)
+static HapCodecBufferRef dequeueNextFrameOut(HapCompressorGlobals glob)
 {
     HapCodecBufferRef found = NULL;
     if (glob)
     {
         OSSpinLockLock(&glob->lock);
-        if (glob->finishedFrames != NULL)
-        {
-            int i;
-            for (i = 0; i < glob->finishedFramesCapacity; i++)
+        HapCodecBufferRef *prevPtr = &glob->finishedFrames;
+        HapCodecBufferRef this = glob->finishedFrames;
+        while (this) {
+            HapCodecCompressTask *task = (HapCodecCompressTask *)HapCodecBufferGetBaseAddress(this);
+            if (task)
             {
-                if (glob->finishedFrames[i] != NULL)
+                long frameNumber = ICMCompressorSourceFrameGetDisplayNumber(task->sourceFrame);
+                if (frameNumber == glob->lastFrameOut + 1)
                 {
-                    HapCodecCompressTask *task = (HapCodecCompressTask *)HapCodecBufferGetBaseAddress(glob->finishedFrames[i]);
-                    if (ICMCompressorSourceFrameGetDisplayNumber(task->sourceFrame) == number)
-                    {
-                        found = glob->finishedFrames[i];
-                        glob->finishedFrames[i] = NULL;
-                        break;
-                    }
+                    found = this;
+                    *prevPtr = task->next;
+                    break;
                 }
+                this = task->next;
+                prevPtr = &task->next;
             }
+            else
+            {
+                this = NULL;
+            }
+            
         }
         OSSpinLockUnlock(&glob->lock);
     }
