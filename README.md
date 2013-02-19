@@ -28,11 +28,11 @@ Hap and Hap Alpha have a quality setting. At any setting below "High", fast hard
 Open-Source
 ====
 
-The Hap codec project is open-source, licensed under a [FreeBSD][3] license, meaning you can use it in your commercial or non-commercial applications completely free of charge.
+The Hap codec project is open-source, licensed under a [New BSD License][3], meaning you can use it in your commercial or non-commercial applications completely free of charge.
 
 This project was originally written by Tom Butterworth and commissioned by [VIDVOX][4], 2012.
 
 [1]: http://github.com/bangnoise/hap
 [2]: http://github.com/bangnoise/hap-quicktime-playback-demo
-[3]: http://www.freebsd.org/copyright/freebsd-license.html
+[3]: https://github.com/bangnoise/hap-qt-codec/blob/master/LICENSE
 [4]: http://www.vidvox.net
