@@ -46,6 +46,13 @@ int roundUpToMultipleOf4( int n )
 	return n;
 }
 
+size_t dxtBytesForDimensions(int width, int height, OSType codecSubType)
+{
+    size_t length = roundUpToMultipleOf4(width) * roundUpToMultipleOf4(height);
+    if (codecSubType == kHapCodecSubType) length /= 2;
+    return length;
+}
+
 SInt16 resourceIDForComponentType(OSType componentType, OSType resourceType)
 {    
     if (resourceType == codecInfoResourceType)

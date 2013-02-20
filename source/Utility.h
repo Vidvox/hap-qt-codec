@@ -18,6 +18,19 @@ void addDoubleToDictionary( CFMutableDictionaryRef dictionary, CFStringRef key, 
 int roundUpToMultipleOf4( int n );
 int roundUpToMultipleOf16( int n );
 
+size_t dxtBytesForDimensions(int width, int height, OSType codecSubType);
+
+/*
+ Boolean isDXTPixelFormat(OSType fmt)
+ 
+ For our purposes we treat YCoCg DXT as a DXT format
+ as this function is used to differentiate cases where
+ a DXT encode or decode stage is required.
+ */
+#define isDXTPixelFormat(fmt) (((fmt) == kHapCVPixelFormat_RGB_DXT1 \
+                                || (fmt) == kHapCVPixelFormat_RGBA_DXT5 \
+                                || (fmt) == kHapCVPixelFormat_YCoCg_DXT5) ? true : false)
+
 SInt16 resourceIDForComponentType(OSType componentType, OSType resourceType);
 
 #ifdef DEBUG

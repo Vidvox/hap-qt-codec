@@ -113,28 +113,6 @@ typedef struct {
 #include <ComponentDispatchHelper.c>
 #endif
 
-/*
- Boolean isDXTPixelFormat(OSType fmt)
- 
- For our purposes we treat YCoCg DXT as a DXT format
- as this function is used to differentiate cases where
- a DXT decode stage is required.
- 
- TODO: rename the function to better indicate its purpose
- perhaps provide isYCoCgPixelFormat() too
- */
-static Boolean isDXTPixelFormat(OSType fmt)
-{
-    switch (fmt) {
-        case kHapCVPixelFormat_RGB_DXT1:
-        case kHapCVPixelFormat_RGBA_DXT5:
-        case kHapCVPixelFormat_YCoCg_DXT5:
-            return true;
-        default:
-            return false;
-    }
-}
-
 static void registerDXTPixelFormat(OSType fmt, short bits_per_pixel, SInt32 open_gl_internal_format, Boolean has_alpha)
 {
     /*
@@ -468,11 +446,7 @@ pascal ComponentResult Hap_DBeginBand(HapDecompressorGlobals glob, CodecDecompre
 
     if (!isDXTPixelFormat(myDrp->destFormat))
     {
-        long dxtBufferLength = myDrp->dxtWidth * myDrp->dxtHeight;
-        if (myDrp->texFormat == HapTextureFormat_RGB_DXT1 || myDrp->texFormat == HapTextureFormat_RGBA_DXT1)
-        {
-            dxtBufferLength /= 2;
-        }
+        long dxtBufferLength = dxtBytesForDimensions(myDrp->dxtWidth, myDrp->dxtHeight, glob->type);
         if (glob->dxtBufferPool == NULL || dxtBufferLength != HapCodecBufferPoolGetBufferSize(glob->dxtBufferPool))
         {
             HapCodecBufferPoolDestroy(glob->dxtBufferPool);
@@ -680,8 +654,7 @@ pascal ComponentResult Hap_DDrawBand(HapDecompressorGlobals glob, ImageSubCodecD
         //
         // We only advertise the DXT type we contain, so we assume we never
         // get asked for the wrong one here
-        unsigned int bufferSize = myDrp->dxtWidth * myDrp->dxtHeight;
-        if (myDrp->destFormat == kHapCVPixelFormat_RGB_DXT1) bufferSize /= 2;
+        unsigned int bufferSize = dxtBytesForDimensions(myDrp->dxtWidth, myDrp->dxtHeight, glob->type);
         unsigned int hapResult = HapDecode(drp->codecData, myDrp->dataSize, drp->baseAddr, bufferSize, NULL, &myDrp->texFormat);
         if (hapResult != HapResult_No_Error)
         {
