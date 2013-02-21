@@ -173,10 +173,11 @@ resource 'ccop' (356) {
     kCodecCompressionNoQuality;
 };
 
-// Pixel formats we accept and emit
+// Pixel formats we accept and emit (we only accept CCXY, not emit it)
 resource 'cpix' (356) {
     {
         'DYt5',
+        'CCXY',
         'RGBA',
         'BGRA'
     }

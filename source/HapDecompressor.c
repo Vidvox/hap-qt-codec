@@ -113,44 +113,6 @@ typedef struct {
 #include <ComponentDispatchHelper.c>
 #endif
 
-static void registerDXTPixelFormat(OSType fmt, short bits_per_pixel, SInt32 open_gl_internal_format, Boolean has_alpha)
-{
-    /*
-     * See http://developer.apple.com/library/mac/#qa/qa1401/_index.html
-     */
-    
-    ICMPixelFormatInfo pixelInfo;
-    
-    CFMutableDictionaryRef dict = CFDictionaryCreateMutable(kCFAllocatorDefault,
-                                                            0,
-                                                            &kCFTypeDictionaryKeyCallBacks,
-                                                            &kCFTypeDictionaryValueCallBacks);    
-    BlockZero(&pixelInfo, sizeof(pixelInfo));
-    pixelInfo.size  = sizeof(ICMPixelFormatInfo);
-    pixelInfo.formatFlags = (has_alpha ? kICMPixelFormatHasAlphaChannel : 0);
-    pixelInfo.bitsPerPixel[0] = bits_per_pixel;
-    pixelInfo.cmpCount = 4;
-    pixelInfo.cmpSize = bits_per_pixel / 4;
-    
-    // Ignore any errors here as this could be a duplicate registration
-    ICMSetPixelFormatInfo(fmt, &pixelInfo);
-    
-    addNumberToDictionary(dict, kCVPixelFormatConstant, fmt);
-    addNumberToDictionary(dict, kCVPixelFormatBlockWidth, 4);
-    addNumberToDictionary(dict, kCVPixelFormatBlockHeight, 4);
-    // CV has a bug where it disregards kCVPixelFormatBlockHeight, so the following line is a lie to
-    // produce correctly-sized buffers
-    addNumberToDictionary(dict, kCVPixelFormatBitsPerBlock, bits_per_pixel * 4);
-    addNumberToDictionary(dict, kCVPixelFormatOpenGLInternalFormat, open_gl_internal_format);
-    
-    CFDictionarySetValue(dict, kCVPixelFormatOpenGLCompatibility, kCFBooleanTrue);
-    
-    // kCVPixelFormatContainsAlpha is only defined in the SDK for 10.7 plus
-    CFDictionarySetValue(dict, CFSTR("ContainsAlpha"), (has_alpha ? kCFBooleanFalse : kCFBooleanTrue));
-    
-    CVPixelFormatDescriptionRegisterDescriptionWithPixelFormatType(dict, fmt);
-    CFRelease(dict);
-}
 /* -- This Image Decompressor User the Base Image Decompressor Component --
 	The base image decompressor is an Apple-supplied component
 	that makes it easier for developers to create new decompressors.
@@ -167,12 +129,6 @@ pascal ComponentResult Hap_DOpen(HapDecompressorGlobals glob, ComponentInstance 
     // Enable the following line to attach a debugger when a background helper is launched (eg for QuickTime Player X)
 //    raise(SIGSTOP);
 	ComponentResult err;
-    
-    // Register our DXT pixel buffer types if they're not already registered
-    // arguments are: OSType, OpenGL internalFormat, alpha
-    registerDXTPixelFormat(kHapCVPixelFormat_RGB_DXT1, 4, 0x83F0, false);
-    registerDXTPixelFormat(kHapCVPixelFormat_RGBA_DXT5, 8, 0x83F3, true);
-    registerDXTPixelFormat(kHapCVPixelFormat_YCoCg_DXT5, 8, 0x83F3, false);
     
 	// Allocate memory for our globals, set them up and inform the component manager that we've done so
     

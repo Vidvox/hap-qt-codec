@@ -448,18 +448,23 @@ Hap_CPrepareToCompressFrames(
 	ComponentResult err = noErr;
 	CFMutableDictionaryRef compressorPixelBufferAttributes = NULL;
     // TODO: other pixel formats? non-A formats
-    OSType pixelFormatList[] = { k32BGRAPixelFormat, k32RGBAPixelFormat, 0 };
+    OSType pixelFormatList[] = { k32BGRAPixelFormat, k32RGBAPixelFormat, 0, 0 };
+    int pixelFormatCount;
 	Fixed gammaLevel;
 	
     switch (glob->type) {
         case kHapCodecSubType:
             pixelFormatList[2] = kHapCVPixelFormat_RGB_DXT1;
+            pixelFormatCount = 3;
             break;
         case kHapAlphaCodecSubType:
             pixelFormatList[2] = kHapCVPixelFormat_RGBA_DXT5;
+            pixelFormatCount = 3;
             break;
         case kHapYCoCgCodecSubType:
             pixelFormatList[2] = kHapCVPixelFormat_YCoCg_DXT5;
+            pixelFormatList[3] = kHapCVPixelFormat_CoCgXY;
+            pixelFormatCount = 4;
             break;
         default:
             err = internalComponentErr;
@@ -523,7 +528,7 @@ Hap_CPrepareToCompressFrames(
     // Create a pixel buffer attributes dictionary.
     // Only the GL DXT encoder requires padded-to-4 source buffers
 	err = createPixelBufferAttributesDictionary( glob->width, glob->height,
-                                                pixelFormatList, sizeof(pixelFormatList) / sizeof(OSType),
+                                                pixelFormatList, pixelFormatCount,
                                                 ((glob->type != kHapYCoCgCodecSubType && glob->quality < codecHighQuality) ? true : false),
                                                 &compressorPixelBufferAttributes );
 	if( err )
