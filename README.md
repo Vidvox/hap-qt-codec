@@ -32,8 +32,8 @@ The Hap codec project is open-source, licensed under a [New BSD License][3], mea
 
 This project was originally written by [Tom Butterworth][4] and commissioned by [VIDVOX][5], 2012.
 
-[1]: http://github.com/bangnoise/hap
-[2]: http://github.com/bangnoise/hap-quicktime-playback-demo
-[3]: http://github.com/bangnoise/hap-qt-codec/blob/master/LICENSE
+[1]: http://github.com/vidvox/hap
+[2]: http://github.com/vidvox/hap-quicktime-playback-demo
+[3]: http://github.com/vidvox/hap-qt-codec/blob/master/LICENSE
 [4]: http://kriss.cx/tom
 [5]: http://www.vidvox.net
