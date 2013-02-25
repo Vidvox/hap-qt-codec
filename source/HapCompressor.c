@@ -470,7 +470,6 @@ Hap_CPrepareToCompressFrames(
 #pragma unused (reserved)
 	ComponentResult err = noErr;
 	CFMutableDictionaryRef compressorPixelBufferAttributes = NULL;
-    // TODO: other pixel formats? non-A formats
     OSType pixelFormatList[] = { k32BGRAPixelFormat, k32RGBAPixelFormat, 0, 0 };
     int pixelFormatCount;
 	Fixed gammaLevel;
@@ -952,7 +951,10 @@ Hap_CCompleteFrame(
     ComponentResult err = noErr;
     if (glob->taskGroup)
     {
-        HapCodecTasksWaitForGroupToComplete(glob->taskGroup); // TODO: this waits for all pending frames rather than the particular frame
+        // This waits for all pending frames rather than the particular frame
+        // It makes the progress-bar jerky in QuickTime Player but otherwise isn't
+        // a problem.
+        HapCodecTasksWaitForGroupToComplete(glob->taskGroup);
     }
     HapCodecBufferRef buffer;
     

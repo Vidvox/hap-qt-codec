@@ -193,7 +193,6 @@ void HapCodecTasksWillStop(void)
     if (mSenderCount == 0U)
     {
         // clear state and stop our threads outside of the lock
-        // TODO:
         HapCodecTasksCleanup();
     }
     OSSpinLockUnlock(&mGlobalLock);

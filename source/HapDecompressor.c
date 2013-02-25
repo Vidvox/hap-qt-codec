@@ -366,7 +366,6 @@ pascal ComponentResult Hap_DPreflight(HapDecompressorGlobals glob, CodecDecompre
     glob->dxtWidth = widthRoundedUp;
     glob->dxtHeight = heightRoundedUp;
     
-    // TODO: cf *p->bufferGammaLevel
 bail:
     debug_print_err(glob, err);
 	return err;
@@ -411,7 +410,7 @@ pascal ComponentResult Hap_DBeginBand(HapDecompressorGlobals glob, CodecDecompre
 	// and if appropriate, will schedule that frame for display without redecoding by using the 
 	// icmFrameAlreadyDecoded flag.  
 	// In that case, we should simply retrieve the frame from whichever buffer we put it in.
-    // TODO: fuck what?
+    
 	myDrp->decoded = p->frameTime ? (0 != (p->frameTime->flags & icmFrameAlreadyDecoded)) : false;
     
     myDrp->destFormat = p->dstPixMap.pixelFormat;
