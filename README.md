@@ -12,7 +12,8 @@ For information and example code to support accelerated playback via this codec 
 Download
 ====
 
-An installer for the Hap QuickTime component for MacOS X can be downloaded here: 
+An installer for the Hap QuickTime component for MacOS X can be downloaded here:
+
 [http://vidvox.net/download/Hap_Codec_1.dmg](http://vidvox.net/download/Hap_Codec_1.dmg)
 
 Using the Hap QuickTime Codec
