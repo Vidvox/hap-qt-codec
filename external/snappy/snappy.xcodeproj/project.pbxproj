@@ -12,6 +12,7 @@
 		BDDAEA2C1615C5C700FEC70D /* snappy-sinksource.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "snappy-sinksource.h"; sourceTree = "<group>"; };
 		BDDAEA2D1615C5C700FEC70D /* snappy-stubs-public.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "snappy-stubs-public.h"; sourceTree = "<group>"; };
 		BDDAEA2E1615C5C700FEC70D /* snappy.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = snappy.h; sourceTree = "<group>"; };
+		E24A4B9C16DD0BAF00A6F58E /* snappy.patch */ = {isa = PBXFileReference; lastKnownFileType = text; path = snappy.patch; sourceTree = "<group>"; };
 		E2F2B901161338F800DDB379 /* aclocal.m4 */ = {isa = PBXFileReference; lastKnownFileType = text; path = aclocal.m4; sourceTree = "<group>"; };
 		E2F2B902161338F800DDB379 /* AUTHORS */ = {isa = PBXFileReference; lastKnownFileType = text; path = AUTHORS; sourceTree = "<group>"; };
 		E2F2B903161338F800DDB379 /* autogen.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = autogen.sh; sourceTree = "<group>"; };
@@ -70,6 +71,7 @@
 			children = (
 				BD9464DF16175F57009B26E6 /* README */,
 				E2F77A00161479FC00CB1D30 /* build-snappy.sh */,
+				E24A4B9C16DD0BAF00A6F58E /* snappy.patch */,
 				E2F2B900161338F800DDB379 /* snappy-source */,
 				E2F2B9CB1613B45A00DDB379 /* Products */,
 				BDDAEA2A1615C5C700FEC70D /* Products (Headers) */,
@@ -188,6 +190,7 @@
 			inputPaths = (
 				"$(SRCROOT)/build-snappy.sh",
 				"$(SRCROOT)/snappy-source",
+				"$(SRCROOT)/snappy.patch",
 			);
 			outputPaths = (
 				"$(BUILT_PRODUCTS_DIR)/libsnappy.1.dylib",

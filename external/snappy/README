@@ -2,10 +2,18 @@ This directory contains source for snappy and an Xcode project and script to bui
 
 Snappy is available from http://code.google.com/p/snappy/
 
-This source was acquired as release 1.0.5 from
+This source was acquired as release 1.1.0 from
 
-http://code.google.com/p/snappy/downloads/detail?name=snappy-1.0.5.tar.gz
+http://code.google.com/p/snappy/downloads/detail?name=snappy-1.1.0.tar.gz
 
 The only change to the source has been to remove the testdata directory.
+
+A patch is applied to restore snappy 1.0's 32 kB block size. 1.1's 64 kB blocks give slower decompression.
+
+|version     |Mbit/s decompress DXT i386 |
+|------------|---------------------------|
+|1.0.5       |7118                       |
+|1.1         |6303                       |
+|1.1 (32 kB) |7197                       |
 
 The script build-snappy.sh is run from within Xcode to build a 32-bit version of the library suitable for use by the Hap codec.
