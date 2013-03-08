@@ -45,7 +45,7 @@ static void HapCodecRegisterDXTPixelFormat(OSType fmt, short bits_per_pixel, SIn
                                                             0,
                                                             &kCFTypeDictionaryKeyCallBacks,
                                                             &kCFTypeDictionaryValueCallBacks);
-    BlockZero(&pixelInfo, sizeof(pixelInfo));
+    bzero(&pixelInfo, sizeof(pixelInfo));
     pixelInfo.size  = sizeof(ICMPixelFormatInfo);
     pixelInfo.formatFlags = (has_alpha ? kICMPixelFormatHasAlphaChannel : 0);
     pixelInfo.bitsPerPixel[0] = bits_per_pixel;
@@ -56,12 +56,13 @@ static void HapCodecRegisterDXTPixelFormat(OSType fmt, short bits_per_pixel, SIn
     ICMSetPixelFormatInfo(fmt, &pixelInfo);
     
     addNumberToDictionary(dict, kCVPixelFormatConstant, fmt);
-    addNumberToDictionary(dict, kCVPixelFormatBlockWidth, 4);
-    addNumberToDictionary(dict, kCVPixelFormatBlockHeight, 4);
     
-    // CV has a bug where it disregards kCVPixelFormatBlockHeight, so the following line is a lie to
-    // produce correctly-sized buffers
+    // CV has a bug where it disregards kCVPixelFormatBlockHeight, so we lie about block size
+    // (4x1 instead of actual 4x4) and add a vertical block-alignment key instead
     addNumberToDictionary(dict, kCVPixelFormatBitsPerBlock, bits_per_pixel * 4);
+    addNumberToDictionary(dict, kCVPixelFormatBlockWidth, 4);
+    addNumberToDictionary(dict, kCVPixelFormatBlockVerticalAlignment, 4);
+    
     addNumberToDictionary(dict, kCVPixelFormatOpenGLInternalFormat, open_gl_internal_format);
     
     CFDictionarySetValue(dict, kCVPixelFormatOpenGLCompatibility, kCFBooleanTrue);
@@ -81,7 +82,7 @@ static void HapCodecRegisterYCoCgPixelFormat(void)
                                                             0,
                                                             &kCFTypeDictionaryKeyCallBacks,
                                                             &kCFTypeDictionaryValueCallBacks);
-    BlockZero(&pixelInfo, sizeof(pixelInfo));
+    bzero(&pixelInfo, sizeof(pixelInfo));
     pixelInfo.size  = sizeof(ICMPixelFormatInfo);
     pixelInfo.formatFlags = 0;
     pixelInfo.bitsPerPixel[0] = 32;
