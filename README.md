@@ -30,7 +30,7 @@ Hap and Hap Alpha have a quality setting. At any setting below "High", fast hard
 Open-Source
 ====
 
-The Hap codec project is open-source, licensed under a [New BSD License][3], meaning you can use it in your commercial or non-commercial applications free of charge.
+The Hap codec project is open-source, licensed under a [Free BSD License][3], meaning you can use it in your commercial or non-commercial applications free of charge.
 
 This project was originally written by [Tom Butterworth][4] and commissioned by [VIDVOX][5], 2012.
 
