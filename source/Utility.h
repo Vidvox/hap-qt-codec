@@ -28,7 +28,11 @@
 #ifndef HapCodec_Utility_h
 #define HapCodec_Utility_h
 
+#if defined(__APPLE__)
 #include <CoreFoundation/CoreFoundation.h>
+#elif defined(_WIN32)
+#include <CoreFoundation.h>
+#endif
 
 #define kHapCodecSampleDescriptionExtension 'HAPe'
 
@@ -37,7 +41,7 @@ void addDoubleToDictionary( CFMutableDictionaryRef dictionary, CFStringRef key, 
 int roundUpToMultipleOf4( int n );
 int roundUpToMultipleOf16( int n );
 
-size_t dxtBytesForDimensions(int width, int height, OSType codecSubType);
+unsigned long dxtBytesForDimensions(int width, int height, OSType codecSubType);
 
 /*
  Boolean isDXTPixelFormat(OSType fmt)
