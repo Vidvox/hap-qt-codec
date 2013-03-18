@@ -90,10 +90,13 @@ void ImageMath_MatrixMultiply8888(const void *src,
 #endif // IMAGE_MATH_USE_V_IMAGE_WEAK_LINKED
 #if !defined(IMAGE_MATH_USE_V_IMAGE) || defined(IMAGE_MATH_USE_V_IMAGE_WEAK_LINKED)
         unsigned long y, x;
+        const uint8_t *pixel_src = (const uint8_t *)src;
+        uint8_t *pixel_dst = (uint8_t *)dst;
+        size_t src_bytes_extra_per_row = src_bytes_per_row - (width * 4);
+        size_t dst_bytes_extra_per_row = dst_bytes_per_row - (width * 4);
+
         for (y = 0; y < height; y++) {
             for (x = 0; x < width; x++) {
-                const uint8_t *pixel_src = ((uint8_t *)src) + (x * 4);
-                uint8_t *pixel_dst = ((uint8_t *)dst) + (x * 4);
                 
                 int32_t result[4];
                 int32_t source[4] = { pixel_src[0], pixel_src[1], pixel_src[2], pixel_src[3] };
@@ -133,9 +136,12 @@ void ImageMath_MatrixMultiply8888(const void *src,
                 pixel_dst[1] = CLAMP_UINT8(result[1]);
                 pixel_dst[2] = CLAMP_UINT8(result[2]);
                 pixel_dst[3] = CLAMP_UINT8(result[3]);
+
+                pixel_src += 4;
+                pixel_dst += 4;
             }
-            src = ((uint8_t *)src) + src_bytes_per_row;
-            dst = ((uint8_t *)dst) + dst_bytes_per_row;
+            pixel_src += src_bytes_extra_per_row;
+            pixel_dst += dst_bytes_extra_per_row;
         }
 #endif // !defined(IMAGE_MATH_USE_V_IMAGE) || defined(IMAGE_MATH_USE_V_IMAGE_WEAK_LINKED)
 #ifdef IMAGE_MATH_USE_V_IMAGE_WEAK_LINKED
@@ -178,17 +184,22 @@ void ImageMath_Permute8888(const void *src,
     {
 #endif // IMAGE_MATH_USE_V_IMAGE_WEAK_LINKED
 #if !defined(IMAGE_MATH_USE_V_IMAGE) || defined(IMAGE_MATH_USE_V_IMAGE_WEAK_LINKED)
-        for (unsigned long y = 0; y < height; y++) {
-            for (unsigned long x = 0; x < width; x++) {
-                const uint8_t *pixel_src = src + (x * 4);
-                uint8_t *pixel_dst = dst + (x * 4);
-                
-                for( int i = 0; i < 4; i++ ) {
+        unsigned long y, x;
+        int i;
+        const uint8_t *pixel_src = (const uint8_t *)src;
+        uint8_t *pixel_dst = (uint8_t *)dst;
+        size_t src_bytes_extra_per_row = src_bytes_per_row - (width * 4);
+        size_t dst_bytes_extra_per_row = dst_bytes_per_row - (width * 4);
+        for (y = 0; y < height; y++) {
+            for (x = 0; x < width; x++) {
+                for(i = 0; i < 4; i++ ) {
                     pixel_dst[i] = pixel_src[permuteMap[i]];
                 }
+                pixel_src += 4;
+                pixel_dst += 4;
             }
-            src += src_bytes_per_row;
-            dst += dst_bytes_per_row;
+            pixel_src += src_bytes_extra_per_row;
+            pixel_dst += dst_bytes_extra_per_row;
         }
 #endif // !defined(IMAGE_MATH_USE_V_IMAGE) || defined(IMAGE_MATH_USE_V_IMAGE_WEAK_LINKED)
 #ifdef IMAGE_MATH_USE_V_IMAGE_WEAK_LINKED
