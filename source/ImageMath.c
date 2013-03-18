@@ -142,3 +142,56 @@ void ImageMath_MatrixMultiply8888(const void *src,
     }
 #endif // IMAGE_MATH_USE_V_IMAGE_WEAK_LINKED
 }
+
+void ImageMath_Permute8888(const void *src,
+                           size_t src_bytes_per_row,
+                           void *dst,
+                           size_t dst_bytes_per_row,
+                           unsigned long width,
+                           unsigned long height,
+                           const uint8_t permuteMap[4])
+{
+#ifdef IMAGE_MATH_USE_V_IMAGE_WEAK_LINKED
+    if (vImagePermuteChannels_ARGB8888 != NULL)
+    {
+#endif // IMAGE_MATH_USE_V_IMAGE_WEAK_LINKED
+#ifdef IMAGE_MATH_USE_V_IMAGE
+        vImage_Buffer v_src = {
+            (void *)src,
+            height,
+            width,
+            src_bytes_per_row
+        };
+        
+        vImage_Buffer v_dst = {
+            dst,
+            height,
+            width,
+            dst_bytes_per_row
+        };
+        
+        vImagePermuteChannels_ARGB8888(&v_src, &v_dst, permuteMap, kvImageNoFlags);
+#endif // IMAGE_MATH_USE_V_IMAGE
+#ifdef IMAGE_MATH_USE_V_IMAGE_WEAK_LINKED
+    }
+    else
+    {
+#endif // IMAGE_MATH_USE_V_IMAGE_WEAK_LINKED
+#if !defined(IMAGE_MATH_USE_V_IMAGE) || defined(IMAGE_MATH_USE_V_IMAGE_WEAK_LINKED)
+        for (unsigned long y = 0; y < height; y++) {
+            for (unsigned long x = 0; x < width; x++) {
+                const uint8_t *pixel_src = src + (x * 4);
+                uint8_t *pixel_dst = dst + (x * 4);
+                
+                for( int i = 0; i < 4; i++ ) {
+                    pixel_dst[i] = pixel_src[permuteMap[i]];
+                }
+            }
+            src += src_bytes_per_row;
+            dst += dst_bytes_per_row;
+        }
+#endif // !defined(IMAGE_MATH_USE_V_IMAGE) || defined(IMAGE_MATH_USE_V_IMAGE_WEAK_LINKED)
+#ifdef IMAGE_MATH_USE_V_IMAGE_WEAK_LINKED
+    }
+#endif // IMAGE_MATH_USE_V_IMAGE_WEAK_LINKED
+}

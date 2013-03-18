@@ -41,7 +41,7 @@
 #include "Tasks.h"
 #include "Buffers.h"
 #include "DXTEncoder.h"
-#include <Accelerate/Accelerate.h>
+#include "ImageMath.h"
 
 /*
  Defines determining the method of DXT compression.
@@ -681,28 +681,14 @@ static void Background_Encode(void *info)
                 case k32RGBAPixelFormat:
                     if (sourcePixelFormat == k32BGRAPixelFormat)
                     {
-                        vImage_Buffer src = {
-                            sourceBaseAddress,
-                            glob->height,
-                            glob->width,
-                            sourceBytesPerRow
-                        };
-                        
-                        vImage_Buffer dst = {
-                            HapCodecBufferGetBaseAddress(formatConvertBuffer),
-                            glob->height,
-                            glob->width,
-                            glob->formatConvertBufferBytesPerRow
-                        };
-                        
                         uint8_t permuteMap[] = {2, 1, 0, 3};
-                        vImage_Error permuteError = vImagePermuteChannels_ARGB8888(&src, &dst, permuteMap, kvImageNoFlags);
-                        
-                        if (permuteError != kvImageNoError)
-                        {
-                            err = internalComponentErr;
-                            goto bail;
-                        }
+                        ImageMath_Permute8888(sourceBaseAddress,
+                                              sourceBytesPerRow,
+                                              HapCodecBufferGetBaseAddress(formatConvertBuffer),
+                                              glob->formatConvertBufferBytesPerRow,
+                                              glob->width,
+                                              glob->height,
+                                              permuteMap);
                     }
                     else
                     {

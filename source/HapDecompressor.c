@@ -64,7 +64,7 @@
 
 #ifdef HAP_SQUISH_DECODE
     #include "squish-c.h"
-    #include <Accelerate/Accelerate.h>
+    #include "ImageMath.h"
 #endif
 
 // Data structures
@@ -671,17 +671,14 @@ pascal ComponentResult Hap_DDrawBand(HapDecompressorGlobals glob, ImageSubCodecD
                 // TODO: avoid the permute stage
                 if (myDrp->needsPermute)
                 {
-                    vImage_Buffer srcV, dstV;
-                    srcV.data = HapCodecBufferGetBaseAddress(myDrp->permuteBuffer);
-                    srcV.width = myDrp->dxtWidth;
-                    srcV.height = myDrp->dxtHeight;
-                    srcV.rowBytes = myDrp->dxtWidth * 4;
-                    dstV.data = drp->baseAddr;
-                    dstV.width = myDrp->dxtWidth;
-                    dstV.height = myDrp->dxtHeight;
-                    dstV.rowBytes = drp->rowBytes;
                     uint8_t permuteMap[] = {2, 1, 0, 3};
-                    vImagePermuteChannels_ARGB8888(&srcV, &dstV, permuteMap, kvImageNoFlags);
+                    ImageMath_Permute8888(HapCodecBufferGetBaseAddress(myDrp->permuteBuffer),
+                                          myDrp->dxtWidth * 4,
+                                          drp->baseAddr,
+                                          drp->rowBytes,
+                                          myDrp->dxtWidth,
+                                          myDrp->dxtHeight,
+                                          permuteMap);
                 }
                 else
                 {
