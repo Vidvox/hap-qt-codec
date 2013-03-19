@@ -82,7 +82,6 @@ typedef struct {
     HapCodecBufferRef               finishedFrames;
     OSSpinLock                      lock;
     
-    Boolean                         endTasksPending;
     HapCodecBufferPoolRef           compressTaskPool;
     
     HapCodecDXTEncoderRef           dxtEncoder;
@@ -93,7 +92,7 @@ typedef struct {
     HapCodecBufferPoolRef           dxtBufferPool;
     
     unsigned int                    dxtFormat;
-    unsigned int                    taskGroup;
+    HapCodecTaskGroupRef            taskGroup;
     
 #ifdef DEBUG
     unsigned int                    debugFrameCount;
@@ -140,6 +139,7 @@ struct HapCodecCompressTask
 #include <ComponentDispatchHelper.c>
 #endif
 
+static void Background_Encode(void *info);
 static void releaseTaskFrames(HapCodecCompressTask *task);
 static ComponentResult finishFrame(HapCodecBufferRef buffer);
 static void queueEncodedFrame(HapCompressorGlobals glob, HapCodecBufferRef frame);
@@ -182,14 +182,13 @@ Hap_COpen(
     glob->lastFrameOut = 0;
     glob->finishedFrames = NULL;
     glob->lock = OS_SPINLOCK_INIT;
-    glob->endTasksPending = false;
     glob->compressTaskPool = NULL;
     glob->dxtEncoder = NULL;
     glob->formatConvertPool = NULL;
     glob->formatConvertBufferBytesPerRow = 0;
     glob->dxtBufferPool = NULL;
     glob->dxtFormat = 0;
-    glob->taskGroup = 0;
+    glob->taskGroup = NULL;
     
 bail:
     debug_print_err(glob, err);
@@ -247,10 +246,9 @@ Hap_CClose(
         HapCodecBufferPoolDestroy(glob->formatConvertPool);
         glob->formatConvertPool = NULL;
         
-        if (glob->endTasksPending)
-        {
-            HapCodecTasksWillStop();
-        }
+        HapCodecTasksWaitForGroupToComplete(glob->taskGroup);
+        HapCodecTasksDestroyGroup(glob->taskGroup);
+        glob->taskGroup = NULL;
         
         // We should never have queued frames when we are closed
         // but we check and properly release the memory if we do
@@ -571,10 +569,7 @@ Hap_CPrepareToCompressFrames(
         goto bail;
     }
     
-    HapCodecTasksWillStart();
-    glob->endTasksPending = true;
-    
-    glob->taskGroup = HapCodecTasksNewGroup();
+    glob->taskGroup = HapCodecTasksCreateGroup(Background_Encode, 20);
     
 #ifdef DEBUG    
     glob->debugStartTime = mach_absolute_time();
@@ -896,7 +891,7 @@ Hap_CEncodeFrame(
     task->encodedFrame = NULL;
     task->next = NULL;
     
-    HapCodecTasksAddTask(Background_Encode, glob->taskGroup, buffer);
+    HapCodecTasksAddTask(glob->taskGroup, buffer);
     
     // Dequeue and deliver any encoded frames
     do
