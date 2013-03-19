@@ -25,10 +25,11 @@
  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+typedef struct HapCodecTaskGroup * HapCodecTaskGroupRef;
+
 typedef void (*HapCodecTaskWorkFunction)(void *context);
 
-void HapCodecTasksWillStart(void);
-void HapCodecTasksWillStop(void);
-unsigned int HapCodecTasksNewGroup(void);
-void HapCodecTasksAddTask(HapCodecTaskWorkFunction task, unsigned int group, void *context);
-void HapCodecTasksWaitForGroupToComplete(unsigned int group);
+HapCodecTaskGroupRef HapCodecTasksCreateGroup(HapCodecTaskWorkFunction task, unsigned int maxTasks);
+void HapCodecTasksDestroyGroup(HapCodecTaskGroupRef group);
+void HapCodecTasksAddTask(HapCodecTaskGroupRef group, void *context);
+void HapCodecTasksWaitForGroupToComplete(HapCodecTaskGroupRef group);
