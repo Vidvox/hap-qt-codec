@@ -30,7 +30,12 @@
 #ifndef Pxlz_ImageMath_h
 #define Pxlz_ImageMath_h
 
+/*
+ Avoid a conflict with the QuickTime SDK and MSVC's non-standard stdint.h
+*/
+#if !defined(_STDINT) && !defined(_STDINT_H)
 #include <stdint.h>
+#endif
 #include <stddef.h>
 
 void ImageMath_MatrixMultiply8888(const void *src,

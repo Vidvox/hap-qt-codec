@@ -32,6 +32,7 @@
 #include <CoreFoundation/CoreFoundation.h>
 #elif defined(_WIN32)
 #include <CoreFoundation.h>
+#include <stdio.h>
 #endif
 
 #define kHapCodecSampleDescriptionExtension 'HAPe'
@@ -56,10 +57,16 @@ unsigned long dxtBytesForDimensions(int width, int height, OSType codecSubType);
 
 SInt16 resourceIDForComponentType(OSType componentType, OSType resourceType);
 
+#if defined(__APPLE__)
+#define HAP_UTILITY_FUNC __func__
+#else
+#define HAP_UTILITY_FUNC __FUNCTION__
+#endif
+
 #ifdef DEBUG
-#define debug_print_function_call(glob) fprintf(stdout, "%p %s\n", (glob), __func__)
-#define debug_print(glob, s) fprintf(stdout, "%p %s %s\n", (glob), __func__, s)
-#define debug_print_err(glob, e) if ((e) != noErr) fprintf(stdout, "%p %s error code %d\n", (glob), __func__, (int)(e))
+#define debug_print_function_call(glob) fprintf(stdout, "%p %s\n", (glob), HAP_UTILITY_FUNC)
+#define debug_print(glob, s) fprintf(stdout, "%p %s %s\n", (glob), HAP_UTILITY_FUNC, s)
+#define debug_print_err(glob, e) if ((e) != noErr) fprintf(stdout, "%p %s error code %d\n", (glob), HAP_UTILITY_FUNC, (int)(e))
 #else
 #define debug_print_function_call(glob)
 #define debug_print(glob, s)

@@ -28,7 +28,6 @@
 #if defined(__APPLE__)
 #include <QuickTime/QuickTime.h>
 #elif defined(_WIN32)
-//#include <QuickTime.h>
 #include <ConditionalMacros.h>
 #include <ImageCodec.h>
 #endif
