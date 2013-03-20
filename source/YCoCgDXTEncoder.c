@@ -28,6 +28,7 @@
 #include "YCoCgDXTEncoder.h"
 #include "YCoCgDXT.h"
 #include "PixelFormats.h"
+#include <stdlib.h>
 
 static void HapCodecYCoCgEncoderDestroy(HapCodecDXTEncoderRef encoder)
 {

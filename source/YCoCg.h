@@ -28,7 +28,12 @@
 #ifndef YCoCg_h
 #define YCoCg_h
 
+/*
+ Avoid a conflict with the QuickTime SDK and MSVC's non-standard stdint.h
+*/
+#if !defined(_STDINT) && !defined(_STDINT_H)
 #include <stdint.h>
+#endif
 #include <stddef.h>
 
 /*

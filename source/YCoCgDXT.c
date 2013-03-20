@@ -73,7 +73,6 @@
 #include "YCoCgDXT.h"
 #include <string.h>
 #include <stdlib.h>
-#include <stdbool.h>
 
 /* ALWAYS_INLINE */
 /* Derived from EAWebKit's AlwaysInline.h, losing some of its support for other compilers */
