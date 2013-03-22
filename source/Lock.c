@@ -37,6 +37,12 @@ HapCodecLock HapCodecLockInit()
     return (HapCodecLock)section;
 }
 
+void HapCodecLockDestroy(HapCodecLock *lock)
+{
+    DeleteCriticalSection((LPCRITICAL_SECTION)(*lock));
+    free(*lock);
+}
+
 void HapCodecLockLock(HapCodecLock *lock)
 {
     EnterCriticalSection((LPCRITICAL_SECTION)(*lock));

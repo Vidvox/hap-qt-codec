@@ -34,10 +34,12 @@
 #define HAP_CODEC_LOCK_INIT OS_SPINLOCK_INIT
 #define HapCodecLockLock(x) OSSpinLockLock(&x)
 #define HapCodecLockUnlock(x) OSSpinLockUnlock(&x)
+#define HapCodecLockDestroy(x)
 #else
 typedef void * HapCodecLock;
 #define HAP_CODEC_LOCK_INIT HapCodecLockInit()
 HapCodecLock HapCodecLockInit();
 void HapCodecLockLock(HapCodecLock *lock);
 void HapCodecLockUnlock(HapCodecLock *lock);
+void HapCodecLockDestroy(HapCodecLock *lock);
 #endif
