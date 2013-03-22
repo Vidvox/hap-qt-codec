@@ -109,7 +109,7 @@ struct HapCodecTaskGroup {
     void **                     sharedContexts;
 };
 
-static void HapCodecTasksWorkCallback(PTP_CALLBACK_INSTANCE instance, PVOID context, PTP_WORK work)
+static void NTAPI HapCodecTasksWorkCallback(PTP_CALLBACK_INSTANCE instance, PVOID context, PTP_WORK work)
 {
     struct HapCodecTaskGroup *group = (struct HapCodecTaskGroup *)context;
     if (group)
@@ -137,7 +137,7 @@ static void HapCodecTasksWorkCallback(PTP_CALLBACK_INSTANCE instance, PVOID cont
     }
 }
 
-static void HapCodecTasksCleanupCallback(PVOID ObjectContext, PVOID CleanupContext)
+static void NTAPI HapCodecTasksCleanupCallback(PVOID ObjectContext, PVOID CleanupContext)
 {
     // For now we have no cleanup to perform here
 }
