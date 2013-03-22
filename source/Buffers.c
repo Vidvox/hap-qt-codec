@@ -57,6 +57,7 @@ HapCodecBufferPoolRef HapCodecBufferPoolCreate(long size)
     HapCodecBufferPoolRef pool = (HapCodecBufferPoolRef)malloc(sizeof(HapCodecBufferPool));
     if (pool)
     {
+        pool->size = size;
 #if defined(__APPLE__)
         pool->queue.opaque1 = NULL; // OS_ATOMIC_QUEUE_INIT
         pool->queue.opaque2 = 0; // OS_ATOMIC_QUEUE_INIT
@@ -72,7 +73,6 @@ HapCodecBufferPoolRef HapCodecBufferPoolCreate(long size)
             InitializeSListHead(pool->queue);
         }
 #endif
-        pool->size = size;
     }
     return pool;
 }

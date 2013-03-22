@@ -33,7 +33,10 @@
 HapCodecLock HapCodecLockInit()
 {
     LPCRITICAL_SECTION section = (LPCRITICAL_SECTION)malloc(sizeof(CRITICAL_SECTION));
-    InitializeCriticalSection(section);
+    if (section)
+    {
+        InitializeCriticalSection(section);
+    }
     return (HapCodecLock)section;
 }
 
