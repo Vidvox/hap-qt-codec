@@ -32,8 +32,8 @@
 #if defined(__APPLE__)
 #define HapCodecLock OSSpinLock
 #define HAP_CODEC_LOCK_INIT OS_SPINLOCK_INIT
-#define HapCodecLockLock(x) OSSpinLockLock(&x)
-#define HapCodecLockUnlock(x) OSSpinLockUnlock(&x)
+#define HapCodecLockLock(x) OSSpinLockLock(x)
+#define HapCodecLockUnlock(x) OSSpinLockUnlock(x)
 #define HapCodecLockDestroy(x)
 #else
 typedef void * HapCodecLock;

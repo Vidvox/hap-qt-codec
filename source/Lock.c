@@ -26,9 +26,9 @@
  */
 
 #include "Lock.h"
-#include <Windows.h>
 
 #if defined(_WIN32)
+#include <Windows.h>
 
 HapCodecLock HapCodecLockInit()
 {
