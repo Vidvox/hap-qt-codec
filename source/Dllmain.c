@@ -27,11 +27,31 @@
 
 #include <Windows.h>
 
+/*
+    This is implemented in PixelFormats.c to register our custom pixel formats
+*/
+void HapCodecConstructor(void);
+
 static HINSTANCE ghInst = NULL;
 
 BOOL WINAPI DllMain(HANDLE hInst, ULONG ul_reason_for_call, LPVOID lpReserved)
 {
     ghInst = (HINSTANCE)hInst;
-    
+
+    switch(ul_reason_for_call) {
+		case DLL_PROCESS_ATTACH:
+            HapCodecConstructor();
+			break;
+
+		case DLL_THREAD_ATTACH:
+			break;
+
+		case DLL_THREAD_DETACH:
+			break;
+
+		case DLL_PROCESS_DETACH:
+			break;
+    }
+
     return TRUE;
 }

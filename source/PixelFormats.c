@@ -26,7 +26,15 @@
  */
 
 #include "PixelFormats.h"
+#if defined(__APPLE__)
 #include <QuickTime/QuickTime.h>
+#define HAP_BZERO(x,y) bzero((x),(y))
+#else
+#include <ConditionalMacros.h>
+#include <ImageCodec.h>
+#include <Windows.h>
+#define HAP_BZERO(x,y) ZeroMemory((x),(y))
+#endif
 #include "Utility.h"
 
 static void HapCodecRegisterDXTPixelFormat(OSType fmt, short bits_per_pixel, SInt32 open_gl_internal_format, Boolean has_alpha)
@@ -41,7 +49,7 @@ static void HapCodecRegisterDXTPixelFormat(OSType fmt, short bits_per_pixel, SIn
                                                             0,
                                                             &kCFTypeDictionaryKeyCallBacks,
                                                             &kCFTypeDictionaryValueCallBacks);
-    bzero(&pixelInfo, sizeof(pixelInfo));
+    HAP_BZERO(&pixelInfo, sizeof(pixelInfo));
     pixelInfo.size  = sizeof(ICMPixelFormatInfo);
     pixelInfo.formatFlags = (has_alpha ? kICMPixelFormatHasAlphaChannel : 0);
     pixelInfo.bitsPerPixel[0] = bits_per_pixel;
@@ -78,7 +86,7 @@ static void HapCodecRegisterYCoCgPixelFormat(void)
                                                             0,
                                                             &kCFTypeDictionaryKeyCallBacks,
                                                             &kCFTypeDictionaryValueCallBacks);
-    bzero(&pixelInfo, sizeof(pixelInfo));
+    HAP_BZERO(&pixelInfo, sizeof(pixelInfo));
     pixelInfo.size  = sizeof(ICMPixelFormatInfo);
     pixelInfo.formatFlags = 0;
     pixelInfo.bitsPerPixel[0] = 32;
@@ -98,7 +106,17 @@ static void HapCodecRegisterYCoCgPixelFormat(void)
     CFRelease(dict);
 }
 
+#if defined(WIN32)
+static void HapCodecRegisterPixelFormats(void);
+
+void HapCodecConstructor(void)
+{
+    HapCodecRegisterPixelFormats();
+}
+
+#else
 __attribute__((constructor))
+#endif
 static void HapCodecRegisterPixelFormats(void)
 {
     static Boolean registered = false;
