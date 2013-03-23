@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXFileReference section */
-		BD9464DF16175F57009B26E6 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = text; path = README.md; sourceTree = "<group>"; };
+		BD9464DF16175F57009B26E6 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = text; name = README.md; path = ../README.md; sourceTree = "<group>"; };
 		BDDAEA2B1615C5C700FEC70D /* snappy-c.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "snappy-c.h"; sourceTree = "<group>"; };
 		BDDAEA2C1615C5C700FEC70D /* snappy-sinksource.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "snappy-sinksource.h"; sourceTree = "<group>"; };
 		BDDAEA2D1615C5C700FEC70D /* snappy-stubs-public.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "snappy-stubs-public.h"; sourceTree = "<group>"; };
@@ -116,7 +116,8 @@
 				E2F2B924161338F800DDB379 /* snappy.h */,
 				E2F2B925161338F800DDB379 /* snappy_unittest.cc */,
 			);
-			path = "snappy-source";
+			name = "snappy-source";
+			path = "../snappy-source";
 			sourceTree = "<group>";
 		};
 		E2F2B911161338F800DDB379 /* m4 */ = {
