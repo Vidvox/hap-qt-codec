@@ -14,3 +14,10 @@ xcuserdata
 profile
 *.moved-aside
 .DS_Store
+# User-specific files
+*.suo
+*.user
+*.sln.docstates
+# Build results
+[Dd]ebug/
+[Rr]elease/
