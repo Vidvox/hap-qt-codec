@@ -212,6 +212,7 @@ Hap_CClose(
 #ifdef DEBUG
         if (glob->debugFrameCount)
         {
+            char buffer[255];
             uint64_t elapsed = glob->debugLastFrameTime - glob->debugStartTime;
             double time = (double)elapsed / CVGetHostClockFrequency();
             
@@ -219,20 +220,22 @@ Hap_CClose(
             
             if (glob->dxtFormat == HapTextureFormat_RGB_DXT1) uncompressed /= 2;
             uncompressed += 4U; // Hap uses 4 extra bytes
+
+            sprintf(buffer, "HAP CODEC: ");
             
-            printf("HAP CODEC: ");
             if (glob->dxtEncoder == NULL)
             {
-                printf("DXT frames in");
+                sprintf(buffer + strlen(buffer), "DXT frames in");
             }
             else if (glob->dxtEncoder->describe_function)
             {
-                printf("%s ", glob->dxtEncoder->describe_function(glob->dxtEncoder));
+                sprintf(buffer + strlen(buffer), "%s ", glob->dxtEncoder->describe_function(glob->dxtEncoder));
             }
-            printf("%u frames over %.1f seconds %.1f FPS. ", glob->debugFrameCount, time, glob->debugFrameCount / time);
-            printf("Largest frame bytes: %lu smallest: %lu average: %lu ",
+            sprintf(buffer + strlen(buffer), "%u frames over %.1f seconds %.1f FPS. ", glob->debugFrameCount, time, glob->debugFrameCount / time);
+            sprintf(buffer + strlen(buffer), "Largest frame bytes: %lu smallest: %lu average: %lu ",
                    glob->debugLargestFrameBytes, glob->debugSmallestFrameBytes, glob->debugTotalFrameBytes/ glob->debugFrameCount);
-            printf("uncompressed: %d\n", uncompressed);
+            sprintf(buffer + strlen(buffer), "uncompressed: %d\n", uncompressed);
+            debug_print(glob, buffer);
         }
 #endif
         HapCodecBufferPoolDestroy(glob->dxtBufferPool);

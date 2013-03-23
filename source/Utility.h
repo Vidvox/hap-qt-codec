@@ -59,9 +59,17 @@ unsigned long dxtBytesForDimensions(int width, int height, OSType codecSubType);
 SInt16 resourceIDForComponentType(OSType componentType, OSType resourceType);
 
 #ifdef DEBUG
+#if defined(_WIN32)
+#define debug_print_function_call(glob) debug_print((glob), NULL)
+#define debug_print(glob, s) debug_print_s((glob), HAP_FUNC, (s))
+#define debug_print_err(glob, e) { if ((e) != noErr) debug_print_i(glob, HAP_FUNC, (e)); }
+void debug_print_s(void *glob, const char *func, const char *s);
+void debug_print_i(void *glob, const char *func, int e);
+#else
 #define debug_print_function_call(glob) fprintf(stdout, "%p %s\n", (glob), HAP_FUNC)
 #define debug_print(glob, s) fprintf(stdout, "%p %s %s\n", (glob), HAP_FUNC, s)
 #define debug_print_err(glob, e) if ((e) != noErr) fprintf(stdout, "%p %s error code %d\n", (glob), HAP_FUNC, (int)(e))
+#endif
 #else
 #define debug_print_function_call(glob)
 #define debug_print(glob, s)
