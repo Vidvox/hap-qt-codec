@@ -28,34 +28,104 @@
 #include "SquishDecoder.h"
 #include <stdint.h>
 #include <string.h>
+#include <intrin.h>
+#include <tmmintrin.h>
 #include "squish-c.h"
 
 /*
-    This is only used by the Windows codec
+    This file only used by the Windows codec
 */
+
+static int HapCodecSquishHasSSE3(void)
+{
+    int info[4];
+    int hasSSE2, hasSSE3;
+
+    __cpuid(info,0x00000001);
+    hasSSE2  = (info[3] & ((int)1 << 26)) != 0;
+    hasSSE3  = (info[2] & ((int)1 <<  0)) != 0;
+    return (hasSSE2 && hasSSE3);
+}
+
+static __forceinline void HapCodecSquishWriteBlockRGBA(uint8_t *block, uint8_t *dst, unsigned int dst_bytes_per_row)
+{
+    int py;
+    for (py = 0; py < 4; py++)
+    {
+        memcpy(dst, block, 16);
+        dst += dst_bytes_per_row;
+        block += 16;
+    }
+}
+
+static __forceinline void HapCodecSquishWriteBlockBGRAScalar(uint8_t *block, uint8_t *dst, unsigned int dst_bytes_per_row)
+{
+    int y, x;
+    for (y = 0; y < 4; y++)
+    {
+        for (x = 0; x < 4; x++)
+        {
+            dst[0] = block[2];
+            dst[1] = block[1];
+            dst[2] = block[0];
+            dst[3] = block[3];
+            dst += 4;
+            block += 4;
+        }
+        dst += dst_bytes_per_row - 16;
+    }
+}
+
+static __forceinline void HapCodecSquishWriteBlockBGRASSE3(uint8_t *block, uint8_t *dst, unsigned int dst_bytes_per_row)
+{
+    int y;
+    __m128i a;
+    const __m128i mask = _mm_set_epi8(0x0F, 0x0C, 0x0D, 0x0E, 0x0B, 0x08, 0x09, 0x0A, 0x07, 0x04, 0x05, 0x06, 0x03, 0x00, 0x01, 0x02);
+
+    for (y = 0; y < 4; y++)
+    {
+        a = _mm_load_si128((__m128i *)block);
+        _mm_store_si128((__m128i *)dst, _mm_shuffle_epi8(a, mask));
+        dst += dst_bytes_per_row;
+        block += 16;
+    }
+}
 
 void HapCodecSquishDecode(const void *src,
                           unsigned int src_pixel_format,
                           void *dst,
+                          unsigned int dst_pixel_format,
                           unsigned int dst_bytes_per_row,
                           unsigned int width,
                           unsigned int height)
 {
-    unsigned int y,x, py;
+    unsigned int y,x;
     int bytes_per_block = (src_pixel_format == kHapCVPixelFormat_RGB_DXT1 ? 8 : 16);
     uint8_t *src_block = (uint8_t *)src;
     int flags = (src_pixel_format == kHapCVPixelFormat_RGB_DXT1 ? kDxt1 : kDxt5);
+    int hasSSE3 = 0;
+    if (dst_pixel_format != 'RGBA')
+    {
+        hasSSE3 = HapCodecSquishHasSSE3();
+    }
     for (y = 0; y < height; y+= 4)
     {
         for (x = 0; x < width; x += 4)
         {
-            uint8_t block_rgba[16*4];
-            uint8_t *dst_row = ((uint8_t *)dst) + (dst_bytes_per_row * y) + (4 * x);
+            __declspec(align(16)) uint8_t block_rgba[16*4];
+            uint8_t *dst_base = ((uint8_t *)dst) + (dst_bytes_per_row * y) + (4 * x);
             SquishDecompress(block_rgba, src_block, flags);
-            for (py = 0; py < 4; py++)
+            if (dst_pixel_format == 'RGBA')
             {
-                memcpy(dst_row, &block_rgba[py * 16], 16);
-                dst_row += dst_bytes_per_row;
+                HapCodecSquishWriteBlockRGBA(block_rgba, dst_base, dst_bytes_per_row);
+            }
+            else if (hasSSE3)
+            {
+                HapCodecSquishWriteBlockBGRASSE3(block_rgba, dst_base, dst_bytes_per_row);
+            }
+            else
+            {
+                HapCodecSquishWriteBlockBGRAScalar(block_rgba, dst_base, dst_bytes_per_row);
             }
             src_block += bytes_per_block;
         }

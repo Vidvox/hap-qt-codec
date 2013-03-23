@@ -30,6 +30,7 @@
 void HapCodecSquishDecode(const void *src,
                           unsigned int src_pixel_format,
                           void *dst,
+                          unsigned int dst_pixel_format,
                           unsigned int dst_bytes_per_row,
                           unsigned int width,
                           unsigned int height);

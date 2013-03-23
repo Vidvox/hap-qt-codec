@@ -88,9 +88,6 @@ typedef struct	{
 #ifdef HAP_GPU_DECODE
     HapCodecGLRef               glDecoder;
 #endif
-#ifdef HAP_SQUISH_DECODE
-    HapCodecBufferPoolRef       permuteBufferPool;
-#endif
 } HapDecompressorGlobalsRecord, *HapDecompressorGlobals;
 
 typedef struct {
@@ -104,10 +101,6 @@ typedef struct {
 	Boolean                     decoded;
     HapCodecBufferRef           dxtBuffer;
     HapCodecBufferRef           convertBuffer; // used for YCoCg -> RGB
-#ifdef HAP_SQUISH_DECODE
-    HapCodecBufferRef           permuteBuffer; // used to re-order RGB
-    Boolean                     needsPermute;
-#endif
 } HapDecompressRecord;
 
 // Setup required for ComponentDispatchHelper.c
@@ -177,13 +170,9 @@ pascal ComponentResult Hap_DOpen(HapDecompressorGlobals glob, ComponentInstance 
     glob->type = componentDescription.componentSubType;
 	glob->dxtBufferPool = NULL;
     glob->convertBufferPool = NULL;
-    
+
 #ifdef HAP_GPU_DECODE
     glob->glDecoder = NULL;
-#endif
-    
-#ifdef HAP_SQUISH_DECODE
-    glob->permuteBufferPool = NULL;
 #endif
     
 	// Open and target an instance of the base decompressor as we delegate
@@ -219,12 +208,9 @@ pascal ComponentResult Hap_DClose(HapDecompressorGlobals glob, ComponentInstance
             HapCodecGLDestroy(glob->glDecoder);
         }
 #endif
-        
+
         HapCodecBufferPoolDestroy(glob->convertBufferPool);
         
-#ifdef HAP_SQUISH_DECODE
-        HapCodecBufferPoolDestroy(glob->permuteBufferPool);
-#endif
 		DisposeHandle( glob->wantedDestinationPixelTypes );
 		glob->wantedDestinationPixelTypes = NULL;
 		
@@ -482,33 +468,7 @@ pascal ComponentResult Hap_DBeginBand(HapDecompressorGlobals glob, CodecDecompre
 #endif
     }
 #endif
-
-#ifdef HAP_SQUISH_DECODE
-#ifdef HAP_GPU_DECODE
-    if (glob->glDecoder == NULL)
-    {
-#endif
-        if (isDXTPixelFormat(myDrp->destFormat) || (myDrp->destFormat == k32RGBAPixelFormat && myDrp->texFormat != HapTextureFormat_YCoCg_DXT5))
-        {
-            myDrp->needsPermute = false;
-        }
-        else
-        {
-            myDrp->needsPermute = true;
-        }
-        if (myDrp->needsPermute)
-        {
-            if (glob->permuteBufferPool == NULL || glob->dxtWidth * glob->dxtHeight * 4 != HapCodecBufferPoolGetBufferSize(glob->permuteBufferPool))
-            {
-                HapCodecBufferPoolDestroy(glob->permuteBufferPool);
-                glob->permuteBufferPool = HapCodecBufferPoolCreate(glob->dxtWidth * glob->dxtHeight * 4);
-            }
-            myDrp->permuteBuffer = HapCodecBufferCreate(glob->permuteBufferPool);
-        }
-#ifdef HAP_GPU_DECODE
-    }
-#endif
-#endif
+    
     // Classify the frame so that the base codec can do the right thing.
 	// It is very important to do this so that the base codec will know
 	// which frames it can drop if we're in danger of falling behind.
@@ -552,45 +512,6 @@ pascal ComponentResult Hap_DDecodeBand(HapDecompressorGlobals glob HAP_ATTR_UNUS
             // decoder if we add code to convert scaled YCoCg -> RGB
             DeCompressYCoCgDXT5((const byte *)HapCodecBufferGetBaseAddress(myDrp->dxtBuffer), (byte *)HapCodecBufferGetBaseAddress(myDrp->convertBuffer), myDrp->width, myDrp->height, myDrp->dxtWidth * 4);
         }
-        
-#ifdef HAP_SQUISH_DECODE
-        else
-        {
-#ifdef HAP_GPU_DECODE
-        // For GPU decoding we do it all in draw-band for now
-        // may be an optimisation to start texture upload now, finish in draw-band
-            if (glob->glDecoder == NULL)
-            {
-#endif
-                if (myDrp->needsPermute && myDrp->texFormat != HapTextureFormat_YCoCg_DXT5)
-                {
-                    int decompressFormat = 0;
-                    switch (myDrp->texFormat)
-                    {
-                        case HapTextureFormat_RGB_DXT1:
-                            decompressFormat = kHapCVPixelFormat_RGB_DXT1;
-                            break;
-                        case HapTextureFormat_RGBA_DXT5:
-                            decompressFormat = kHapCVPixelFormat_RGBA_DXT5;
-                            break;
-                        default:
-                            err = internalComponentErr;
-                            break;
-                    }
-                    if (err)
-                        goto bail;
-                    HapCodecSquishDecode(HapCodecBufferGetBaseAddress(myDrp->dxtBuffer),
-                        decompressFormat,
-                        HapCodecBufferGetBaseAddress(myDrp->permuteBuffer),
-                        glob->dxtWidth * 4,
-                        glob->width,
-                        glob->height);
-                }
-#ifdef HAP_GPU_DECODE
-            }
-#endif
-        }
-#endif // HAP_SQUISH_DECODE
     }
         
 	myDrp->decoded = true;
@@ -672,42 +593,28 @@ pascal ComponentResult Hap_DDrawBand(HapDecompressorGlobals glob, ImageSubCodecD
             else
             {
 #endif
-                // TODO: avoid the permute stage
-                if (myDrp->needsPermute)
+                int decompressFormat = 0;
+                switch (myDrp->texFormat)
                 {
-                    uint8_t permuteMap[] = {2, 1, 0, 3};
-                    ImageMath_Permute8888(HapCodecBufferGetBaseAddress(myDrp->permuteBuffer),
-                                          myDrp->dxtWidth * 4,
-                                          drp->baseAddr,
-                                          drp->rowBytes,
-                                          myDrp->dxtWidth,
-                                          myDrp->dxtHeight,
-                                          permuteMap);
+                case HapTextureFormat_RGB_DXT1:
+                    decompressFormat = kHapCVPixelFormat_RGB_DXT1;
+                    break;
+                case HapTextureFormat_RGBA_DXT5:
+                    decompressFormat = kHapCVPixelFormat_RGBA_DXT5;
+                    break;
+                default:
+                    err = internalComponentErr;
+                    break;
                 }
-                else
-                {
-                    int decompressFormat = 0;
-                    switch (myDrp->texFormat)
-                    {
-                        case HapTextureFormat_RGB_DXT1:
-                            decompressFormat = kHapCVPixelFormat_RGB_DXT1;
-                            break;
-                        case HapTextureFormat_RGBA_DXT5:
-                            decompressFormat = kHapCVPixelFormat_RGBA_DXT5;
-                            break;
-                        default:
-                            err = internalComponentErr;
-                            break;
-                    }
-                    if (err)
-                        goto bail;
-                    HapCodecSquishDecode(HapCodecBufferGetBaseAddress(myDrp->dxtBuffer),
-                        decompressFormat,
-                        drp->baseAddr,
-                        drp->rowBytes,
-                        glob->width,
-                        glob->height);
-                }
+                if (err)
+                    goto bail;
+                HapCodecSquishDecode(HapCodecBufferGetBaseAddress(myDrp->dxtBuffer),
+                    decompressFormat,
+                    drp->baseAddr,
+                    myDrp->destFormat,
+                    drp->rowBytes,
+                    glob->width,
+                    glob->height);
 #ifdef HAP_GPU_DECODE
             }
 #endif
@@ -735,12 +642,6 @@ pascal ComponentResult Hap_DEndBand(HapDecompressorGlobals glob HAP_ATTR_UNUSED,
     myDrp->dxtBuffer = NULL;
     HapCodecBufferReturn(myDrp->convertBuffer);
     myDrp->convertBuffer = NULL;
-#ifdef HAP_SQUISH_DECODE
-    if (myDrp->needsPermute)
-    {
-        HapCodecBufferReturn(myDrp->permuteBuffer);
-    }
-#endif
 	return noErr;
 }
 
