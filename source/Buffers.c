@@ -88,10 +88,11 @@ static HapCodecBufferRef HapCodecBufferPoolTryCopyBuffer(HapCodecBufferPoolRef p
 
 static void HapCodecBufferDestroy(HapCodecBufferRef buffer)
 {
-    if (buffer->buffer) free(buffer->buffer);
 #if defined(__APPLE__)
+    if (buffer->buffer) free(buffer->buffer);
     free(buffer);
 #elif defined(_WIN32)
+    if (buffer->buffer) _aligned_free(buffer->buffer);
     _aligned_free(buffer);
 #endif
 }
@@ -144,8 +145,10 @@ HapCodecBufferRef HapCodecBufferCreate(HapCodecBufferPoolRef pool)
             {
 #if defined(__APPLE__)
                 buffer->next = NULL;
-#endif
                 buffer->buffer = malloc(pool->size);
+#else
+                buffer->buffer = (HapCodecBufferRef)_aligned_malloc(pool->size, 16);
+#endif
                 buffer->pool = pool;
                 if (buffer->buffer == NULL)
                 {
