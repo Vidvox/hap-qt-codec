@@ -151,7 +151,7 @@ namespace snappy {
   // Note that there might be older data around that is compressed with larger
   // block sizes, so the decompression code should not rely on the
   // non-existence of long backreferences.
-  static const int kBlockLog = 16;
+  static const int kBlockLog = 15;
   static const size_t kBlockSize = 1 << kBlockLog;
 
   static const int kMaxHashTableBits = 14;
