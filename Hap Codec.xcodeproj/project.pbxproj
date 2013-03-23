@@ -139,6 +139,8 @@
 		BDF48B1914377D0500E7EAB8 /* HapCodecGL.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; lineEnding = 0; path = HapCodecGL.c; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.c; };
 		BDF48B1C14377E0E00E7EAB8 /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = System/Library/Frameworks/OpenGL.framework; sourceTree = SDKROOT; };
 		BDFA8A331368E60100F959A4 /* Accelerate.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Accelerate.framework; path = System/Library/Frameworks/Accelerate.framework; sourceTree = SDKROOT; };
+		E20D395316FCDF3F001725BF /* HapPlatform.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = HapPlatform.h; sourceTree = "<group>"; };
+		E20D395516FCDF3F001725BF /* Lock.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Lock.h; sourceTree = "<group>"; };
 		E2210D2715CAE914009DD434 /* YCoCg.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; lineEnding = 0; path = YCoCg.c; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.c; };
 		E2210D2815CAE914009DD434 /* YCoCg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = YCoCg.h; sourceTree = "<group>"; };
 		E2210D2915CAE914009DD434 /* YCoCgDXT.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = YCoCgDXT.c; sourceTree = "<group>"; };
@@ -234,6 +236,8 @@
 				FBFA8C8D0829E75000560632 /* HapCompressorDispatch.h */,
 				FBFA8C8E0829E75000560632 /* HapDecompressor.c */,
 				FBFA8C8F0829E75000560632 /* HapDecompressorDispatch.h */,
+				E20D395316FCDF3F001725BF /* HapPlatform.h */,
+				E20D395516FCDF3F001725BF /* Lock.h */,
 				BDF1AF051376DD7C00C0F4D1 /* Buffers.h */,
 				BDF1AF041376DD7C00C0F4D1 /* Buffers.c */,
 				E2C99CA913789AC60077AC75 /* Tasks.h */,
