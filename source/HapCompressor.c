@@ -212,7 +212,7 @@ Hap_CClose(
 #ifdef DEBUG
         if (glob->debugFrameCount)
         {
-            char buffer[255];
+            char stringBuffer[255];
             uint64_t elapsed = glob->debugLastFrameTime - glob->debugStartTime;
             double time = (double)elapsed / CVGetHostClockFrequency();
             
@@ -221,21 +221,21 @@ Hap_CClose(
             if (glob->dxtFormat == HapTextureFormat_RGB_DXT1) uncompressed /= 2;
             uncompressed += 4U; // Hap uses 4 extra bytes
 
-            sprintf(buffer, "HAP CODEC: ");
+            sprintf(stringBuffer, "HAP CODEC: ");
             
             if (glob->dxtEncoder == NULL)
             {
-                sprintf(buffer + strlen(buffer), "DXT frames in");
+                sprintf(stringBuffer + strlen(stringBuffer), "DXT frames in");
             }
             else if (glob->dxtEncoder->describe_function)
             {
-                sprintf(buffer + strlen(buffer), "%s ", glob->dxtEncoder->describe_function(glob->dxtEncoder));
+                sprintf(stringBuffer + strlen(stringBuffer), "%s ", glob->dxtEncoder->describe_function(glob->dxtEncoder));
             }
-            sprintf(buffer + strlen(buffer), "%u frames over %.1f seconds %.1f FPS. ", glob->debugFrameCount, time, glob->debugFrameCount / time);
-            sprintf(buffer + strlen(buffer), "Largest frame bytes: %lu smallest: %lu average: %lu ",
+            sprintf(stringBuffer + strlen(stringBuffer), "%u frames over %.1f seconds %.1f FPS. ", glob->debugFrameCount, time, glob->debugFrameCount / time);
+            sprintf(stringBuffer + strlen(stringBuffer), "Largest frame bytes: %lu smallest: %lu average: %lu ",
                    glob->debugLargestFrameBytes, glob->debugSmallestFrameBytes, glob->debugTotalFrameBytes/ glob->debugFrameCount);
-            sprintf(buffer + strlen(buffer), "uncompressed: %d\n", uncompressed);
-            debug_print(glob, buffer);
+            sprintf(stringBuffer + strlen(stringBuffer), "uncompressed: %d\n", uncompressed);
+            debug_print(glob, stringBuffer);
         }
 #endif
         HapCodecBufferPoolDestroy(glob->dxtBufferPool);
