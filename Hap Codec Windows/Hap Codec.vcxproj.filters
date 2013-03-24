@@ -1,0 +1,157 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Hap">
+      <UniqueIdentifier>{c1dae47e-cddb-4d91-ada8-136b7261fc69}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="DXT">
+      <UniqueIdentifier>{81005f32-e0c6-41f1-ba27-31f08422cf35}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Pixel Format Conversions">
+      <UniqueIdentifier>{368ef2ec-dd10-4420-a7cb-ae81eeef3ad7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Components">
+      <UniqueIdentifier>{f8cab5f2-ee40-4f67-8b7c-e1ba149c5214}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Basics">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\source\Buffers.c">
+      <Filter>Basics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\Utility.c">
+      <Filter>Basics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\ImageMath.c">
+      <Filter>Pixel Format Conversions</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\YCoCg.c">
+      <Filter>Pixel Format Conversions</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\Tasks.c">
+      <Filter>Basics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\Lock.c">
+      <Filter>Basics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\YCoCgDXTEncoder.c">
+      <Filter>DXT</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\hap\hap.c">
+      <Filter>Hap</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\SquishEncoder.c">
+      <Filter>DXT</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\squish-c.cpp">
+      <Filter>DXT</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\SquishDecoder.c">
+      <Filter>DXT</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\PixelFormats.c">
+      <Filter>Pixel Format Conversions</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\HapCompressor.c">
+      <Filter>Components</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\HapDecompressor.c">
+      <Filter>Components</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\Dllmain.c">
+      <Filter>Components</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\YCoCgDXT.cpp">
+      <Filter>DXT</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\source\HapResCommon.h">
+      <Filter>Resource Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\Buffers.h">
+      <Filter>Basics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\Utility.h">
+      <Filter>Basics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\DXTEncoder.h">
+      <Filter>DXT</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\ImageMath.h">
+      <Filter>Pixel Format Conversions</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\YCoCg.h">
+      <Filter>Pixel Format Conversions</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\Tasks.h">
+      <Filter>Basics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\Lock.h">
+      <Filter>Basics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\YCoCgDXT.h">
+      <Filter>DXT</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\YCoCgDXTEncoder.h">
+      <Filter>DXT</Filter>
+    </ClInclude>
+    <ClInclude Include="..\external\hap\hap.h">
+      <Filter>Hap</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\SquishEncoder.h">
+      <Filter>DXT</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\squish-c.h">
+      <Filter>DXT</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\SquishDecoder.h">
+      <Filter>DXT</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\PixelFormats.h">
+      <Filter>Pixel Format Conversions</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\HapPlatform.h">
+      <Filter>Basics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\HapCodecSubTypes.h">
+      <Filter>Components</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\HapCodecVersion.h">
+      <Filter>Components</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\HapCompressorDispatch.h">
+      <Filter>Components</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\HapDecompressorDispatch.h">
+      <Filter>Components</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\source\HapAlphaComponent.r">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\source\HapComponent.r">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\source\HapResCommon.r">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\source\HapYCoCgComponent.r">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\source\HapResWindows.r">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\source\HapComponent.def">
+      <Filter>Components</Filter>
+    </None>
+  </ItemGroup>
+</Project>
