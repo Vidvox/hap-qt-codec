@@ -188,8 +188,7 @@
 			);
 			inputPaths = (
 				"$(SRCROOT)/build-snappy.sh",
-				"$(SRCROOT)/snappy-source",
-				"$(SRCROOT)/snappy.patch",
+				"$(SRCROOT)/../snappy-source",
 			);
 			outputPaths = (
 				"$(BUILT_PRODUCTS_DIR)/libsnappy.1.dylib",
