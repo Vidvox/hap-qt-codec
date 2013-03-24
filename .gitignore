@@ -19,6 +19,7 @@ profile
 *.user
 *.sln.docstates
 *.sdf
+*.opensdf
 # Build results
 [Dd]ebug/
 [Rr]elease/
