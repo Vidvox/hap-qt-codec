@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXFileReference section */
-		BD9464DA16175CEA009B26E6 /* README */ = {isa = PBXFileReference; lastKnownFileType = text; path = README; sourceTree = "<group>"; };
+		BD9464DA16175CEA009B26E6 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = text; path = README.md; sourceTree = "<group>"; };
 		BDDAEB19161690F000FEC70D /* alpha.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = alpha.cpp; sourceTree = "<group>"; };
 		BDDAEB1A161690F000FEC70D /* alpha.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = alpha.h; sourceTree = "<group>"; };
 		BDDAEB1B161690F000FEC70D /* ChangeLog */ = {isa = PBXFileReference; lastKnownFileType = text; path = ChangeLog; sourceTree = "<group>"; };
@@ -55,7 +55,6 @@
 		BDDAEB6C161690F000FEC70D /* squishpng.vcproj */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = squishpng.vcproj; sourceTree = "<group>"; };
 		BDDAEB6E161690F000FEC70D /* squishtest.vcproj */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = squishtest.vcproj; sourceTree = "<group>"; };
 		BDDAEB721616913900FEC70D /* build-squish.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = "build-squish.sh"; sourceTree = "<group>"; };
-		BDDAEB731616917E00FEC70D /* squish.patch */ = {isa = PBXFileReference; lastKnownFileType = text; path = squish.patch; sourceTree = "<group>"; };
 		BDE9DE1A16169E7D008DC368 /* squish.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = squish.h; sourceTree = "<group>"; };
 		BDF4CC5F1616941B0062DDC2 /* libsquish.0.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = libsquish.0.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -64,9 +63,8 @@
 		BDDAEABF16168C8600FEC70D = {
 			isa = PBXGroup;
 			children = (
-				BD9464DA16175CEA009B26E6 /* README */,
+				BD9464DA16175CEA009B26E6 /* README.md */,
 				BDDAEB721616913900FEC70D /* build-squish.sh */,
-				BDDAEB731616917E00FEC70D /* squish.patch */,
 				BDDAEB18161690F000FEC70D /* squish-source */,
 				BDDAEACB16168C8600FEC70D /* Products */,
 				BDE9DE1816169E7D008DC368 /* Products (Headers) */,
@@ -300,7 +298,6 @@
 			inputPaths = (
 				"$(SRCROOT)/build-squish.sh",
 				"$(SRCROOT)/squish-source",
-				"$(SRCROOT)/squish.patch",
 			);
 			outputPaths = (
 				"$(BUILT_PRODUCTS_DIR)/libsquish.0.dylib",

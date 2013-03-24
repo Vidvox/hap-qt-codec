@@ -15,8 +15,8 @@ ifeq ($(HOSTTYPE),intel-pc) # intel-pc = macos x
 endif
 
 ifeq ($(USE_SHARED),1)
-   SOLIB = libsquish.so.$(SOVER)
-   LIB = $(SOLIB).0
+   SOLIB = libsquish.$(SOVER).dylib
+   LIB = $(SOLIB)
    CPPFLAGS += -fPIC
 else
    LIB = libsquish.a
@@ -34,7 +34,7 @@ uninstall:
 
 $(LIB): $(OBJ)
 ifeq ($(USE_SHARED),1)
-	$(CXX) -shared -Wl,-soname,$(SOLIB) -o $@ $(OBJ)
+	$(CXX) -dynamiclib -Wl,-install_name,@rpath/$(SOLIB) -o $@ $(OBJ)
 else
 	$(AR) cr $@ $?
 	ranlib $@
