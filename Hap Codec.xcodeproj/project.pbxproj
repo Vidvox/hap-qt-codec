@@ -42,11 +42,11 @@
 		E215F3ED16FE1C600048B13B /* libsnappy.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = E215F3EC16FE1C3A0048B13B /* libsnappy.1.dylib */; };
 		E215F3EE16FE1C690048B13B /* libsnappy.1.dylib in CopyFiles */ = {isa = PBXBuildFile; fileRef = E215F3EC16FE1C3A0048B13B /* libsnappy.1.dylib */; };
 		E2210D2B15CAE914009DD434 /* YCoCg.c in Sources */ = {isa = PBXBuildFile; fileRef = E2210D2715CAE914009DD434 /* YCoCg.c */; };
-		E2210D2C15CAE914009DD434 /* YCoCgDXT.c in Sources */ = {isa = PBXBuildFile; fileRef = E2210D2915CAE914009DD434 /* YCoCgDXT.c */; };
 		E2210D3B15CAF913009DD434 /* ImageMath.c in Sources */ = {isa = PBXBuildFile; fileRef = E2210D3915CAF913009DD434 /* ImageMath.c */; };
 		E22D0FEC169E13C6001C21D9 /* HapAlphaComponent.r in Rez */ = {isa = PBXBuildFile; fileRef = E22D0FEB169E13C6001C21D9 /* HapAlphaComponent.r */; };
 		E28C1FAB143B598500F2CD73 /* Utility.c in Sources */ = {isa = PBXBuildFile; fileRef = E28C1FAA143B598500F2CD73 /* Utility.c */; };
 		E2C99CAA13789AC60077AC75 /* Tasks.c in Sources */ = {isa = PBXBuildFile; fileRef = E2C99CA813789AC60077AC75 /* Tasks.c */; };
+		E2ECC4CC16FE86830016167B /* YCoCgDXT.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E2ECC4CB16FE86830016167B /* YCoCgDXT.cpp */; };
 		FBFA8C990829E75000560632 /* HapCompressor.c in Sources */ = {isa = PBXBuildFile; fileRef = FBFA8C8C0829E75000560632 /* HapCompressor.c */; };
 		FBFA8C9A0829E75000560632 /* HapDecompressor.c in Sources */ = {isa = PBXBuildFile; fileRef = FBFA8C8E0829E75000560632 /* HapDecompressor.c */; };
 		FBFA8DED0829E7CF00560632 /* CoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FBFA8DEA0829E7CF00560632 /* CoreServices.framework */; };
@@ -143,7 +143,6 @@
 		E20D395516FCDF3F001725BF /* Lock.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Lock.h; sourceTree = "<group>"; };
 		E2210D2715CAE914009DD434 /* YCoCg.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; lineEnding = 0; path = YCoCg.c; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.c; };
 		E2210D2815CAE914009DD434 /* YCoCg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = YCoCg.h; sourceTree = "<group>"; };
-		E2210D2915CAE914009DD434 /* YCoCgDXT.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = YCoCgDXT.c; sourceTree = "<group>"; };
 		E2210D2A15CAE914009DD434 /* YCoCgDXT.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = YCoCgDXT.h; sourceTree = "<group>"; };
 		E2210D3915CAF913009DD434 /* ImageMath.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; lineEnding = 0; path = ImageMath.c; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.c; };
 		E2210D3A15CAF913009DD434 /* ImageMath.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = ImageMath.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
@@ -151,6 +150,7 @@
 		E28C1FAA143B598500F2CD73 /* Utility.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = Utility.c; sourceTree = "<group>"; };
 		E2C99CA813789AC60077AC75 /* Tasks.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = Tasks.c; sourceTree = "<group>"; };
 		E2C99CA913789AC60077AC75 /* Tasks.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Tasks.h; sourceTree = "<group>"; };
+		E2ECC4CB16FE86830016167B /* YCoCgDXT.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = YCoCgDXT.cpp; sourceTree = "<group>"; };
 		E2F8FE91143B5A8F00683004 /* Utility.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Utility.h; sourceTree = "<group>"; };
 		FBFA8C8B0829E75000560632 /* HapCodecVersion.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = HapCodecVersion.h; sourceTree = "<group>"; };
 		FBFA8C8C0829E75000560632 /* HapCompressor.c */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.c; path = HapCompressor.c; sourceTree = "<group>"; };
@@ -291,7 +291,7 @@
 				BDDA19CB1619A5B90068EBB3 /* GLDXTEncoder.h */,
 				BDDA19CC1619A5C90068EBB3 /* GLDXTEncoder.c */,
 				E2210D2A15CAE914009DD434 /* YCoCgDXT.h */,
-				E2210D2915CAE914009DD434 /* YCoCgDXT.c */,
+				E2ECC4CB16FE86830016167B /* YCoCgDXT.cpp */,
 				BD94BB62143357530064D679 /* HapCodecGL.h */,
 				BDF48B1914377D0500E7EAB8 /* HapCodecGL.c */,
 				BD833762136760CD0074367F /* squish */,
@@ -457,13 +457,13 @@
 				BDF48B1A14377D0500E7EAB8 /* HapCodecGL.c in Sources */,
 				E28C1FAB143B598500F2CD73 /* Utility.c in Sources */,
 				E2210D2B15CAE914009DD434 /* YCoCg.c in Sources */,
-				E2210D2C15CAE914009DD434 /* YCoCgDXT.c in Sources */,
 				E2210D3B15CAF913009DD434 /* ImageMath.c in Sources */,
 				BDDAEA8416160F7500FEC70D /* hap.c in Sources */,
 				BDDA19C616190E190068EBB3 /* YCoCgDXTEncoder.c in Sources */,
 				BDDA19CA161927080068EBB3 /* SquishEncoder.c in Sources */,
 				BDDA19CD1619A5C90068EBB3 /* GLDXTEncoder.c in Sources */,
 				BD9B51FD16D592490063B129 /* PixelFormats.c in Sources */,
+				E2ECC4CC16FE86830016167B /* YCoCgDXT.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
