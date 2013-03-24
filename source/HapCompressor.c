@@ -46,7 +46,9 @@
 #include "Buffers.h"
 #include "DXTEncoder.h"
 #include "ImageMath.h"
-
+#if defined(DEBUG)
+#include <string.h>
+#endif
 /*
  On Apple we support GL encoding using the GPU.
  The GPU is very fast but produces low quality results
