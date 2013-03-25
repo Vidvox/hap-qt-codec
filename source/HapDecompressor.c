@@ -69,7 +69,6 @@
 
 #ifdef HAP_SQUISH_DECODE
     #include "SquishDecoder.h"
-    #include "ImageMath.h"
 #endif
 
 // Data structures
@@ -568,11 +567,11 @@ pascal ComponentResult Hap_DDrawBand(HapDecompressorGlobals glob, ImageSubCodecD
         {
             if (myDrp->destFormat == k32RGBAPixelFormat)
             {
-                ConvertCoCg_Y8888ToRGB_((uint8_t *)HapCodecBufferGetBaseAddress(myDrp->convertBuffer), (uint8_t *)drp->baseAddr, myDrp->width, myDrp->height, myDrp->dxtWidth * 4, drp->rowBytes);
+                ConvertCoCg_Y8888ToRGB_((uint8_t *)HapCodecBufferGetBaseAddress(myDrp->convertBuffer), (uint8_t *)drp->baseAddr, myDrp->width, myDrp->height, myDrp->dxtWidth * 4, drp->rowBytes, 1);
             }
             else
             {
-                ConvertCoCg_Y8888ToBGR_((uint8_t *)HapCodecBufferGetBaseAddress(myDrp->convertBuffer), (uint8_t *)drp->baseAddr, myDrp->width, myDrp->height, myDrp->dxtWidth * 4, drp->rowBytes);
+                ConvertCoCg_Y8888ToBGR_((uint8_t *)HapCodecBufferGetBaseAddress(myDrp->convertBuffer), (uint8_t *)drp->baseAddr, myDrp->width, myDrp->height, myDrp->dxtWidth * 4, drp->rowBytes, 1);
             }
         }
         else

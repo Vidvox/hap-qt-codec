@@ -649,6 +649,7 @@ static void Background_Encode(void *info)
                 goto bail;
             }
             
+            // for all these we pass 0 as last argument so we don't tile, we are already multithreaded
             switch (wantedPixelFormat)
             {
                 case kHapCVPixelFormat_CoCgXY:
@@ -659,7 +660,8 @@ static void Background_Encode(void *info)
                                                 glob->width,
                                                 glob->height,
                                                 sourceBytesPerRow,
-                                                glob->formatConvertBufferBytesPerRow);
+                                                glob->formatConvertBufferBytesPerRow,
+                                                0);
                     }
                     else
                     {
@@ -668,7 +670,8 @@ static void Background_Encode(void *info)
                                                 glob->width,
                                                 glob->height,
                                                 sourceBytesPerRow,
-                                                glob->formatConvertBufferBytesPerRow);
+                                                glob->formatConvertBufferBytesPerRow,
+                                                0);
                     }
                     break;
                 case k32RGBAPixelFormat:
@@ -681,7 +684,8 @@ static void Background_Encode(void *info)
                                               glob->formatConvertBufferBytesPerRow,
                                               glob->width,
                                               glob->height,
-                                              permuteMap);
+                                              permuteMap,
+                                              0);
                     }
                     else
                     {
