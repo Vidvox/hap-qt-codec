@@ -1,5 +1,5 @@
 /*
- HapPlatform.h
+ DXTBlocksSSSE3.c
  Hap Codec
  
  Copyright (c) 2012-2013, Tom Butterworth and Vidvox LLC. All rights reserved.
@@ -25,26 +25,20 @@
  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#if defined(__APPLE__)
-    #include <Availability.h>
-    #define HAP_ATTR_UNUSED __attribute((unused))
-    #define HAP_FUNC __func__
-    #define HAP_ALIGN_16 __attribute__ ((aligned (16)))
-    #if !defined(DEBUG)
-        #define HAP_INLINE inline __attribute__((__always_inline__))
-    #else
-        #define HAP_INLINE inline
-    #endif
-    #if defined(MAC_OS_X_VERSION_MIN_REQUIRED) && MAC_OS_X_VERSION_MIN_REQUIRED >= 1070
-        #define HAP_SSSE3_ALWAYS_AVAILABLE
-    #endif
-#else
-    #define HAP_ATTR_UNUSED
-    #define HAP_FUNC __FUNCTION__
-    #define HAP_ALIGN_16 __declspec(align(16))
-    #if defined(NDEBUG)
-        #define HAP_INLINE __forceinline
-    #else
-        #define HAP_INLINE inline
-    #endif
-#endif
+#include "HapPlatform.h"
+#include <tmmintrin.h>
+
+void HapCodecDXTReadBlockBGRASSSE3(uint8_t *copy_src, uint8_t *copy_dst, unsigned int src_bytes_per_row)
+{
+    int y;
+    __m128i a;
+    const __m128i mask = _mm_set_epi8(0x0F, 0x0C, 0x0D, 0x0E, 0x0B, 0x08, 0x09, 0x0A, 0x07, 0x04, 0x05, 0x06, 0x03, 0x00, 0x01, 0x02);
+    
+    for (y = 0; y < 4; y++)
+    {
+        a = _mm_load_si128((__m128i *)copy_src);
+        _mm_store_si128((__m128i *)copy_dst, _mm_shuffle_epi8(a, mask));
+        copy_src += src_bytes_per_row;
+        copy_dst += 16;
+    }
+}

@@ -24,6 +24,8 @@
 /* Begin PBXBuildFile section */
 		8D01CCCA0486CAD60068D4B7 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 089C167DFE841241C02AAC07 /* InfoPlist.strings */; };
 		8D01CCCE0486CAD60068D4B7 /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 08EA7FFBFE8413EDC02AAC07 /* Carbon.framework */; };
+		BD48EA6A1700A3B8004EC248 /* DXTBlocks.c in Sources */ = {isa = PBXBuildFile; fileRef = BD48EA691700A3B8004EC248 /* DXTBlocks.c */; };
+		BD48EA6C1700A3CD004EC248 /* DXTBlocksSSSE3.c in Sources */ = {isa = PBXBuildFile; fileRef = BD48EA6B1700A3CD004EC248 /* DXTBlocksSSSE3.c */; settings = {COMPILER_FLAGS = "-mssse3"; }; };
 		BD4C0D33169D955B00CA6AAE /* HapResCommon.r in Rez */ = {isa = PBXBuildFile; fileRef = BD4C0D32169D955B00CA6AAE /* HapResCommon.r */; };
 		BD833765136760EA0074367F /* squish-c.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BD833763136760EA0074367F /* squish-c.cpp */; };
 		BD9464B916171F43009B26E6 /* libsquish.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = BDE9DE0A16169D82008DC368 /* libsquish.0.dylib */; };
@@ -113,6 +115,9 @@
 		32BAE0B30371A71500C91783 /* Hap_Codec_Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Hap_Codec_Prefix.pch; sourceTree = "<group>"; };
 		8D01CCD10486CAD60068D4B7 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		8D01CCD20486CAD60068D4B7 /* Hap.component */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = Hap.component; sourceTree = BUILT_PRODUCTS_DIR; };
+		BD48EA691700A3B8004EC248 /* DXTBlocks.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = DXTBlocks.c; sourceTree = "<group>"; };
+		BD48EA6B1700A3CD004EC248 /* DXTBlocksSSSE3.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = DXTBlocksSSSE3.c; sourceTree = "<group>"; };
+		BD48EA6D1700A3DE004EC248 /* DXTBlocks.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DXTBlocks.h; sourceTree = "<group>"; };
 		BD4C0D32169D955B00CA6AAE /* HapResCommon.r */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.rez; path = HapResCommon.r; sourceTree = "<group>"; };
 		BD4C0D44169DCF5800CA6AAE /* HapCodecSubTypes.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = HapCodecSubTypes.h; sourceTree = "<group>"; };
 		BD51229816495811005F135B /* ExportedSymbols.exp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.exports; path = ExportedSymbols.exp; sourceTree = "<group>"; };
@@ -288,6 +293,9 @@
 				BDDA19C516190E190068EBB3 /* YCoCgDXTEncoder.c */,
 				BDDA19C8161926FD0068EBB3 /* SquishEncoder.h */,
 				BDDA19C9161927080068EBB3 /* SquishEncoder.c */,
+				BD48EA6D1700A3DE004EC248 /* DXTBlocks.h */,
+				BD48EA691700A3B8004EC248 /* DXTBlocks.c */,
+				BD48EA6B1700A3CD004EC248 /* DXTBlocksSSSE3.c */,
 				BDDA19CB1619A5B90068EBB3 /* GLDXTEncoder.h */,
 				BDDA19CC1619A5C90068EBB3 /* GLDXTEncoder.c */,
 				E2210D2A15CAE914009DD434 /* YCoCgDXT.h */,
@@ -464,6 +472,8 @@
 				BDDA19CD1619A5C90068EBB3 /* GLDXTEncoder.c in Sources */,
 				BD9B51FD16D592490063B129 /* PixelFormats.c in Sources */,
 				E2ECC4CC16FE86830016167B /* YCoCgDXT.cpp in Sources */,
+				BD48EA6A1700A3B8004EC248 /* DXTBlocks.c in Sources */,
+				BD48EA6C1700A3CD004EC248 /* DXTBlocksSSSE3.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

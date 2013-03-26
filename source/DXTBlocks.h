@@ -1,5 +1,5 @@
 /*
- HapPlatform.h
+ DXTBlocks.h
  Hap Codec
  
  Copyright (c) 2012-2013, Tom Butterworth and Vidvox LLC. All rights reserved.
@@ -25,26 +25,18 @@
  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#if defined(__APPLE__)
-    #include <Availability.h>
-    #define HAP_ATTR_UNUSED __attribute((unused))
-    #define HAP_FUNC __func__
-    #define HAP_ALIGN_16 __attribute__ ((aligned (16)))
-    #if !defined(DEBUG)
-        #define HAP_INLINE inline __attribute__((__always_inline__))
-    #else
-        #define HAP_INLINE inline
-    #endif
-    #if defined(MAC_OS_X_VERSION_MIN_REQUIRED) && MAC_OS_X_VERSION_MIN_REQUIRED >= 1070
-        #define HAP_SSSE3_ALWAYS_AVAILABLE
-    #endif
-#else
-    #define HAP_ATTR_UNUSED
-    #define HAP_FUNC __FUNCTION__
-    #define HAP_ALIGN_16 __declspec(align(16))
-    #if defined(NDEBUG)
-        #define HAP_INLINE __forceinline
-    #else
-        #define HAP_INLINE inline
-    #endif
+#ifndef Hap_Codec_DXTBlocks_h
+#define Hap_Codec_DXTBlocks_h
+
+#include "HapPlatform.h"
+
+void HapCodecDXTReadBlockRGBA(uint8_t *copy_src, uint8_t *copy_dst, unsigned int src_bytes_per_row);
+
+#if !defined(HAP_SSSE3_ALWAYS_AVAILABLE)
+int HapCodecHasSSSE3(void);
+void HapCodecDXTReadBlockBGRAScalar(uint8_t *copy_src, uint8_t *copy_dst, unsigned int src_bytes_per_row);
+#endif
+
+void HapCodecDXTReadBlockBGRASSSE3(uint8_t *copy_src, uint8_t *copy_dst, unsigned int src_bytes_per_row);
+
 #endif

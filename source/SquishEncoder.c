@@ -28,6 +28,7 @@
 #include "SquishEncoder.h"
 #include "PixelFormats.h"
 #include "HapPlatform.h"
+#include "DXTBlocks.h"
 #include "squish-c.h"
 #include "Buffers.h"
 #include <stdlib.h>
@@ -52,6 +53,22 @@ struct HapCodecSquishEncoder {
 #endif
 };
 
+static HAP_INLINE void HapCodecSquishCopyPixelRGBA(uint8_t *copy_src, uint8_t *copy_dst)
+{
+    int i;
+    for(i = 0; i < 4; ++i)
+        *copy_dst++ = *copy_src++;
+}
+
+static HAP_INLINE void HapCodecSquishCopyPixelBGRA(uint8_t *copy_src, uint8_t *copy_dst)
+{
+    
+    copy_dst[0] = copy_src[2];
+    copy_dst[1] = copy_src[1];
+    copy_dst[2] = copy_src[0];
+    copy_dst[3] = copy_src[3];
+}
+
 static void HapCodecSquishEncoderDestroy(HapCodecDXTEncoderRef encoder)
 {
     if (encoder)
@@ -73,9 +90,12 @@ static int HapCodecSquishEncoderEncode(HapCodecDXTEncoderRef encoder HAP_ATTR_UN
 	uint8_t* dst_block = (uint8_t *)dst;
 	int bytes_per_block = ( ( ((struct HapCodecSquishEncoder *)encoder)->flags & kDxt1 ) != 0 ) ? 8 : 16;
     unsigned int y, x, py, px;
-    int i, j;
-
-	if (src_pixel_format != 'RGBA') return 1;
+    
+#if !defined(HAP_SSSE3_ALWAYS_AVAILABLE)
+    int hasSSSE3 = HapCodecHasSSSE3();
+#endif
+    
+    if (src_pixel_format != 'RGBA' && src_pixel_format != 'BGRA') return 1;
 
 	for( y = 0; y < height; y += 4 )
 	{
@@ -86,7 +106,7 @@ static int HapCodecSquishEncoderEncode(HapCodecDXTEncoderRef encoder HAP_ATTR_UN
             int remaining_width = width - x;
             
 			// Pack the 4x4 pixel block
-			uint8_t block_rgba[16*4];
+			HAP_ALIGN_16 uint8_t block_rgba[16*4];
             int mask;
             
             uint8_t *copy_src = (uint8_t *)src + (y * src_bytes_per_row) + (x * 4);
@@ -106,8 +126,9 @@ static int HapCodecSquishEncoderEncode(HapCodecDXTEncoderRef encoder HAP_ATTR_UN
 
                         if( sx < width && sy < height )
                         {
-                            for( i = 0; i < 4; ++i )
-                                *copy_dst++ = *copy_src++;
+                            if (src_pixel_format == 'BGRA') HapCodecSquishCopyPixelBGRA(copy_src, copy_dst);
+                            else HapCodecSquishCopyPixelRGBA(copy_src, copy_dst);
+                            
                             mask |= ( 1 << ( 4*py + px ) );
                         }
                         else
@@ -121,11 +142,19 @@ static int HapCodecSquishEncoderEncode(HapCodecDXTEncoderRef encoder HAP_ATTR_UN
             else
             {
                 // If all the pixels are in the frame, we can copy them in 4 x 4
-                for (j = 0; j < 4; j++) {
-                    memcpy(copy_dst, copy_src, 4 * 4);
-                    copy_src += src_bytes_per_row;
-                    copy_dst += 4 * 4;
+                if (src_pixel_format == 'BGRA')
+                {
+                    
+#if defined(HAP_SSSE3_ALWAYS_AVAILABLE)
+                    HapCodecSquishCopyBlockBGRASSSE3(copy_src, copy_dst, src_bytes_per_row);
+#else
+                    if (hasSSSE3) HapCodecDXTReadBlockBGRASSSE3(copy_src, copy_dst, src_bytes_per_row);
+                    else HapCodecDXTReadBlockBGRAScalar(copy_src, copy_dst, src_bytes_per_row);
+#endif
+                    
                 }
+                else HapCodecDXTReadBlockRGBA(copy_src, copy_dst, src_bytes_per_row);
+                
                 mask = 0xFFFF;
             }
 			
@@ -138,9 +167,15 @@ static int HapCodecSquishEncoderEncode(HapCodecDXTEncoderRef encoder HAP_ATTR_UN
     return 0;
 }
 
-static OSType HapCodecSquishEncoderWantedPixelFormat(HapCodecDXTEncoderRef encoder HAP_ATTR_UNUSED, OSType sourceFormat HAP_ATTR_UNUSED)
+static OSType HapCodecSquishEncoderWantedPixelFormat(HapCodecDXTEncoderRef encoder HAP_ATTR_UNUSED, OSType sourceFormat)
 {
-    return 'RGBA';
+    switch (sourceFormat) {
+        case 'RGBA':
+        case 'BGRA':
+            return sourceFormat;
+        default:
+            return 'RGBA';
+    }
 }
 
 #if defined(DEBUG)
