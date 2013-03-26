@@ -71,6 +71,12 @@
     <ClCompile Include="..\source\YCoCgDXT.cpp">
       <Filter>DXT</Filter>
     </ClCompile>
+    <ClCompile Include="..\source\DXTBlocks.c">
+      <Filter>DXT</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\DXTBlocksSSSE3.c">
+      <Filter>DXT</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\source\HapResCommon.h">
@@ -132,6 +138,9 @@
     </ClInclude>
     <ClInclude Include="..\source\HapDecompressorDispatch.h">
       <Filter>Components</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\DXTBlocks.h">
+      <Filter>DXT</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

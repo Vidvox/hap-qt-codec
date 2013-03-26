@@ -25,7 +25,7 @@
  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "HapPlatform.h"
+#include "DXTBlocks.h"
 #include <tmmintrin.h>
 
 void HapCodecDXTReadBlockBGRASSSE3(uint8_t *copy_src, uint8_t *copy_dst, unsigned int src_bytes_per_row)

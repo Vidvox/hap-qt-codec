@@ -26,9 +26,10 @@
  */
 
 #include "SquishDecoder.h"
+#include "HapPlatform.h"
+#include "DXTBlocks.h"
 #include <stdint.h>
 #include <string.h>
-#include <intrin.h>
 #include <tmmintrin.h>
 #include "squish-c.h"
 
@@ -36,18 +37,7 @@
     This file only used by the Windows codec
 */
 
-static int HapCodecSquishHasSSE3(void)
-{
-    int info[4];
-    int hasSSE2, hasSSE3;
-
-    __cpuid(info,0x00000001);
-    hasSSE2  = (info[3] & ((int)1 << 26)) != 0;
-    hasSSE3  = (info[2] & ((int)1 <<  0)) != 0;
-    return (hasSSE2 && hasSSE3);
-}
-
-static __forceinline void HapCodecSquishWriteBlockRGBA(uint8_t *block, uint8_t *dst, unsigned int dst_bytes_per_row)
+static HAP_INLINE void HapCodecSquishWriteBlockRGBA(uint8_t *block, uint8_t *dst, unsigned int dst_bytes_per_row)
 {
     int py;
     for (py = 0; py < 4; py++)
@@ -58,7 +48,7 @@ static __forceinline void HapCodecSquishWriteBlockRGBA(uint8_t *block, uint8_t *
     }
 }
 
-static __forceinline void HapCodecSquishWriteBlockBGRAScalar(uint8_t *block, uint8_t *dst, unsigned int dst_bytes_per_row)
+static HAP_INLINE void HapCodecSquishWriteBlockBGRAScalar(uint8_t *block, uint8_t *dst, unsigned int dst_bytes_per_row)
 {
     int y, x;
     for (y = 0; y < 4; y++)
@@ -76,7 +66,7 @@ static __forceinline void HapCodecSquishWriteBlockBGRAScalar(uint8_t *block, uin
     }
 }
 
-static __forceinline void HapCodecSquishWriteBlockBGRASSE3(uint8_t *block, uint8_t *dst, unsigned int dst_bytes_per_row)
+static HAP_INLINE void HapCodecSquishWriteBlockBGRASSE3(uint8_t *block, uint8_t *dst, unsigned int dst_bytes_per_row)
 {
     int y;
     __m128i a;
@@ -103,23 +93,23 @@ void HapCodecSquishDecode(const void *src,
     int bytes_per_block = (src_pixel_format == kHapCVPixelFormat_RGB_DXT1 ? 8 : 16);
     uint8_t *src_block = (uint8_t *)src;
     int flags = (src_pixel_format == kHapCVPixelFormat_RGB_DXT1 ? kDxt1 : kDxt5);
-    int hasSSE3 = 0;
+    int hasSSSE3 = 0;
     if (dst_pixel_format != 'RGBA')
     {
-        hasSSE3 = HapCodecSquishHasSSE3();
+        hasSSSE3 = HapCodecHasSSSE3();
     }
     for (y = 0; y < height; y+= 4)
     {
         for (x = 0; x < width; x += 4)
         {
-            __declspec(align(16)) uint8_t block_rgba[16*4];
+            HAP_ALIGN_16 uint8_t block_rgba[16*4];
             uint8_t *dst_base = ((uint8_t *)dst) + (dst_bytes_per_row * y) + (4 * x);
             SquishDecompress(block_rgba, src_block, flags);
             if (dst_pixel_format == 'RGBA')
             {
                 HapCodecSquishWriteBlockRGBA(block_rgba, dst_base, dst_bytes_per_row);
             }
-            else if (hasSSE3)
+            else if (hasSSSE3)
             {
                 HapCodecSquishWriteBlockBGRASSE3(block_rgba, dst_base, dst_bytes_per_row);
             }

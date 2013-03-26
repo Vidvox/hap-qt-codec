@@ -29,6 +29,7 @@
 #define Hap_Codec_DXTBlocks_h
 
 #include "HapPlatform.h"
+#include <stdint.h>
 
 void HapCodecDXTReadBlockRGBA(uint8_t *copy_src, uint8_t *copy_dst, unsigned int src_bytes_per_row);
 

@@ -33,7 +33,6 @@
 #include "Buffers.h"
 #include <stdlib.h>
 #include <stdint.h>
-#include <string.h>
 #if defined(DEBUG)
 #include <stdio.h>
 #endif

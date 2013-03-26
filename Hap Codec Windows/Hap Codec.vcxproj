@@ -116,6 +116,8 @@ attrib -R "$(TargetDir)$(TargetName).qtx"
     <ClCompile Include="..\external\hap\hap.c" />
     <ClCompile Include="..\source\Buffers.c" />
     <ClCompile Include="..\source\Dllmain.c" />
+    <ClCompile Include="..\source\DXTBlocks.c" />
+    <ClCompile Include="..\source\DXTBlocksSSSE3.c" />
     <ClCompile Include="..\source\HapCompressor.c" />
     <ClCompile Include="..\source\HapDecompressor.c" />
     <ClCompile Include="..\source\ImageMath.c" />
@@ -138,6 +140,7 @@ attrib -R "$(TargetDir)$(TargetName).qtx"
   <ItemGroup>
     <ClInclude Include="..\external\hap\hap.h" />
     <ClInclude Include="..\source\Buffers.h" />
+    <ClInclude Include="..\source\DXTBlocks.h" />
     <ClInclude Include="..\source\DXTEncoder.h" />
     <ClInclude Include="..\source\HapCodecSubTypes.h" />
     <ClInclude Include="..\source\HapCodecVersion.h" />

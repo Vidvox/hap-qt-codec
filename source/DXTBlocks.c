@@ -25,7 +25,8 @@
  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "HapPlatform.h"
+#include "DXTBlocks.h"
+#include <string.h>
 
 void HapCodecDXTReadBlockRGBA(uint8_t *copy_src, uint8_t *copy_dst, unsigned int src_bytes_per_row)
 {
@@ -40,7 +41,7 @@ void HapCodecDXTReadBlockRGBA(uint8_t *copy_src, uint8_t *copy_dst, unsigned int
 #if !defined(HAP_SSSE3_ALWAYS_AVAILABLE)
 
 #if defined(_WIN32)
-
+#include <immintrin.h>
 #define hap_cpuid(i,t)    __cpuid((i),(t))
 
 #else
