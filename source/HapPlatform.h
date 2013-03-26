@@ -44,7 +44,9 @@
     #define HAP_ALIGN_16 __declspec(align(16))
     #if defined(NDEBUG)
         #define HAP_INLINE __forceinline
-    #else
+    #elif defined(__cplusplus)
         #define HAP_INLINE inline
+    #else
+        #define HAP_INLINE __inline
     #endif
 #endif
