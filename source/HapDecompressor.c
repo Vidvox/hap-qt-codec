@@ -343,8 +343,15 @@ pascal ComponentResult Hap_DPreflight(HapDecompressorGlobals glob, CodecDecompre
     // Although ExampleIPBCodec creates extended pixels as the difference between the dimensions in the image description
     // and the desired buffer dimensions, code using a home-made GWorld gets stuck because it appears to interpret the
     // extended dimensions as relative to the GWorld, not the image description
-    capabilities->extendWidth = widthRoundedUp - p->dstPixMap.bounds.right;
-    capabilities->extendHeight = heightRoundedUp - p->dstPixMap.bounds.bottom;
+    if (p->dstPixMap.bounds.right == widthRoundedUp)
+        capabilities->extendWidth = 0;
+    else
+        capabilities->extendWidth = (short)(widthRoundedUp - glob->width);
+
+    if (p->dstPixMap.bounds.bottom == heightRoundedUp)
+        capabilities->extendHeight = 0;
+    else
+        capabilities->extendHeight = (short)(heightRoundedUp - glob->height);
 
     glob->dxtWidth = widthRoundedUp;
     glob->dxtHeight = heightRoundedUp;
