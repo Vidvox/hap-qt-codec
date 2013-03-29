@@ -57,12 +57,12 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;WINVER=0x0600;_WIN32_WINNT=0x0600;_DEBUG;DEBUG;_WINDOWS;_USRDLL;HAPCODEC_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>C:\Users\Tom\Documents\hap-qt-codec\external\hap;C:\Users\Tom\Documents\hap-qt-codec\external\squish\squish-source;C:\Users\Tom\Documents\hap-qt-codec\external\snappy\snappy-source;C:\Program Files %28x86%29\QuickTime SDK\ComponentIncludes;C:\Program Files %28x86%29\QuickTime SDK\CIncludes;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\external\hap;$(SolutionDir)..\external\squish\squish-source;$(SolutionDir)..\external\snappy\snappy-source;$(PROGRAMFILES)\QuickTime SDK\ComponentIncludes;$(PROGRAMFILES)\QuickTime SDK\CIncludes;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>C:\Program Files %28x86%29\QuickTime SDK\Libraries;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(PROGRAMFILES)\QuickTime SDK\Libraries;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>qtmlclient.lib;cvclient.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreSpecificDefaultLibraries>libcmt.lib;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
       <ModuleDefinitionFile>$(SolutionDir)..\source\HapComponent.def</ModuleDefinitionFile>
@@ -88,14 +88,14 @@ attrib -R "$(TargetDir)$(TargetName).qtx"
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;WINVER=0x0600;_WIN32_WINNT=0x0600;NDEBUG;_WINDOWS;_USRDLL;HAPCODEC_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>C:\Users\Tom\Documents\hap-qt-codec\external\hap;C:\Users\Tom\Documents\hap-qt-codec\external\squish\squish-source;C:\Users\Tom\Documents\hap-qt-codec\external\snappy\snappy-source;C:\Program Files %28x86%29\QuickTime SDK\ComponentIncludes;C:\Program Files %28x86%29\QuickTime SDK\CIncludes;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\external\hap;$(SolutionDir)..\external\squish\squish-source;$(SolutionDir)..\external\snappy\snappy-source;$(PROGRAMFILES)\QuickTime SDK\ComponentIncludes;$(PROGRAMFILES)\QuickTime SDK\CIncludes;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>C:\Program Files %28x86%29\QuickTime SDK\Libraries;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(PROGRAMFILES)\QuickTime SDK\Libraries;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>qtmlclient.lib;cvclient.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreSpecificDefaultLibraries>libcmt.lib;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
       <ModuleDefinitionFile>$(SolutionDir)..\source\HapComponent.def</ModuleDefinitionFile>
