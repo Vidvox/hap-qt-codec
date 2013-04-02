@@ -56,7 +56,7 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;WINVER=0x0600;_WIN32_WINNT=0x0600;_DEBUG;DEBUG;_WINDOWS;_USRDLL;HAPCODEC_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;WINVER=0x0600;_WIN32_WINNT=0x0600;WIN32_LEAN_AND_MEAN;_DEBUG;DEBUG;_WINDOWS;_USRDLL;HAPCODEC_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(SolutionDir)..\external\hap;$(SolutionDir)..\external\squish\squish-source;$(SolutionDir)..\external\snappy\snappy-source;$(PROGRAMFILES)\QuickTime SDK\ComponentIncludes;$(PROGRAMFILES)\QuickTime SDK\CIncludes;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
@@ -87,7 +87,7 @@ attrib -R "$(TargetDir)$(TargetName).qtx"
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;WINVER=0x0600;_WIN32_WINNT=0x0600;NDEBUG;_WINDOWS;_USRDLL;HAPCODEC_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;WINVER=0x0600;_WIN32_WINNT=0x0600;WIN32_LEAN_AND_MEAN;NDEBUG;_WINDOWS;_USRDLL;HAPCODEC_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(SolutionDir)..\external\hap;$(SolutionDir)..\external\squish\squish-source;$(SolutionDir)..\external\snappy\snappy-source;$(PROGRAMFILES)\QuickTime SDK\ComponentIncludes;$(PROGRAMFILES)\QuickTime SDK\CIncludes;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>

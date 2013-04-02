@@ -94,6 +94,7 @@ void HapCodecTasksDestroyGroup(HapCodecTaskGroupRef group)
 #else
 
 #include <Windows.h>
+#include <malloc.h>
 
 struct HapCodecTaskGroup {
     HapCodecTaskWorkFunction    task;
