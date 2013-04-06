@@ -120,15 +120,15 @@ static void NTAPI HapCodecTasksWorkCallback(PTP_CALLBACK_INSTANCE instance, PVOI
 
         EnterCriticalSection(&(group->sharedCritical));
 
-        for (i = 0; i < group->maxTasks; i++)
+        // Get the first item from the queue
+        userContext = group->sharedContexts[0];
+
+        // Move queue items down so we behave as a FIFO queue
+        for (i = 0; i < group->maxTasks - 1; i++)
         {
-            if (group->sharedContexts[i] != NULL)
-            {
-                userContext = group->sharedContexts[i];
-                group->sharedContexts[i] = NULL;
-                break;
-            }
+            group->sharedContexts[i] = group->sharedContexts[i+1];
         }
+        group->sharedContexts[group->maxTasks - 1] = NULL;
 
         LeaveCriticalSection(&(group->sharedCritical));
 
