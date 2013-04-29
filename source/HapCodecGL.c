@@ -26,6 +26,7 @@
  */
 
 #include "HapCodecGL.h"
+#include "Utility.h"
 #include <OpenGL/OpenGL.h>
 #include <OpenGL/CGLMacro.h>
 #include <stdbool.h>
@@ -33,7 +34,6 @@
 #include <stdlib.h>
 
 static bool openGLFormatAndTypeForFormat(HapCodecGLPixelFormat pixel_format, GLenum *format_out, GLenum *type_out) __attribute__((nonnull(2,3)));
-static int roundUpToMultipleOf4( int n );
 static bool openGLSupportsExtension(CGLContextObj cgl_ctx, const char *extension) __attribute__((nonnull(1,2)));
 
 enum HapCodecGLCoderMode {
@@ -49,14 +49,6 @@ struct HapCodecGL {
     GLuint          height;
     GLenum          format;
 };
-
-// Utility to round up to a multiple of 4.
-static int roundUpToMultipleOf4( int n )
-{
-	if( 0 != ( n & 3 ) )
-		n = ( n + 3 ) & ~3;
-	return n;
-}
 
 static bool openGLSupportsExtension(CGLContextObj cgl_ctx, const char *extension)
 
