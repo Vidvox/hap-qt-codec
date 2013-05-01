@@ -234,16 +234,6 @@ void HapCodecGLDestroy(HapCodecGLRef coder)
     free(coder);
 }
 
-unsigned int HapCodecGLGetWidth(HapCodecGLRef coder)
-{
-    return coder->width;
-}
-
-unsigned int HapCodecGLGetHeight(HapCodecGLRef coder)
-{
-    return coder->height;
-}
-
 unsigned int HapCodecGLGetCompressedFormat(HapCodecGLRef coder)
 {
     return coder->format;
