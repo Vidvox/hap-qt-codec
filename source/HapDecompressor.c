@@ -586,11 +586,16 @@ pascal ComponentResult Hap_DDrawBand(HapDecompressorGlobals glob, ImageSubCodecD
 #ifdef HAP_GPU_DECODE
             if (glob->glDecoder != NULL)
             {
-                HapCodecGLDecode(glob->glDecoder,
-                                 drp->rowBytes,
-                                 (myDrp->destFormat == k32RGBAPixelFormat ? HapCodecGLPixelFormat_RGBA8 : HapCodecGLPixelFormat_BGRA8),
-                                 HapCodecBufferGetBaseAddress(myDrp->dxtBuffer),
-                                 drp->baseAddr);
+                int decodeResult = HapCodecGLDecode(glob->glDecoder,
+                                                    drp->rowBytes,
+                                                    (myDrp->destFormat == k32RGBAPixelFormat ? HapCodecGLPixelFormat_RGBA8 : HapCodecGLPixelFormat_BGRA8),
+                                                    HapCodecBufferGetBaseAddress(myDrp->dxtBuffer),
+                                                    drp->baseAddr);
+                if (decodeResult != 0)
+                {
+                    err = internalComponentErr;
+                    goto bail;
+                }
             }
 #endif
             

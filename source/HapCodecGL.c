@@ -239,7 +239,7 @@ unsigned int HapCodecGLGetCompressedFormat(HapCodecGLRef coder)
     return coder->format;
 }
 
-void HapCodecGLEncode(HapCodecGLRef coder, unsigned int source_bytes_per_row, HapCodecGLPixelFormat pixel_format, const void *source, void *destination)
+int HapCodecGLEncode(HapCodecGLRef coder, unsigned int source_bytes_per_row, HapCodecGLPixelFormat pixel_format, const void *source, void *destination)
 {
     // See http://www.oldunreal.com/editing/s3tc/ARB_texture_compression.pdf
     CGLContextObj cgl_ctx = coder->context;
@@ -247,8 +247,8 @@ void HapCodecGLEncode(HapCodecGLRef coder, unsigned int source_bytes_per_row, Ha
     GLenum format_gl;
     GLenum type_gl;
     bool valid = openGLFormatAndTypeForFormat(pixel_format, &format_gl, &type_gl);
-    if (!valid) return;
-    
+    if (!valid) return 1;
+        
     unsigned int source_bytes_per_pixel = (pixel_format == HapCodecGLPixelFormat_YCbCr422 ? 2 : 4);
     if (source_bytes_per_row != coder->texWidth * source_bytes_per_pixel)
     {
@@ -313,7 +313,11 @@ void HapCodecGLEncode(HapCodecGLRef coder, unsigned int source_bytes_per_row, Ha
                         // A buffer the size of the full texture
                         coder->copyBuffer = malloc(copy_buffer_bytes_per_dxt_row * coder->texHeight);
                     }
-                    if (coder->copyBuffer != NULL)
+                    if (coder->copyBuffer == NULL)
+                    {
+                        return 1;
+                    }
+                    else
                     {
                         glGetCompressedTexImage(GL_TEXTURE_2D, 0, coder->copyBuffer);
                         
@@ -335,16 +339,17 @@ void HapCodecGLEncode(HapCodecGLRef coder, unsigned int source_bytes_per_row, Ha
         }
     }
     glFlush();
+    return 0;
 }
 
-void HapCodecGLDecode(HapCodecGLRef coder, unsigned int destination_bytes_per_row, HapCodecGLPixelFormat pixel_format, const void *source, void *destination)
+int HapCodecGLDecode(HapCodecGLRef coder, unsigned int destination_bytes_per_row, HapCodecGLPixelFormat pixel_format, const void *source, void *destination)
 {
     CGLContextObj cgl_ctx = coder->context;
     
     GLenum format_gl;
     GLenum type_gl;
     bool valid = openGLFormatAndTypeForFormat(pixel_format, &format_gl, &type_gl);
-    if (!valid) return;
+    if (!valid) return 1;
     
     size_t source_bytes_per_dxt_row = coder->width * 4; // A DXT row is 4 pixels high
     if (coder->format == GL_COMPRESSED_RGB_S3TC_DXT1_EXT)
@@ -405,7 +410,10 @@ void HapCodecGLDecode(HapCodecGLRef coder, unsigned int destination_bytes_per_ro
                     // A buffer the size of the full texture
                     coder->copyBuffer = malloc(copy_buffer_bytes_per_row * coder->texHeight);
                 }
-                if (coder->copyBuffer != NULL)
+                if (coder->copyBuffer == NULL)
+                {
+                    return 1;
+                }
                 {
                     glPixelStorei(GL_PACK_ROW_LENGTH, copy_buffer_bytes_per_row / destination_bytes_per_pixel);
                     
@@ -428,5 +436,6 @@ void HapCodecGLDecode(HapCodecGLRef coder, unsigned int destination_bytes_per_ro
         }
     }
     glFlush();
+    return 0;
 }
 

@@ -57,7 +57,10 @@ HapCodecGLRef HapCodecGLCreateEncoder(unsigned int width, unsigned int height, u
 HapCodecGLRef HapCodecGLCreateDecoder(unsigned int width, unsigned int height, unsigned int compressed_format);
 unsigned int HapCodecGLGetCompressedFormat(HapCodecGLRef coder);
 void HapCodecGLDestroy(HapCodecGLRef coder);
-void HapCodecGLEncode(HapCodecGLRef coder, unsigned int source_bytes_per_row, HapCodecGLPixelFormat pixel_format, const void *source, void *destination);
-void HapCodecGLDecode(HapCodecGLRef coder, unsigned int destination_bytes_per_row, HapCodecGLPixelFormat pixel_format, const void *source, void *destination);
+/*
+ encode/decode funtions return 0 on success
+ */
+int HapCodecGLEncode(HapCodecGLRef coder, unsigned int source_bytes_per_row, HapCodecGLPixelFormat pixel_format, const void *source, void *destination);
+int HapCodecGLDecode(HapCodecGLRef coder, unsigned int destination_bytes_per_row, HapCodecGLPixelFormat pixel_format, const void *source, void *destination);
 
 #endif
