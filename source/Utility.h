@@ -41,6 +41,7 @@
 void addNumberToDictionary( CFMutableDictionaryRef dictionary, CFStringRef key, SInt32 numberSInt32 );
 void addDoubleToDictionary( CFMutableDictionaryRef dictionary, CFStringRef key, double numberDouble );
 int roundUpToMultipleOf4( int n );
+int roundDownToMultipleOf4( int n );
 int roundUpToMultipleOf16( int n );
 
 unsigned long dxtBytesForDimensions(int width, int height, OSType codecSubType);

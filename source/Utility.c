@@ -72,6 +72,11 @@ int roundUpToMultipleOf4( int n )
 	return n;
 }
 
+int roundDownToMultipleOf4( int n )
+{
+    return n & ~3;
+}
+
 unsigned long dxtBytesForDimensions(int width, int height, OSType codecSubType)
 {
     unsigned long length = roundUpToMultipleOf4(width) * roundUpToMultipleOf4(height);
