@@ -44,7 +44,9 @@ public:
 	void Compress( void* block );
 
 protected:
+#if defined(HAP_SQUISH_EMIT_3_COLOUR_BLOCKS)
 	virtual void Compress3( void* block ) = 0;
+#endif
 	virtual void Compress4( void* block ) = 0;
 
 	ColourSet const* m_colours;

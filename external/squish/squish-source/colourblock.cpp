@@ -72,6 +72,7 @@ static void WriteColourBlock( int a, int b, u8* indices, void* block )
 	}
 }
 
+#if defined(HAP_SQUISH_EMIT_3_COLOUR_BLOCKS)
 void WriteColourBlock3( Vec3::Arg start, Vec3::Arg end, u8 const* indices, void* block )
 {
 	// get the packed values
@@ -104,6 +105,7 @@ void WriteColourBlock3( Vec3::Arg start, Vec3::Arg end, u8 const* indices, void*
 	// write the block
 	WriteColourBlock( a, b, remapped, block );
 }
+#endif
 
 void WriteColourBlock4( Vec3::Arg start, Vec3::Arg end, u8 const* indices, void* block )
 {

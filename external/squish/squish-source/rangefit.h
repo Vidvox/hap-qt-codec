@@ -40,7 +40,9 @@ public:
 	RangeFit( ColourSet const* colours, int flags, float* metric );
 	
 private:
+#if defined(HAP_SQUISH_EMIT_3_COLOUR_BLOCKS)
 	virtual void Compress3( void* block );
+#endif
 	virtual void Compress4( void* block );
 	
 	Vec3 m_metric;

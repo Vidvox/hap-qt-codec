@@ -42,7 +42,9 @@ public:
 private:
 	bool ConstructOrdering( Vec3 const& axis, int iteration );
 
+#if defined(HAP_SQUISH_EMIT_3_COLOUR_BLOCKS)
 	virtual void Compress3( void* block );
+#endif
 	virtual void Compress4( void* block );
 
 	enum { kMaxIterations = 8 };
