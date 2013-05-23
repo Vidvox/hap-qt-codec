@@ -145,7 +145,7 @@ static int HapCodecSquishEncoderEncode(HapCodecDXTEncoderRef encoder HAP_ATTR_UN
                 {
                     
 #if defined(HAP_SSSE3_ALWAYS_AVAILABLE)
-                    HapCodecSquishCopyBlockBGRASSSE3(copy_src, copy_dst, src_bytes_per_row);
+                    HapCodecDXTReadBlockBGRASSSE3(copy_src, copy_dst, src_bytes_per_row);
 #else
                     if (hasSSSE3) HapCodecDXTReadBlockBGRASSSE3(copy_src, copy_dst, src_bytes_per_row);
                     else HapCodecDXTReadBlockBGRAScalar(copy_src, copy_dst, src_bytes_per_row);
