@@ -34,6 +34,19 @@ The Hap codec project is open-source, licensed under a [FreeBSD License][3], mea
 
 This project was originally written by [Tom Butterworth][4] and commissioned by [VIDVOX][5], 2012.
 
+Changes
+=======
+
+Version 2
+
+* Support for Windows
+* Support for extremely large frames
+* Avoid an issue which resulted in poor quality output on some hardware due to a common driver bug
+
+Version 1
+
+* Initial public release
+
 [1]: http://github.com/vidvox/hap
 [2]: http://github.com/vidvox/hap-quicktime-playback-demo
 [3]: http://github.com/vidvox/hap-qt-codec/blob/master/LICENSE
