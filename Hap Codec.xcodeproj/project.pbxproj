@@ -448,7 +448,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "# This shell script simply copies the built component to \"~/Library/QuickTime\" and overrides any previous version at that location\n\nmkdir -p \"$USER_LIBRARY_DIR/QuickTime\"\nrm -rf \"$USER_LIBRARY_DIR/QuickTime/VPUCodec.component\"\nrm -rf \"$USER_LIBRARY_DIR/QuickTime/Hap.component\"\ncp -rf \"$BUILT_PRODUCTS_DIR/Hap.component\" \"$USER_LIBRARY_DIR/QuickTime/\"\n";
+			shellScript = "# This shell script simply copies the built component to \"~/Library/QuickTime\" and overrides any previous version at that location\n\nmkdir -p \"$USER_LIBRARY_DIR/QuickTime\"\nrm -rf \"$USER_LIBRARY_DIR/QuickTime/Hap.component\"\ncp -rf \"$BUILT_PRODUCTS_DIR/Hap.component\" \"$USER_LIBRARY_DIR/QuickTime/\"\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
