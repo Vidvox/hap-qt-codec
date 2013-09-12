@@ -17,6 +17,7 @@
 		E2830FE717E0C5AC005E72C3 /* snappy-stubs-internal.h in Headers */ = {isa = PBXBuildFile; fileRef = E2830FE217E0C5AC005E72C3 /* snappy-stubs-internal.h */; };
 		E2830FE817E0C5AC005E72C3 /* snappy-stubs-public.h in Headers */ = {isa = PBXBuildFile; fileRef = E2830FE317E0C5AC005E72C3 /* snappy-stubs-public.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E2830FEA17E0C6EB005E72C3 /* snappy.h in Headers */ = {isa = PBXBuildFile; fileRef = E2830FE917E0C6EB005E72C3 /* snappy.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		E2D2440B17E1E9A9004D0C23 /* config.h in Headers */ = {isa = PBXBuildFile; fileRef = E2D2440A17E1E9A9004D0C23 /* config.h */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -31,6 +32,7 @@
 		E2830FE217E0C5AC005E72C3 /* snappy-stubs-internal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "snappy-stubs-internal.h"; path = "../snappy-source/snappy-stubs-internal.h"; sourceTree = "<group>"; };
 		E2830FE317E0C5AC005E72C3 /* snappy-stubs-public.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "snappy-stubs-public.h"; path = "../snappy-source/snappy-stubs-public.h"; sourceTree = "<group>"; };
 		E2830FE917E0C6EB005E72C3 /* snappy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = snappy.h; path = "../snappy-source/snappy.h"; sourceTree = "<group>"; };
+		E2D2440A17E1E9A9004D0C23 /* config.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = config.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -75,6 +77,7 @@
 		E2830FDE17E0C592005E72C3 /* Headers */ = {
 			isa = PBXGroup;
 			children = (
+				E2D2440A17E1E9A9004D0C23 /* config.h */,
 				E2830FE917E0C6EB005E72C3 /* snappy.h */,
 				E2830FDF17E0C5AC005E72C3 /* snappy-c.h */,
 				E2830FE017E0C5AC005E72C3 /* snappy-internal.h */,
@@ -98,6 +101,7 @@
 				E2830FE617E0C5AC005E72C3 /* snappy-sinksource.h in Headers */,
 				E2830FE717E0C5AC005E72C3 /* snappy-stubs-internal.h in Headers */,
 				E2830FE517E0C5AC005E72C3 /* snappy-internal.h in Headers */,
+				E2D2440B17E1E9A9004D0C23 /* config.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -186,6 +190,7 @@
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
 					"$(inherited)",
+					HAVE_CONFIG_H,
 				);
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -221,7 +226,10 @@
 				ENABLE_NS_ASSERTIONS = NO;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
-				GCC_PREPROCESSOR_DEFINITIONS = "NDEBUG=1";
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"NDEBUG=1",
+					HAVE_CONFIG_H,
+				);
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
 				GCC_WARN_UNDECLARED_SELECTOR = YES;
