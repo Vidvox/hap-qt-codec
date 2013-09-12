@@ -6,144 +6,111 @@
 	objectVersion = 46;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		E2830FD917E0C58E005E72C3 /* snappy-c.cc in Sources */ = {isa = PBXBuildFile; fileRef = E2830FD317E0C58E005E72C3 /* snappy-c.cc */; };
+		E2830FDA17E0C58E005E72C3 /* snappy-sinksource.cc in Sources */ = {isa = PBXBuildFile; fileRef = E2830FD417E0C58E005E72C3 /* snappy-sinksource.cc */; };
+		E2830FDB17E0C58E005E72C3 /* snappy-stubs-internal.cc in Sources */ = {isa = PBXBuildFile; fileRef = E2830FD517E0C58E005E72C3 /* snappy-stubs-internal.cc */; };
+		E2830FDD17E0C58E005E72C3 /* snappy.cc in Sources */ = {isa = PBXBuildFile; fileRef = E2830FD717E0C58E005E72C3 /* snappy.cc */; };
+		E2830FE417E0C5AC005E72C3 /* snappy-c.h in Headers */ = {isa = PBXBuildFile; fileRef = E2830FDF17E0C5AC005E72C3 /* snappy-c.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		E2830FE517E0C5AC005E72C3 /* snappy-internal.h in Headers */ = {isa = PBXBuildFile; fileRef = E2830FE017E0C5AC005E72C3 /* snappy-internal.h */; };
+		E2830FE617E0C5AC005E72C3 /* snappy-sinksource.h in Headers */ = {isa = PBXBuildFile; fileRef = E2830FE117E0C5AC005E72C3 /* snappy-sinksource.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		E2830FE717E0C5AC005E72C3 /* snappy-stubs-internal.h in Headers */ = {isa = PBXBuildFile; fileRef = E2830FE217E0C5AC005E72C3 /* snappy-stubs-internal.h */; };
+		E2830FE817E0C5AC005E72C3 /* snappy-stubs-public.h in Headers */ = {isa = PBXBuildFile; fileRef = E2830FE317E0C5AC005E72C3 /* snappy-stubs-public.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		E2830FEA17E0C6EB005E72C3 /* snappy.h in Headers */ = {isa = PBXBuildFile; fileRef = E2830FE917E0C6EB005E72C3 /* snappy.h */; settings = {ATTRIBUTES = (Public, ); }; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
-		BD9464DF16175F57009B26E6 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = text; name = README.md; path = ../README.md; sourceTree = "<group>"; };
-		BDDAEA2B1615C5C700FEC70D /* snappy-c.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "snappy-c.h"; sourceTree = "<group>"; };
-		BDDAEA2C1615C5C700FEC70D /* snappy-sinksource.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "snappy-sinksource.h"; sourceTree = "<group>"; };
-		BDDAEA2D1615C5C700FEC70D /* snappy-stubs-public.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "snappy-stubs-public.h"; sourceTree = "<group>"; };
-		BDDAEA2E1615C5C700FEC70D /* snappy.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = snappy.h; sourceTree = "<group>"; };
-		E2F2B901161338F800DDB379 /* aclocal.m4 */ = {isa = PBXFileReference; lastKnownFileType = text; path = aclocal.m4; sourceTree = "<group>"; };
-		E2F2B902161338F800DDB379 /* AUTHORS */ = {isa = PBXFileReference; lastKnownFileType = text; path = AUTHORS; sourceTree = "<group>"; };
-		E2F2B903161338F800DDB379 /* autogen.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = autogen.sh; sourceTree = "<group>"; };
-		E2F2B904161338F800DDB379 /* ChangeLog */ = {isa = PBXFileReference; lastKnownFileType = text; path = ChangeLog; sourceTree = "<group>"; };
-		E2F2B905161338F800DDB379 /* config.guess */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = config.guess; sourceTree = "<group>"; };
-		E2F2B906161338F800DDB379 /* config.h.in */ = {isa = PBXFileReference; lastKnownFileType = text; path = config.h.in; sourceTree = "<group>"; };
-		E2F2B907161338F800DDB379 /* config.sub */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = config.sub; sourceTree = "<group>"; };
-		E2F2B908161338F800DDB379 /* configure */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = configure; sourceTree = "<group>"; };
-		E2F2B909161338F800DDB379 /* configure.ac */ = {isa = PBXFileReference; lastKnownFileType = text; path = configure.ac; sourceTree = "<group>"; };
-		E2F2B90A161338F800DDB379 /* COPYING */ = {isa = PBXFileReference; lastKnownFileType = text; path = COPYING; sourceTree = "<group>"; };
-		E2F2B90B161338F800DDB379 /* depcomp */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = depcomp; sourceTree = "<group>"; };
-		E2F2B90C161338F800DDB379 /* format_description.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = format_description.txt; sourceTree = "<group>"; };
-		E2F2B90D161338F800DDB379 /* framing_format.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = framing_format.txt; sourceTree = "<group>"; };
-		E2F2B90E161338F800DDB379 /* INSTALL */ = {isa = PBXFileReference; lastKnownFileType = text; path = INSTALL; sourceTree = "<group>"; };
-		E2F2B90F161338F800DDB379 /* install-sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = "install-sh"; sourceTree = "<group>"; };
-		E2F2B910161338F800DDB379 /* ltmain.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = ltmain.sh; sourceTree = "<group>"; };
-		E2F2B912161338F800DDB379 /* gtest.m4 */ = {isa = PBXFileReference; lastKnownFileType = text; path = gtest.m4; sourceTree = "<group>"; };
-		E2F2B913161338F800DDB379 /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
-		E2F2B914161338F800DDB379 /* Makefile.in */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.in; sourceTree = "<group>"; };
-		E2F2B915161338F800DDB379 /* missing */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = missing; sourceTree = "<group>"; };
-		E2F2B916161338F800DDB379 /* NEWS */ = {isa = PBXFileReference; lastKnownFileType = text; path = NEWS; sourceTree = "<group>"; };
-		E2F2B917161338F800DDB379 /* README */ = {isa = PBXFileReference; lastKnownFileType = text; path = README; sourceTree = "<group>"; };
-		E2F2B918161338F800DDB379 /* snappy-c.cc */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "snappy-c.cc"; sourceTree = "<group>"; };
-		E2F2B919161338F800DDB379 /* snappy-c.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "snappy-c.h"; sourceTree = "<group>"; };
-		E2F2B91A161338F800DDB379 /* snappy-internal.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "snappy-internal.h"; sourceTree = "<group>"; };
-		E2F2B91B161338F800DDB379 /* snappy-sinksource.cc */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "snappy-sinksource.cc"; sourceTree = "<group>"; };
-		E2F2B91C161338F800DDB379 /* snappy-sinksource.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "snappy-sinksource.h"; sourceTree = "<group>"; };
-		E2F2B91D161338F800DDB379 /* snappy-stubs-internal.cc */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "snappy-stubs-internal.cc"; sourceTree = "<group>"; };
-		E2F2B91E161338F800DDB379 /* snappy-stubs-internal.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "snappy-stubs-internal.h"; sourceTree = "<group>"; };
-		E2F2B91F161338F800DDB379 /* snappy-stubs-public.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "snappy-stubs-public.h"; sourceTree = "<group>"; };
-		E2F2B920161338F800DDB379 /* snappy-stubs-public.h.in */ = {isa = PBXFileReference; lastKnownFileType = text; path = "snappy-stubs-public.h.in"; sourceTree = "<group>"; };
-		E2F2B921161338F800DDB379 /* snappy-test.cc */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "snappy-test.cc"; sourceTree = "<group>"; };
-		E2F2B922161338F800DDB379 /* snappy-test.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "snappy-test.h"; sourceTree = "<group>"; };
-		E2F2B923161338F800DDB379 /* snappy.cc */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = snappy.cc; sourceTree = "<group>"; };
-		E2F2B924161338F800DDB379 /* snappy.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = snappy.h; sourceTree = "<group>"; };
-		E2F2B925161338F800DDB379 /* snappy_unittest.cc */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = snappy_unittest.cc; sourceTree = "<group>"; };
-		E2F2B9CA1613B45A00DDB379 /* libsnappy.1.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = libsnappy.1.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
-		E2F77A00161479FC00CB1D30 /* build-snappy.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = "build-snappy.sh"; sourceTree = "<group>"; };
+		E2830FCA17E0C43A005E72C3 /* libsnappy.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = libsnappy.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
+		E2830FD317E0C58E005E72C3 /* snappy-c.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = "snappy-c.cc"; path = "../snappy-source/snappy-c.cc"; sourceTree = "<group>"; };
+		E2830FD417E0C58E005E72C3 /* snappy-sinksource.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = "snappy-sinksource.cc"; path = "../snappy-source/snappy-sinksource.cc"; sourceTree = "<group>"; };
+		E2830FD517E0C58E005E72C3 /* snappy-stubs-internal.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = "snappy-stubs-internal.cc"; path = "../snappy-source/snappy-stubs-internal.cc"; sourceTree = "<group>"; };
+		E2830FD717E0C58E005E72C3 /* snappy.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = snappy.cc; path = "../snappy-source/snappy.cc"; sourceTree = "<group>"; };
+		E2830FDF17E0C5AC005E72C3 /* snappy-c.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "snappy-c.h"; path = "../snappy-source/snappy-c.h"; sourceTree = "<group>"; };
+		E2830FE017E0C5AC005E72C3 /* snappy-internal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "snappy-internal.h"; path = "../snappy-source/snappy-internal.h"; sourceTree = "<group>"; };
+		E2830FE117E0C5AC005E72C3 /* snappy-sinksource.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "snappy-sinksource.h"; path = "../snappy-source/snappy-sinksource.h"; sourceTree = "<group>"; };
+		E2830FE217E0C5AC005E72C3 /* snappy-stubs-internal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "snappy-stubs-internal.h"; path = "../snappy-source/snappy-stubs-internal.h"; sourceTree = "<group>"; };
+		E2830FE317E0C5AC005E72C3 /* snappy-stubs-public.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "snappy-stubs-public.h"; path = "../snappy-source/snappy-stubs-public.h"; sourceTree = "<group>"; };
+		E2830FE917E0C6EB005E72C3 /* snappy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = snappy.h; path = "../snappy-source/snappy.h"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
+/* Begin PBXFrameworksBuildPhase section */
+		E2830FC717E0C43A005E72C3 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
 /* Begin PBXGroup section */
-		BDDAEA2A1615C5C700FEC70D /* Products (Headers) */ = {
+		E2830FC117E0C43A005E72C3 = {
 			isa = PBXGroup;
 			children = (
-				BDDAEA2B1615C5C700FEC70D /* snappy-c.h */,
-				BDDAEA2C1615C5C700FEC70D /* snappy-sinksource.h */,
-				BDDAEA2D1615C5C700FEC70D /* snappy-stubs-public.h */,
-				BDDAEA2E1615C5C700FEC70D /* snappy.h */,
-			);
-			name = "Products (Headers)";
-			path = include;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		E2AC95D21611F9A000D23505 = {
-			isa = PBXGroup;
-			children = (
-				BD9464DF16175F57009B26E6 /* README.md */,
-				E2F77A00161479FC00CB1D30 /* build-snappy.sh */,
-				E2F2B900161338F800DDB379 /* snappy-source */,
-				E2F2B9CB1613B45A00DDB379 /* Products */,
-				BDDAEA2A1615C5C700FEC70D /* Products (Headers) */,
+				E2830FDE17E0C592005E72C3 /* Headers */,
+				E2830FD117E0C447005E72C3 /* Source */,
+				E2830FCB17E0C43A005E72C3 /* Products */,
 			);
 			sourceTree = "<group>";
 		};
-		E2F2B900161338F800DDB379 /* snappy-source */ = {
+		E2830FCB17E0C43A005E72C3 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				E2F2B901161338F800DDB379 /* aclocal.m4 */,
-				E2F2B902161338F800DDB379 /* AUTHORS */,
-				E2F2B903161338F800DDB379 /* autogen.sh */,
-				E2F2B904161338F800DDB379 /* ChangeLog */,
-				E2F2B905161338F800DDB379 /* config.guess */,
-				E2F2B906161338F800DDB379 /* config.h.in */,
-				E2F2B907161338F800DDB379 /* config.sub */,
-				E2F2B908161338F800DDB379 /* configure */,
-				E2F2B909161338F800DDB379 /* configure.ac */,
-				E2F2B90A161338F800DDB379 /* COPYING */,
-				E2F2B90B161338F800DDB379 /* depcomp */,
-				E2F2B90C161338F800DDB379 /* format_description.txt */,
-				E2F2B90D161338F800DDB379 /* framing_format.txt */,
-				E2F2B90E161338F800DDB379 /* INSTALL */,
-				E2F2B90F161338F800DDB379 /* install-sh */,
-				E2F2B910161338F800DDB379 /* ltmain.sh */,
-				E2F2B911161338F800DDB379 /* m4 */,
-				E2F2B913161338F800DDB379 /* Makefile.am */,
-				E2F2B914161338F800DDB379 /* Makefile.in */,
-				E2F2B915161338F800DDB379 /* missing */,
-				E2F2B916161338F800DDB379 /* NEWS */,
-				E2F2B917161338F800DDB379 /* README */,
-				E2F2B918161338F800DDB379 /* snappy-c.cc */,
-				E2F2B919161338F800DDB379 /* snappy-c.h */,
-				E2F2B91A161338F800DDB379 /* snappy-internal.h */,
-				E2F2B91B161338F800DDB379 /* snappy-sinksource.cc */,
-				E2F2B91C161338F800DDB379 /* snappy-sinksource.h */,
-				E2F2B91D161338F800DDB379 /* snappy-stubs-internal.cc */,
-				E2F2B91E161338F800DDB379 /* snappy-stubs-internal.h */,
-				E2F2B91F161338F800DDB379 /* snappy-stubs-public.h */,
-				E2F2B920161338F800DDB379 /* snappy-stubs-public.h.in */,
-				E2F2B921161338F800DDB379 /* snappy-test.cc */,
-				E2F2B922161338F800DDB379 /* snappy-test.h */,
-				E2F2B923161338F800DDB379 /* snappy.cc */,
-				E2F2B924161338F800DDB379 /* snappy.h */,
-				E2F2B925161338F800DDB379 /* snappy_unittest.cc */,
-			);
-			name = "snappy-source";
-			path = "../snappy-source";
-			sourceTree = "<group>";
-		};
-		E2F2B911161338F800DDB379 /* m4 */ = {
-			isa = PBXGroup;
-			children = (
-				E2F2B912161338F800DDB379 /* gtest.m4 */,
-			);
-			path = m4;
-			sourceTree = "<group>";
-		};
-		E2F2B9CB1613B45A00DDB379 /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				E2F2B9CA1613B45A00DDB379 /* libsnappy.1.dylib */,
+				E2830FCA17E0C43A005E72C3 /* libsnappy.dylib */,
 			);
 			name = Products;
 			sourceTree = "<group>";
 		};
+		E2830FD117E0C447005E72C3 /* Source */ = {
+			isa = PBXGroup;
+			children = (
+				E2830FD317E0C58E005E72C3 /* snappy-c.cc */,
+				E2830FD417E0C58E005E72C3 /* snappy-sinksource.cc */,
+				E2830FD517E0C58E005E72C3 /* snappy-stubs-internal.cc */,
+				E2830FD717E0C58E005E72C3 /* snappy.cc */,
+			);
+			name = Source;
+			sourceTree = "<group>";
+		};
+		E2830FDE17E0C592005E72C3 /* Headers */ = {
+			isa = PBXGroup;
+			children = (
+				E2830FE917E0C6EB005E72C3 /* snappy.h */,
+				E2830FDF17E0C5AC005E72C3 /* snappy-c.h */,
+				E2830FE017E0C5AC005E72C3 /* snappy-internal.h */,
+				E2830FE117E0C5AC005E72C3 /* snappy-sinksource.h */,
+				E2830FE217E0C5AC005E72C3 /* snappy-stubs-internal.h */,
+				E2830FE317E0C5AC005E72C3 /* snappy-stubs-public.h */,
+			);
+			name = Headers;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
+/* Begin PBXHeadersBuildPhase section */
+		E2830FC817E0C43A005E72C3 /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E2830FEA17E0C6EB005E72C3 /* snappy.h in Headers */,
+				E2830FE817E0C5AC005E72C3 /* snappy-stubs-public.h in Headers */,
+				E2830FE417E0C5AC005E72C3 /* snappy-c.h in Headers */,
+				E2830FE617E0C5AC005E72C3 /* snappy-sinksource.h in Headers */,
+				E2830FE717E0C5AC005E72C3 /* snappy-stubs-internal.h in Headers */,
+				E2830FE517E0C5AC005E72C3 /* snappy-internal.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXHeadersBuildPhase section */
+
 /* Begin PBXNativeTarget section */
-		E2F2B9C91613B45A00DDB379 /* snappy */ = {
+		E2830FC917E0C43A005E72C3 /* snappy */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = E2F2B9CC1613B45A00DDB379 /* Build configuration list for PBXNativeTarget "snappy" */;
+			buildConfigurationList = E2830FCE17E0C43A005E72C3 /* Build configuration list for PBXNativeTarget "snappy" */;
 			buildPhases = (
-				E2F2B9CF1613B56500DDB379 /* ShellScript */,
+				E2830FC617E0C43A005E72C3 /* Sources */,
+				E2830FC717E0C43A005E72C3 /* Frameworks */,
+				E2830FC817E0C43A005E72C3 /* Headers */,
 			);
 			buildRules = (
 			);
@@ -151,67 +118,65 @@
 			);
 			name = snappy;
 			productName = snappy;
-			productReference = E2F2B9CA1613B45A00DDB379 /* libsnappy.1.dylib */;
+			productReference = E2830FCA17E0C43A005E72C3 /* libsnappy.dylib */;
 			productType = "com.apple.product-type.library.dynamic";
 		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
-		E2AC95D41611F9A000D23505 /* Project object */ = {
+		E2830FC217E0C43A005E72C3 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0450;
+				LastUpgradeCheck = 0500;
 				ORGANIZATIONNAME = Vidvox;
 			};
-			buildConfigurationList = E2AC95D71611F9A000D23505 /* Build configuration list for PBXProject "snappy" */;
+			buildConfigurationList = E2830FC517E0C43A005E72C3 /* Build configuration list for PBXProject "snappy" */;
 			compatibilityVersion = "Xcode 3.2";
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
 			);
-			mainGroup = E2AC95D21611F9A000D23505;
-			productRefGroup = E2F2B9CB1613B45A00DDB379 /* Products */;
+			mainGroup = E2830FC117E0C43A005E72C3;
+			productRefGroup = E2830FCB17E0C43A005E72C3 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				E2F2B9C91613B45A00DDB379 /* snappy */,
+				E2830FC917E0C43A005E72C3 /* snappy */,
 			);
 		};
 /* End PBXProject section */
 
-/* Begin PBXShellScriptBuildPhase section */
-		E2F2B9CF1613B56500DDB379 /* ShellScript */ = {
-			isa = PBXShellScriptBuildPhase;
+/* Begin PBXSourcesBuildPhase section */
+		E2830FC617E0C43A005E72C3 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-			);
-			inputPaths = (
-				"$(SRCROOT)/build-snappy.sh",
-				"$(SRCROOT)/../snappy-source",
-			);
-			outputPaths = (
-				"$(BUILT_PRODUCTS_DIR)/libsnappy.1.dylib",
-				"$(BUILT_PRODUCTS_DIR)/include/snappy.h",
-				"$(BUILT_PRODUCTS_DIR)/include/snappy-c.h",
-				"$(BUILT_PRODUCTS_DIR)/include/snappy-sinksource.h",
-				"$(BUILT_PRODUCTS_DIR)/include/snappy-stubs-public.h",
+				E2830FD917E0C58E005E72C3 /* snappy-c.cc in Sources */,
+				E2830FDA17E0C58E005E72C3 /* snappy-sinksource.cc in Sources */,
+				E2830FDD17E0C58E005E72C3 /* snappy.cc in Sources */,
+				E2830FDB17E0C58E005E72C3 /* snappy-stubs-internal.cc in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "/bin/sh \"$SRCROOT/build-snappy.sh\"\n";
 		};
-/* End PBXShellScriptBuildPhase section */
+/* End PBXSourcesBuildPhase section */
 
 /* Begin XCBuildConfiguration section */
-		E2AC95DA1611F9A000D23505 /* Debug */ = {
+		E2830FCC17E0C43A005E72C3 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
-				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_CXX_LIBRARY = "libstdc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
@@ -224,8 +189,10 @@
 				);
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
-				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 10.6;
 				ONLY_ACTIVE_ARCH = YES;
@@ -233,70 +200,83 @@
 			};
 			name = Debug;
 		};
-		E2AC95DB1611F9A000D23505 /* Release */ = {
+		E2830FCD17E0C43A005E72C3 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
-				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_CXX_LIBRARY = "libstdc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = "NDEBUG=1";
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
-				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 10.6;
 				SDKROOT = macosx;
 			};
 			name = Release;
 		};
-		E2F2B9CD1613B45A00DDB379 /* Debug */ = {
+		E2830FCF17E0C43A005E72C3 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
-				COMBINE_HIDPI_IMAGES = YES;
 				EXECUTABLE_PREFIX = lib;
-				PRODUCT_NAME = "$(TARGET_NAME).${DYLIB_CURRENT_VERSION}";
+				LD_DYLIB_INSTALL_NAME = "@rpath/$(EXECUTABLE_PATH)";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
 			};
 			name = Debug;
 		};
-		E2F2B9CE1613B45A00DDB379 /* Release */ = {
+		E2830FD017E0C43A005E72C3 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
-				COMBINE_HIDPI_IMAGES = YES;
 				EXECUTABLE_PREFIX = lib;
-				PRODUCT_NAME = "$(TARGET_NAME).${DYLIB_CURRENT_VERSION}";
+				LD_DYLIB_INSTALL_NAME = "@rpath/$(EXECUTABLE_PATH)";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
 			};
 			name = Release;
 		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		E2AC95D71611F9A000D23505 /* Build configuration list for PBXProject "snappy" */ = {
+		E2830FC517E0C43A005E72C3 /* Build configuration list for PBXProject "snappy" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				E2AC95DA1611F9A000D23505 /* Debug */,
-				E2AC95DB1611F9A000D23505 /* Release */,
+				E2830FCC17E0C43A005E72C3 /* Debug */,
+				E2830FCD17E0C43A005E72C3 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		E2F2B9CC1613B45A00DDB379 /* Build configuration list for PBXNativeTarget "snappy" */ = {
+		E2830FCE17E0C43A005E72C3 /* Build configuration list for PBXNativeTarget "snappy" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				E2F2B9CD1613B45A00DDB379 /* Debug */,
-				E2F2B9CE1613B45A00DDB379 /* Release */,
+				E2830FCF17E0C43A005E72C3 /* Debug */,
+				E2830FD017E0C43A005E72C3 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
-	rootObject = E2AC95D41611F9A000D23505 /* Project object */;
+	rootObject = E2830FC217E0C43A005E72C3 /* Project object */;
 }
