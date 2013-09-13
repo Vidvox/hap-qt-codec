@@ -32,7 +32,7 @@
 		E2830FE217E0C5AC005E72C3 /* snappy-stubs-internal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "snappy-stubs-internal.h"; path = "../snappy-source/snappy-stubs-internal.h"; sourceTree = "<group>"; };
 		E2830FE317E0C5AC005E72C3 /* snappy-stubs-public.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "snappy-stubs-public.h"; path = "../snappy-source/snappy-stubs-public.h"; sourceTree = "<group>"; };
 		E2830FE917E0C6EB005E72C3 /* snappy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = snappy.h; path = "../snappy-source/snappy.h"; sourceTree = "<group>"; };
-		E2D2440A17E1E9A9004D0C23 /* config.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = config.h; sourceTree = "<group>"; };
+		E2D2440A17E1E9A9004D0C23 /* config.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = config.h; path = "../snappy-source/config.h"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
