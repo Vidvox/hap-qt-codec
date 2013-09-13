@@ -1,20 +1,38 @@
-/* config.h.  Generated from config.h.in by configure.  */
-/* config.h.in.  Generated from configure.ac by autoheader.  */
+/* config.h.  Custom config.h to build MacOS and MSVC only.  */
 
 /* Define if building universal (internal helper macro) */
 /* #undef AC_APPLE_UNIVERSAL_BUILD */
 
+/* Architecture definitions for Windows */
+#if defined(_WIN32) || defined(_WIN64)
+#if defined(_WIN64)
+#ifndef __x86_64__
+#define __x86_64__
+#endif
+#else
+#ifndef __i386__
+#define __i386__
+#endif
+#endif
+#endif
+
+#if defined(__APPLE__)
 /* Define to 1 if the compiler supports __builtin_ctz and friends. */
 #define HAVE_BUILTIN_CTZ 1
+#endif
 
+#if defined(__APPLE__)
 /* Define to 1 if the compiler supports __builtin_expect. */
 #define HAVE_BUILTIN_EXPECT 1
+#endif
 
 /* Define to 1 if you have the <byteswap.h> header file. */
 /* #undef HAVE_BYTESWAP_H */
 
+#if defined(__APPLE__)
 /* Define to 1 if you have the <dlfcn.h> header file. */
 #define HAVE_DLFCN_H 1
+#endif
 
 /* Use the gflags package for command-line parsing. */
 /* #undef HAVE_GFLAGS */
@@ -22,8 +40,10 @@
 /* Defined when Google Test is available. */
 /* #undef HAVE_GTEST */
 
+#if defined(__APPLE__)
 /* Define to 1 if you have the <inttypes.h> header file. */
 #define HAVE_INTTYPES_H 1
+#endif
 
 /* Define to 1 if you have the `fastlz' library (-lfastlz). */
 /* #undef HAVE_LIBFASTLZ */
@@ -37,8 +57,10 @@
 /* Define to 1 if you have the `quicklz' library (-lquicklz). */
 /* #undef HAVE_LIBQUICKLZ */
 
+#if defined(__APPLE__)
 /* Define to 1 if you have the `z' library (-lz). */
 #define HAVE_LIBZ 1
+#endif
 
 /* Define to 1 if you have the <memory.h> header file. */
 #define HAVE_MEMORY_H 1
@@ -64,26 +86,36 @@
 /* Define to 1 if you have the <sys/endian.h> header file. */
 /* #undef HAVE_SYS_ENDIAN_H */
 
+#if defined(__APPLE__)
 /* Define to 1 if you have the <sys/mman.h> header file. */
 #define HAVE_SYS_MMAN_H 1
+#endif
 
+#if defined(__APPLE__)
 /* Define to 1 if you have the <sys/resource.h> header file. */
 #define HAVE_SYS_RESOURCE_H 1
+#endif
 
 /* Define to 1 if you have the <sys/stat.h> header file. */
 #define HAVE_SYS_STAT_H 1
 
+#if defined(__APPLE__)
 /* Define to 1 if you have the <sys/time.h> header file. */
 #define HAVE_SYS_TIME_H 1
+#endif
 
 /* Define to 1 if you have the <sys/types.h> header file. */
 #define HAVE_SYS_TYPES_H 1
 
+#if defined(__APPLE__)
 /* Define to 1 if you have the <unistd.h> header file. */
 #define HAVE_UNISTD_H 1
+#endif
 
+#if defined(_WIN32) || defined(_WIN64)
 /* Define to 1 if you have the <windows.h> header file. */
-/* #undef HAVE_WINDOWS_H */
+#define HAVE_WINDOWS_H
+#endif
 
 /* Define to the sub-directory in which libtool stores uninstalled libraries.
    */
