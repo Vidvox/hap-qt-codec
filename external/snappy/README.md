@@ -1,4 +1,4 @@
-This directory contains source for snappy and an Xcode project and script to build it.
+This directory contains source for snappy and Xcode and Visual Studio projects to build it.
 
 Snappy is available from http://code.google.com/p/snappy/
 
@@ -29,4 +29,4 @@ Restoring snappy 1.0's 32 kB block size improves decompression performance for D
 | 1.1           | 6303   |
 | 1.1 (patched) | 7197   |
 
-The script build-snappy.sh is run from within Xcode to build a 32-bit version of the library suitable for use by the Hap codec.
+A custom config.h is used configured for Windows and MacOS.
