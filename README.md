@@ -14,7 +14,7 @@ Download
 
 An installer for the Hap QuickTime component for MacOS X can be downloaded here:
 
-[http://vidvox.net/download/Hap_Codec_1.dmg](http://vidvox.net/download/Hap_Codec_1.dmg)
+[http://vidvox.net/download/Hap_Codec_2.dmg](http://vidvox.net/download/Hap_Codec_2.dmg)
 
 Using the Hap QuickTime Codec
 ====
