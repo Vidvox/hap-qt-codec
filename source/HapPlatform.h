@@ -27,9 +27,9 @@
 
 #if defined(__APPLE__)
     #include <Availability.h>
-    #define HAP_ATTR_UNUSED __attribute((unused))
+    #define HAP_ATTR_UNUSED __attribute__((unused))
     #define HAP_FUNC __func__
-    #define HAP_ALIGN_16 __attribute__ ((aligned (16)))
+    #define HAP_ALIGN_16 __attribute__((aligned (16)))
     #if !defined(DEBUG)
         #define HAP_INLINE inline __attribute__((__always_inline__))
     #else
