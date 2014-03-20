@@ -56,6 +56,12 @@ enum HapResult {
 };
 
 /*
+ See HapDecode for descriptions of these function types.
+ */
+typedef void (*HapDecodeWorkFunction)(void *p, unsigned int index);
+typedef void (*HapDecodeCallback)(HapDecodeWorkFunction function, void *p, unsigned int count, void *info);
+
+/*
  Returns the maximum size of an output buffer for an input buffer of inputBytes length.
  */
 unsigned long HapMaxEncodedLength(unsigned long inputBytes);
@@ -71,11 +77,27 @@ unsigned int HapEncode(const void *inputBuffer, unsigned long inputBufferBytes, 
                        unsigned long *outputBufferBytesUsed);
 
 /*
- Decodes inputBuffer which is a Hap frame.
+ Decodes inputBuffer which is a Hap frame. If the frame permits multithreaded decoding, callback will be called
+ once for you to invoke a platform-appropriate mechanism to assign work to threads, and trigger that work by calling
+ the function passed to your callback the number of times indicated by the count argument, usually from a number
+ of different threads.
+
+ void MyHapDecodeCallback(HapDecodeWorkFunction function, void *p, unsigned int count, void *info)
+ {
+     int i;
+     for (i = 0; i < count; i++) {
+         // Invoke your multithreading mechanism to cause this function to be called
+         // on a suitable number of threads.
+         function(p, i);
+     }
+ }
+ info is an argument for your own use to pass context to the callback.
+ If the frame does not permit multithreaded decoding, callback will not be called.
  If outputBufferBytesUsed is not NULL then it will be set to the decoded length of the output buffer.
  outputBufferTextureFormat must be non-NULL, and will be set to one of the HapTextureFormat constants.
  */
 unsigned int HapDecode(const void *inputBuffer, unsigned long inputBufferBytes,
+                       HapDecodeCallback callback, void *info,
                        void *outputBuffer, unsigned long outputBufferBytes,
                        unsigned long *outputBufferBytesUsed,
                        unsigned int *outputBufferTextureFormat);

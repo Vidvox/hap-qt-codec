@@ -84,6 +84,9 @@ typedef struct	{
 	Handle						wantedDestinationPixelTypes;
     HapCodecBufferPoolRef       dxtBufferPool;
     HapCodecBufferPoolRef       convertBufferPool;
+#if defined(__APPLE__)
+    dispatch_queue_t            hapDecodeQueue;
+#endif
 #ifdef HAP_GPU_DECODE
     HapCodecGLRef               glDecoder;
 #endif
@@ -130,6 +133,38 @@ typedef struct {
 #include <ComponentDispatchHelper.c>
 #endif
 
+/*
+ Callback for multithreaded Hap decoding
+ */
+
+void HapMTDecode(HapDecodeWorkFunction function, void *p, unsigned int count, HapDecompressorGlobals info)
+{
+#if defined(__APPLE__)
+    if (info->hapDecodeQueue == NULL)
+    {
+        if (dispatch_barrier_async == NULL) // ie before OS 10.7
+        {
+            info->hapDecodeQueue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
+        }
+        else
+        {
+            info->hapDecodeQueue = dispatch_queue_create("com.vidvox.hap-codec.decode", DISPATCH_QUEUE_CONCURRENT);
+        }
+    }
+    dispatch_apply(count, info->hapDecodeQueue, ^(size_t index) {
+        function(p, (unsigned int)index);
+    });
+#else
+    {
+        // TODO: Windows multithreading
+        int i;
+        for (i = 0; i < (int)count; i++) {
+            function(p, i);
+        }
+    }
+#endif
+}
+
 /* -- This Image Decompressor User the Base Image Decompressor Component --
 	The base image decompressor is an Apple-supplied component
 	that makes it easier for developers to create new decompressors.
@@ -173,6 +208,9 @@ pascal ComponentResult Hap_DOpen(HapDecompressorGlobals glob, ComponentInstance 
 #ifdef HAP_GPU_DECODE
     glob->glDecoder = NULL;
 #endif
+#if defined(__APPLE__)
+    glob->hapDecodeQueue = NULL;
+#endif
     
 	// Open and target an instance of the base decompressor as we delegate
 	// most of our calls to the base decompressor instance
@@ -207,7 +245,12 @@ pascal ComponentResult Hap_DClose(HapDecompressorGlobals glob, ComponentInstance
             HapCodecGLDestroy(glob->glDecoder);
         }
 #endif
-
+#if defined(__APPLE__)
+        if (glob->hapDecodeQueue)
+        {
+            dispatch_release(glob->hapDecodeQueue);
+        }
+#endif
         HapCodecBufferPoolDestroy(glob->convertBufferPool);
         
 		DisposeHandle( glob->wantedDestinationPixelTypes );
@@ -484,7 +527,7 @@ bail:
 	return err;
 }
 
-pascal ComponentResult Hap_DDecodeBand(HapDecompressorGlobals glob HAP_ATTR_UNUSED, ImageSubCodecDecompressRecord *drp, unsigned long flags HAP_ATTR_UNUSED)
+pascal ComponentResult Hap_DDecodeBand(HapDecompressorGlobals glob, ImageSubCodecDecompressRecord *drp, unsigned long flags HAP_ATTR_UNUSED)
 {
 	OSErr err = noErr;
 	HapDecompressRecord *myDrp = (HapDecompressRecord *)drp->userDecompressRecord;
@@ -504,8 +547,7 @@ pascal ComponentResult Hap_DDecodeBand(HapDecompressorGlobals glob HAP_ATTR_UNUS
     
     if (!isDXTPixelFormat(myDrp->destFormat))
     {
-        
-        unsigned int hapResult = HapDecode(drp->codecData, myDrp->dataSize, HapCodecBufferGetBaseAddress(myDrp->dxtBuffer), HapCodecBufferGetSize(myDrp->dxtBuffer), NULL, &myDrp->texFormat);
+        unsigned int hapResult = HapDecode(drp->codecData, myDrp->dataSize, (HapDecodeCallback)HapMTDecode, glob, HapCodecBufferGetBaseAddress(myDrp->dxtBuffer), HapCodecBufferGetSize(myDrp->dxtBuffer), NULL, &myDrp->texFormat);
         if (hapResult != HapResult_No_Error)
         {
             err = (hapResult == HapResult_Bad_Frame ? codecBadDataErr : internalComponentErr);
@@ -561,7 +603,7 @@ pascal ComponentResult Hap_DDrawBand(HapDecompressorGlobals glob, ImageSubCodecD
         // get asked for the wrong one here
         
         unsigned int bufferSize = dxtBytesForDimensions(myDrp->dxtWidth, myDrp->dxtHeight, glob->type);
-        unsigned int hapResult = HapDecode(drp->codecData, myDrp->dataSize, drp->baseAddr, bufferSize, NULL, &myDrp->texFormat);
+        unsigned int hapResult = HapDecode(drp->codecData, myDrp->dataSize, (HapDecodeCallback)HapMTDecode, glob, drp->baseAddr, bufferSize, NULL, &myDrp->texFormat);
         if (hapResult != HapResult_No_Error)
         {
             err = (hapResult == HapResult_Bad_Frame ? codecBadDataErr : internalComponentErr);
