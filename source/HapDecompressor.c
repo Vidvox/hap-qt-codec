@@ -513,7 +513,7 @@ pascal ComponentResult Hap_DDecodeBand(HapDecompressorGlobals glob, ImageSubCode
     
     if (!isDXTPixelFormat(myDrp->destFormat))
     {
-        unsigned int hapResult = HapDecode(drp->codecData, myDrp->dataSize, (HapDecodeCallback)HapMTDecode, glob, HapCodecBufferGetBaseAddress(myDrp->dxtBuffer), HapCodecBufferGetSize(myDrp->dxtBuffer), NULL, &myDrp->texFormat);
+        unsigned int hapResult = HapDecode(drp->codecData, myDrp->dataSize, (HapDecodeCallback)HapMTDecode, NULL, HapCodecBufferGetBaseAddress(myDrp->dxtBuffer), HapCodecBufferGetSize(myDrp->dxtBuffer), NULL, &myDrp->texFormat);
         if (hapResult != HapResult_No_Error)
         {
             err = (hapResult == HapResult_Bad_Frame ? codecBadDataErr : internalComponentErr);
@@ -569,7 +569,7 @@ pascal ComponentResult Hap_DDrawBand(HapDecompressorGlobals glob, ImageSubCodecD
         // get asked for the wrong one here
         
         unsigned int bufferSize = dxtBytesForDimensions(myDrp->dxtWidth, myDrp->dxtHeight, glob->type);
-        unsigned int hapResult = HapDecode(drp->codecData, myDrp->dataSize, (HapDecodeCallback)HapMTDecode, glob, drp->baseAddr, bufferSize, NULL, &myDrp->texFormat);
+        unsigned int hapResult = HapDecode(drp->codecData, myDrp->dataSize, (HapDecodeCallback)HapMTDecode, NULL, drp->baseAddr, bufferSize, NULL, &myDrp->texFormat);
         if (hapResult != HapResult_No_Error)
         {
             err = (hapResult == HapResult_Bad_Frame ? codecBadDataErr : internalComponentErr);
