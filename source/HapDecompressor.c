@@ -41,6 +41,7 @@
 #include "HapCodecSubTypes.h"
 #include "hap.h"
 #include "Buffers.h"
+#include "ParallelLoops.h"
 #include "YCoCg.h"
 #include "YCoCgDXT.h"
 
@@ -137,32 +138,9 @@ typedef struct {
  Callback for multithreaded Hap decoding
  */
 
-void HapMTDecode(HapDecodeWorkFunction function, void *p, unsigned int count, HapDecompressorGlobals info)
+void HapMTDecode(HapDecodeWorkFunction function, void *p, unsigned int count, void *info)
 {
-#if defined(__APPLE__)
-    if (info->hapDecodeQueue == NULL)
-    {
-        if (dispatch_barrier_async == NULL) // ie before OS 10.7
-        {
-            info->hapDecodeQueue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
-        }
-        else
-        {
-            info->hapDecodeQueue = dispatch_queue_create("com.vidvox.hap-codec.decode", DISPATCH_QUEUE_CONCURRENT);
-        }
-    }
-    dispatch_apply(count, info->hapDecodeQueue, ^(size_t index) {
-        function(p, (unsigned int)index);
-    });
-#else
-    {
-        // TODO: Windows multithreading
-        int i;
-        for (i = 0; i < (int)count; i++) {
-            function(p, i);
-        }
-    }
-#endif
+    HapParallelFor((HapParallelFunction)function, p, count);
 }
 
 /* -- This Image Decompressor User the Base Image Decompressor Component --

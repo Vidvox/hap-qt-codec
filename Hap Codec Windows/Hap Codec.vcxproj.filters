@@ -77,6 +77,9 @@
     <ClCompile Include="..\source\DXTBlocksSSSE3.c">
       <Filter>DXT</Filter>
     </ClCompile>
+    <ClCompile Include="..\source\ParallelLoops.cpp">
+      <Filter>Basics</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\source\HapResCommon.h">
@@ -141,6 +144,9 @@
     </ClInclude>
     <ClInclude Include="..\source\DXTBlocks.h">
       <Filter>DXT</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\ParallelLoops.h">
+      <Filter>Basics</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

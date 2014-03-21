@@ -121,6 +121,7 @@ attrib -R "$(TargetDir)$(TargetName).qtx"
     <ClCompile Include="..\source\HapCompressor.c" />
     <ClCompile Include="..\source\HapDecompressor.c" />
     <ClCompile Include="..\source\ImageMath.c" />
+    <ClCompile Include="..\source\ParallelLoops.cpp" />
     <ClCompile Include="..\source\PixelFormats.c" />
     <ClCompile Include="..\source\squish-c.cpp" />
     <ClCompile Include="..\source\SquishDecoder.c" />
@@ -149,6 +150,7 @@ attrib -R "$(TargetDir)$(TargetName).qtx"
     <ClInclude Include="..\source\HapPlatform.h" />
     <ClInclude Include="..\source\HapResCommon.h" />
     <ClInclude Include="..\source\ImageMath.h" />
+    <ClInclude Include="..\source\ParallelLoops.h" />
     <ClInclude Include="..\source\PixelFormats.h" />
     <ClInclude Include="..\source\squish-c.h" />
     <ClInclude Include="..\source\SquishDecoder.h" />
