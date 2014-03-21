@@ -370,7 +370,7 @@
 		089C1669FE841209C02AAC07 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0450;
+				LastUpgradeCheck = 0510;
 			};
 			buildConfigurationList = 2BF1EBEF08A92C280070D853 /* Build configuration list for PBXProject "Hap Codec" */;
 			compatibilityVersion = "Xcode 3.2";
@@ -556,6 +556,7 @@
 				INFOPLIST_FILE = source/Info.plist;
 				LIBRARY_SEARCH_PATHS_QUOTED_FOR_TARGET_3 = "";
 				MACOSX_DEPLOYMENT_TARGET = 10.6;
+				ONLY_ACTIVE_ARCH = YES;
 				OTHER_REZFLAGS = "-d ppc_$(ppc) -d i386_$(i386)";
 				REZ_PREPROCESSOR_DEFINITIONS = "TARGET_REZ_CARBON_MACHO=1";
 				REZ_RESOURCE_MAP_READ_ONLY = YES;
