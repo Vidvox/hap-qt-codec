@@ -154,20 +154,6 @@ static ALWAYS_INLINE void EmitUShort( unsigned short s, byte **outData ){
     *outData += 2;
 }
 
-static ALWAYS_INLINE void EmitWord( word s, byte **outData ) {
-    (*outData)[0] = ( s >>  0 ) & 255;
-    (*outData)[1] = ( s >>  8 ) & 255;
-    *outData += 2;
-}
-
-static ALWAYS_INLINE void EmitDoubleWord( dword i, byte **outData ) {
-    (*outData)[0] = ( i >>  0 ) & 255;
-    (*outData)[1] = ( i >>  8 ) & 255;
-    (*outData)[2] = ( i >> 16 ) & 255;
-    (*outData)[3] = ( i >> 24 ) & 255;
-    (*outData) += 4;
-}
-
 static ALWAYS_INLINE void ExtractBlock( const byte *inPtr, const int stride, byte *colorBlock ) {
     for ( int j = 0; j < 4; j++ ) {
         memcpy( &colorBlock[j*4*4], inPtr, 4*4 );
@@ -568,11 +554,13 @@ static ALWAYS_INLINE void Convert565ToColor( const unsigned short value , byte *
     pOutColor[2] = c << 3;  // was a 5 bit so scale back up 
 }
 
+#ifndef EA_SYSTEM_LITTLE_ENDIAN
 // Flip around the 2 bytes in a short
 static ALWAYS_INLINE short ShortFlipBytes( short raw ) 
 {
     return ((raw >> 8) & 0xff) | (raw << 8);
 }
+#endif
 
 static void RestoreChromaBlock( const void * pSource, byte *colorBlock)
 {
