@@ -36,7 +36,7 @@ extern "C" void HapParallelFor(HapParallelFunction function, void *info, unsigne
 {
 #if defined(__APPLE__)
     dispatch_apply(count, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^(size_t index) {
-        function(p, (unsigned int)index);
+        function(info, (unsigned int)index);
     });
 #else
     concurrency::parallel_for((unsigned int)0, count, [&](unsigned int i) {

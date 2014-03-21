@@ -138,7 +138,7 @@ typedef struct {
  Callback for multithreaded Hap decoding
  */
 
-void HapMTDecode(HapDecodeWorkFunction function, void *p, unsigned int count, void *info)
+void HapMTDecode(HapDecodeWorkFunction function, void *p, unsigned int count, void *info HAP_ATTR_UNUSED)
 {
     HapParallelFor((HapParallelFunction)function, p, count);
 }

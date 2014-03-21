@@ -48,6 +48,7 @@
 		E25D566617E0E4E7008DD459 /* libsquish.dylib in CopyFiles */ = {isa = PBXBuildFile; fileRef = BDE9DE0A16169D82008DC368 /* libsquish.dylib */; };
 		E28C1FAB143B598500F2CD73 /* Utility.c in Sources */ = {isa = PBXBuildFile; fileRef = E28C1FAA143B598500F2CD73 /* Utility.c */; };
 		E2C99CAA13789AC60077AC75 /* Tasks.c in Sources */ = {isa = PBXBuildFile; fileRef = E2C99CA813789AC60077AC75 /* Tasks.c */; };
+		E2CCA54A18DBC577001FD4C0 /* ParallelLoops.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E2CCA54818DBC577001FD4C0 /* ParallelLoops.cpp */; };
 		E2ECC4CC16FE86830016167B /* YCoCgDXT.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E2ECC4CB16FE86830016167B /* YCoCgDXT.cpp */; };
 		FBFA8C990829E75000560632 /* HapCompressor.c in Sources */ = {isa = PBXBuildFile; fileRef = FBFA8C8C0829E75000560632 /* HapCompressor.c */; };
 		FBFA8C9A0829E75000560632 /* HapDecompressor.c in Sources */ = {isa = PBXBuildFile; fileRef = FBFA8C8E0829E75000560632 /* HapDecompressor.c */; };
@@ -155,6 +156,8 @@
 		E28C1FAA143B598500F2CD73 /* Utility.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = Utility.c; sourceTree = "<group>"; };
 		E2C99CA813789AC60077AC75 /* Tasks.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = Tasks.c; sourceTree = "<group>"; };
 		E2C99CA913789AC60077AC75 /* Tasks.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Tasks.h; sourceTree = "<group>"; };
+		E2CCA54818DBC577001FD4C0 /* ParallelLoops.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ParallelLoops.cpp; sourceTree = "<group>"; };
+		E2CCA54918DBC577001FD4C0 /* ParallelLoops.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ParallelLoops.h; sourceTree = "<group>"; };
 		E2ECC4CB16FE86830016167B /* YCoCgDXT.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = YCoCgDXT.cpp; sourceTree = "<group>"; };
 		E2F8FE91143B5A8F00683004 /* Utility.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Utility.h; sourceTree = "<group>"; };
 		FBFA8C8B0829E75000560632 /* HapCodecVersion.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = HapCodecVersion.h; sourceTree = "<group>"; };
@@ -245,6 +248,8 @@
 				E20D395516FCDF3F001725BF /* Lock.h */,
 				BDF1AF051376DD7C00C0F4D1 /* Buffers.h */,
 				BDF1AF041376DD7C00C0F4D1 /* Buffers.c */,
+				E2CCA54918DBC577001FD4C0 /* ParallelLoops.h */,
+				E2CCA54818DBC577001FD4C0 /* ParallelLoops.cpp */,
 				E2C99CA913789AC60077AC75 /* Tasks.h */,
 				E2C99CA813789AC60077AC75 /* Tasks.c */,
 				E2F8FE91143B5A8F00683004 /* Utility.h */,
@@ -467,6 +472,7 @@
 				E2210D2B15CAE914009DD434 /* YCoCg.c in Sources */,
 				E2210D3B15CAF913009DD434 /* ImageMath.c in Sources */,
 				BDDAEA8416160F7500FEC70D /* hap.c in Sources */,
+				E2CCA54A18DBC577001FD4C0 /* ParallelLoops.cpp in Sources */,
 				BDDA19C616190E190068EBB3 /* YCoCgDXTEncoder.c in Sources */,
 				BDDA19CA161927080068EBB3 /* SquishEncoder.c in Sources */,
 				BDDA19CD1619A5C90068EBB3 /* GLDXTEncoder.c in Sources */,
