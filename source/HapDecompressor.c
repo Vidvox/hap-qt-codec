@@ -85,9 +85,6 @@ typedef struct	{
 	Handle						wantedDestinationPixelTypes;
     HapCodecBufferPoolRef       dxtBufferPool;
     HapCodecBufferPoolRef       convertBufferPool;
-#if defined(__APPLE__)
-    dispatch_queue_t            hapDecodeQueue;
-#endif
 #ifdef HAP_GPU_DECODE
     HapCodecGLRef               glDecoder;
 #endif
@@ -186,9 +183,6 @@ pascal ComponentResult Hap_DOpen(HapDecompressorGlobals glob, ComponentInstance 
 #ifdef HAP_GPU_DECODE
     glob->glDecoder = NULL;
 #endif
-#if defined(__APPLE__)
-    glob->hapDecodeQueue = NULL;
-#endif
     
 	// Open and target an instance of the base decompressor as we delegate
 	// most of our calls to the base decompressor instance
@@ -221,12 +215,6 @@ pascal ComponentResult Hap_DClose(HapDecompressorGlobals glob, ComponentInstance
         if (glob->glDecoder)
         {
             HapCodecGLDestroy(glob->glDecoder);
-        }
-#endif
-#if defined(__APPLE__)
-        if (glob->hapDecodeQueue)
-        {
-            dispatch_release(glob->hapDecodeQueue);
         }
 #endif
         HapCodecBufferPoolDestroy(glob->convertBufferPool);
