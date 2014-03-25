@@ -493,7 +493,11 @@ bail:
 	return err;
 }
 
+#if defined(DEBUG)
 pascal ComponentResult Hap_DDecodeBand(HapDecompressorGlobals glob, ImageSubCodecDecompressRecord *drp, unsigned long flags HAP_ATTR_UNUSED)
+#else
+pascal ComponentResult Hap_DDecodeBand(HapDecompressorGlobals glob HAP_ATTR_UNUSED, ImageSubCodecDecompressRecord *drp, unsigned long flags HAP_ATTR_UNUSED)
+#endif
 {
 	OSErr err = noErr;
 	HapDecompressRecord *myDrp = (HapDecompressRecord *)drp->userDecompressRecord;
