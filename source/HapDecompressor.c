@@ -151,7 +151,7 @@ void HapMTDecode(HapDecodeWorkFunction function, void *p, unsigned int count, vo
 // Component Open Request - Required
 #pragma GCC push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-pascal ComponentResult Hap_DOpen(HapDecompressorGlobals glob, ComponentInstance self)
+ComponentResult Hap_DOpen(HapDecompressorGlobals glob, ComponentInstance self)
 {
     ComponentResult err;
     ComponentDescription componentDescription;
@@ -201,7 +201,7 @@ bail:
 #pragma GCC pop
 
 // Component Close Request - Required
-pascal ComponentResult Hap_DClose(HapDecompressorGlobals glob, ComponentInstance self HAP_ATTR_UNUSED)
+ComponentResult Hap_DClose(HapDecompressorGlobals glob, ComponentInstance self HAP_ATTR_UNUSED)
 {
 	// Make sure to close the base component and deallocate our storage
 	if (glob)
@@ -229,7 +229,7 @@ pascal ComponentResult Hap_DClose(HapDecompressorGlobals glob, ComponentInstance
 }
 
 // Component Version Request - Required
-pascal ComponentResult Hap_DVersion(HapDecompressorGlobals glob HAP_ATTR_UNUSED)
+ComponentResult Hap_DVersion(HapDecompressorGlobals glob HAP_ATTR_UNUSED)
 {
 	return kHapDecompressorVersion;
 }
@@ -237,7 +237,7 @@ pascal ComponentResult Hap_DVersion(HapDecompressorGlobals glob HAP_ATTR_UNUSED)
 // Component Target Request
 // 		Allows another component to "target" you i.e., you call another component whenever
 // you would call yourself (as a result of your component being used by another component)
-pascal ComponentResult Hap_DTarget(HapDecompressorGlobals glob, ComponentInstance target)
+ComponentResult Hap_DTarget(HapDecompressorGlobals glob, ComponentInstance target)
 {
 	glob->target = target;
 	return noErr;
@@ -249,7 +249,7 @@ pascal ComponentResult Hap_DTarget(HapDecompressorGlobals glob, ComponentInstanc
 //		The first function call that your image decompressor component receives from the base image
 // decompressor is always a call to ImageCodecInitialize. In response to this call, your image decompressor
 // component returns an ImageSubCodecDecompressCapabilities structure that specifies its capabilities.
-pascal ComponentResult Hap_DInitialize(HapDecompressorGlobals glob HAP_ATTR_UNUSED, ImageSubCodecDecompressCapabilities *cap)
+ComponentResult Hap_DInitialize(HapDecompressorGlobals glob HAP_ATTR_UNUSED, ImageSubCodecDecompressCapabilities *cap)
 {
 	// Secifies the size of the ImageSubCodecDecompressRecord structure
 	// and say we can support asyncronous decompression
@@ -283,7 +283,7 @@ pascal ComponentResult Hap_DInitialize(HapDecompressorGlobals glob HAP_ATTR_UNUS
 // which the ICM makes before decompressing an image. You are required only to provide values for
 // the wantedDestinationPixelSize and wantedDestinationPixelTypes fields and can also modify other
 // fields if necessary.
-pascal ComponentResult Hap_DPreflight(HapDecompressorGlobals glob, CodecDecompressParams *p)
+ComponentResult Hap_DPreflight(HapDecompressorGlobals glob, CodecDecompressParams *p)
 {
     // see also p->destinationBufferMemoryPreference and kICMImageBufferPreferVideoMemory
 	OSStatus err = noErr;
@@ -376,7 +376,7 @@ bail:
 // preserves any changes your component makes to any of the fields in the ImageSubCodecDecompressRecord
 // or CodecDecompressParams structures. If your component supports asynchronous scheduled decompression, it
 // may receive more than one ImageCodecBeginBand call before receiving an ImageCodecDrawBand call.
-pascal ComponentResult Hap_DBeginBand(HapDecompressorGlobals glob, CodecDecompressParams *p, ImageSubCodecDecompressRecord *drp, long flags HAP_ATTR_UNUSED)
+ComponentResult Hap_DBeginBand(HapDecompressorGlobals glob, CodecDecompressParams *p, ImageSubCodecDecompressRecord *drp, long flags HAP_ATTR_UNUSED)
 {
 	OSStatus err = noErr;
 	HapDecompressRecord *myDrp = (HapDecompressRecord *)drp->userDecompressRecord;
@@ -494,9 +494,9 @@ bail:
 }
 
 #if defined(DEBUG)
-pascal ComponentResult Hap_DDecodeBand(HapDecompressorGlobals glob, ImageSubCodecDecompressRecord *drp, unsigned long flags HAP_ATTR_UNUSED)
+ComponentResult Hap_DDecodeBand(HapDecompressorGlobals glob, ImageSubCodecDecompressRecord *drp, unsigned long flags HAP_ATTR_UNUSED)
 #else
-pascal ComponentResult Hap_DDecodeBand(HapDecompressorGlobals glob HAP_ATTR_UNUSED, ImageSubCodecDecompressRecord *drp, unsigned long flags HAP_ATTR_UNUSED)
+ComponentResult Hap_DDecodeBand(HapDecompressorGlobals glob HAP_ATTR_UNUSED, ImageSubCodecDecompressRecord *drp, unsigned long flags HAP_ATTR_UNUSED)
 #endif
 {
 	OSErr err = noErr;
@@ -550,7 +550,7 @@ bail:
 // by the fields of the ImageSubCodecDecompressRecord structure. The structure includes any changes your component made to it
 // when performing the ImageCodecBeginBand function. If your component supports asynchronous scheduled decompression,
 // it may receive more than one ImageCodecBeginBand call before receiving an ImageCodecDrawBand call.
-pascal ComponentResult Hap_DDrawBand(HapDecompressorGlobals glob, ImageSubCodecDecompressRecord *drp)
+ComponentResult Hap_DDrawBand(HapDecompressorGlobals glob, ImageSubCodecDecompressRecord *drp)
 {
 	ComponentResult err = noErr;
 	
@@ -658,7 +658,7 @@ bail:
 // can be called at interrupt time, your component cannot use this function to dispose of data structures; this
 // must occur after handling the function. The value of the result parameter should be set to noErr if the band or frame was
 // drawn successfully. If it is any other value, the band or frame was not drawn.
-pascal ComponentResult Hap_DEndBand(HapDecompressorGlobals glob HAP_ATTR_UNUSED, ImageSubCodecDecompressRecord *drp, OSErr result HAP_ATTR_UNUSED, long flags HAP_ATTR_UNUSED)
+ComponentResult Hap_DEndBand(HapDecompressorGlobals glob HAP_ATTR_UNUSED, ImageSubCodecDecompressRecord *drp, OSErr result HAP_ATTR_UNUSED, long flags HAP_ATTR_UNUSED)
 {
 	HapDecompressRecord *myDrp = (HapDecompressRecord *)drp->userDecompressRecord;
     HapCodecBufferReturn(myDrp->dxtBuffer);
@@ -673,7 +673,7 @@ pascal ComponentResult Hap_DEndBand(HapDecompressorGlobals glob HAP_ATTR_UNUSED,
 // ImageCodecQueueStarting function before decompressing the frames in the queue. Your component is not required to implement this function.
 // It can implement the function if it needs to perform any tasks at this time, such as locking data structures.
 // The base image decompressor never calls the ImageCodecQueueStarting function at interrupt time.
-pascal ComponentResult Hap_DQueueStarting(HapDecompressorGlobals glob)
+ComponentResult Hap_DQueueStarting(HapDecompressorGlobals glob)
 {
 #pragma unused(glob)
 	
@@ -686,7 +686,7 @@ pascal ComponentResult Hap_DQueueStarting(HapDecompressorGlobals glob)
 // After your image decompressor component handles an ImageCodecQueueStopping call, it can perform any tasks that are required when decompression
 // of the frames is finished, such as disposing of data structures that are no longer needed. 
 // The base image decompressor never calls the ImageCodecQueueStopping function at interrupt time.
-pascal ComponentResult Hap_DQueueStopping(HapDecompressorGlobals glob HAP_ATTR_UNUSED)
+ComponentResult Hap_DQueueStopping(HapDecompressorGlobals glob HAP_ATTR_UNUSED)
 {
 	return noErr;
 }
@@ -697,7 +697,7 @@ pascal ComponentResult Hap_DQueueStopping(HapDecompressorGlobals glob HAP_ATTR_U
 // image description structure and don't know the exact size of one frame. In this case, the Image Compression Manager calls the component to determine
 // the size of the data. Your component should return a long integer indicating the number of bytes of data in the compressed image. You may want to store
 // the image size somewhere in the image description structure, so that you can respond to this request quickly. Only decompressors receive this request.
-pascal ComponentResult Hap_DGetCompressedImageSize(HapDecompressorGlobals glob HAP_ATTR_UNUSED,
+ComponentResult Hap_DGetCompressedImageSize(HapDecompressorGlobals glob HAP_ATTR_UNUSED,
                                                    ImageDescriptionHandle desc HAP_ATTR_UNUSED,
                                                    Ptr data HAP_ATTR_UNUSED,
                                                    long dataSize HAP_ATTR_UNUSED,
@@ -716,7 +716,7 @@ pascal ComponentResult Hap_DGetCompressedImageSize(HapDecompressorGlobals glob H
 //		Your component receives the ImageCodecGetCodecInfo request whenever an application calls the Image Compression Manager's GetCodecInfo function.
 // Your component should return a formatted compressor information structure defining its capabilities.
 // Both compressors and decompressors may receive this request.
-pascal ComponentResult Hap_DGetCodecInfo(HapDecompressorGlobals glob, CodecInfo *info)
+ComponentResult Hap_DGetCodecInfo(HapDecompressorGlobals glob, CodecInfo *info)
 {
 	OSErr err = noErr;
 
