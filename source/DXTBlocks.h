@@ -31,13 +31,13 @@
 #include "HapPlatform.h"
 #include <stdint.h>
 
-void HapCodecDXTReadBlockRGBA(uint8_t *copy_src, uint8_t *copy_dst, unsigned int src_bytes_per_row);
+void HapCodecDXTReadBlockRGBA(const uint8_t *copy_src, uint8_t *copy_dst, unsigned int src_bytes_per_row);
 
 #if !defined(HAP_SSSE3_ALWAYS_AVAILABLE)
 int HapCodecHasSSSE3(void);
-void HapCodecDXTReadBlockBGRAScalar(uint8_t *copy_src, uint8_t *copy_dst, unsigned int src_bytes_per_row);
+void HapCodecDXTReadBlockBGRAScalar(const uint8_t *copy_src, uint8_t *copy_dst, unsigned int src_bytes_per_row);
 #endif
 
-void HapCodecDXTReadBlockBGRASSSE3(uint8_t *copy_src, uint8_t *copy_dst, unsigned int src_bytes_per_row);
+void HapCodecDXTReadBlockBGRASSSE3(const uint8_t *copy_src, uint8_t *copy_dst, unsigned int src_bytes_per_row);
 
 #endif

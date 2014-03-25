@@ -28,7 +28,7 @@
 #include "DXTBlocks.h"
 #include <string.h>
 
-void HapCodecDXTReadBlockRGBA(uint8_t *copy_src, uint8_t *copy_dst, unsigned int src_bytes_per_row)
+void HapCodecDXTReadBlockRGBA(const uint8_t *copy_src, uint8_t *copy_dst, unsigned int src_bytes_per_row)
 {
     int i;
     for (i = 0; i < 4; i++) {
@@ -71,7 +71,7 @@ int HapCodecHasSSSE3(void)
     return (hasSSE2 && hasSSE3 && hasSSSE3);
 }
 
-void HapCodecDXTReadBlockBGRAScalar(uint8_t *copy_src, uint8_t *copy_dst, unsigned int src_bytes_per_row)
+void HapCodecDXTReadBlockBGRAScalar(const uint8_t *copy_src, uint8_t *copy_dst, unsigned int src_bytes_per_row)
 {
     int y, x;
     for (y = 0; y < 4; y++)
