@@ -23,3 +23,6 @@ profile
 # Build results
 [Dd]ebug/
 [Rr]elease/
+*.msi
+*.wixobj
+*.wixpdb
