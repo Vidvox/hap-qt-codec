@@ -511,7 +511,12 @@ unsigned int HapDecode(const void *inputBuffer, unsigned long inputBufferBytes,
         /*
          The Chunk Second-Stage Compressor Table and Chunk Size Table are required
          */
-        if (compressors && chunk_sizes && chunk_count)
+        if (compressors == NULL || chunk_sizes == NULL)
+        {
+            return HapResult_Bad_Frame;
+        }
+
+        if (chunk_count > 0)
         {
             /*
              Step through the chunks, storing information for their decompression
@@ -578,22 +583,23 @@ unsigned int HapDecode(const void *inputBuffer, unsigned long inputBufferBytes,
                 result = HapResult_Buffer_Too_Small;
             }
 
-            if (result != HapResult_No_Error)
+            if (result == HapResult_No_Error)
             {
-                free(chunk_info);
-                return result;
-            }
+                bytesUsed = running_uncompressed_chunk_size;
 
-            bytesUsed = running_uncompressed_chunk_size;
+                callback((HapDecodeWorkFunction)hap_decode_chunk, chunk_info, chunk_count, info);
 
-            callback((HapDecodeWorkFunction)hap_decode_chunk, chunk_info, chunk_count, info);
-
-            /*
-             Check to see if we encountered an error
-             */
-            for (i = 0; i < chunk_count; i++)
-            {
-                if (chunk_info[i].result != HapResult_No_Error) result = chunk_info[i].result;
+                /*
+                 Check to see if we encountered any errors and report one of them
+                 */
+                for (i = 0; i < chunk_count; i++)
+                {
+                    if (chunk_info[i].result != HapResult_No_Error)
+                    {
+                        result = chunk_info[i].result;
+                        break;
+                    }
+                }
             }
 
             free(chunk_info);
