@@ -340,40 +340,40 @@ unsigned int HapEncode(const void *inputBuffer, unsigned long inputBufferBytes, 
 
 static void hap_decode_chunk(HapChunkDecodeInfo chunks[], unsigned int index)
 {
-	if (chunks)
-	{
-		if (chunks[index].compressor == kHapCompressorSnappy)
-		{
-			snappy_status snappy_result = snappy_uncompress(chunks[index].compressed_chunk_data,
-															chunks[index].compressed_chunk_size,
-															chunks[index].uncompressed_chunk_data,
-															&chunks[index].uncompressed_chunk_size);
+    if (chunks)
+    {
+        if (chunks[index].compressor == kHapCompressorSnappy)
+        {
+            snappy_status snappy_result = snappy_uncompress(chunks[index].compressed_chunk_data,
+                                                            chunks[index].compressed_chunk_size,
+                                                            chunks[index].uncompressed_chunk_data,
+                                                            &chunks[index].uncompressed_chunk_size);
 
-			switch (snappy_result)
-			{
-			case SNAPPY_INVALID_INPUT:
-				chunks[index].result = HapResult_Bad_Frame;
-				break;
-			case SNAPPY_OK:
-				chunks[index].result = HapResult_No_Error;
-				break;
-			default:
-				chunks[index].result = HapResult_Internal_Error;
-				break;
-			}
-		}
-		else if (chunks[index].compressor == kHapCompressorNone)
-		{
-			memcpy(chunks[index].uncompressed_chunk_data,
-				   chunks[index].compressed_chunk_data,
-				   chunks[index].compressed_chunk_size);
-			chunks[index].result = HapResult_No_Error;
-		}
-		else
-		{
-			chunks[index].result = HapResult_Bad_Frame;
-		}
-	}
+            switch (snappy_result)
+            {
+                case SNAPPY_INVALID_INPUT:
+                    chunks[index].result = HapResult_Bad_Frame;
+                    break;
+                case SNAPPY_OK:
+                    chunks[index].result = HapResult_No_Error;
+                    break;
+                default:
+                    chunks[index].result = HapResult_Internal_Error;
+                    break;
+            }
+        }
+        else if (chunks[index].compressor == kHapCompressorNone)
+        {
+            memcpy(chunks[index].uncompressed_chunk_data,
+                   chunks[index].compressed_chunk_data,
+                   chunks[index].compressed_chunk_size);
+            chunks[index].result = HapResult_No_Error;
+        }
+        else
+        {
+            chunks[index].result = HapResult_Bad_Frame;
+        }
+    }
 }
 
 unsigned int HapDecode(const void *inputBuffer, unsigned long inputBufferBytes,
