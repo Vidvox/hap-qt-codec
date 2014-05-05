@@ -585,6 +585,9 @@ unsigned int HapDecode(const void *inputBuffer, unsigned long inputBufferBytes,
 
             if (result == HapResult_No_Error)
             {
+                /*
+                 Perform decompression
+                 */
                 bytesUsed = running_uncompressed_chunk_size;
 
                 callback((HapDecodeWorkFunction)hap_decode_chunk, chunk_info, chunk_count, info);
@@ -647,7 +650,7 @@ unsigned int HapDecode(const void *inputBuffer, unsigned long inputBufferBytes,
         return HapResult_Bad_Frame;
     }
     /*
-     Fill out the remaining return values
+     Fill out the remaining return value
      */
     if (outputBufferBytesUsed != NULL)
     {

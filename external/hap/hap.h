@@ -68,7 +68,7 @@ unsigned long HapMaxEncodedLength(unsigned long inputBytes);
 
 /*
  Encodes inputBuffer which is a buffer containing texture data of format textureFormat, or returns an error.
- Use HapMaxEncodedLength() to discover the minimal value for outputBufferBytes
+ Use HapMaxEncodedLength() to discover the minimal value for outputBufferBytes.
  If this returns HapResult_No_Error and outputBufferBytesUsed is not NULL then outputBufferBytesUsed will be set
  to the actual encoded length of the output buffer.
  */
@@ -77,10 +77,12 @@ unsigned int HapEncode(const void *inputBuffer, unsigned long inputBufferBytes, 
                        unsigned long *outputBufferBytesUsed);
 
 /*
- Decodes inputBuffer which is a Hap frame. If the frame permits multithreaded decoding, callback will be called
- once for you to invoke a platform-appropriate mechanism to assign work to threads, and trigger that work by calling
- the function passed to your callback the number of times indicated by the count argument, usually from a number
- of different threads.
+ Decodes inputBuffer which is a Hap frame.
+
+ If the frame permits multithreaded decoding, callback will be called once for you to invoke a platform-appropriate
+ mechanism to assign work to threads, and trigger that work by calling the function passed to your callback the number
+ of times indicated by the count argument, usually from a number of different threads. This callback must not return
+ until all the work has been completed.
 
  void MyHapDecodeCallback(HapDecodeWorkFunction function, void *p, unsigned int count, void *info)
  {
