@@ -26,3 +26,4 @@ profile
 *.msi
 *.wixobj
 *.wixpdb
+Thumbs.db
