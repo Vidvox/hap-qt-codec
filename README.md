@@ -14,7 +14,8 @@ Download
 
 An installer for the Hap QuickTime component can be downloaded here:
 
-[Hap Codec for MacOS X](http://vidvox.net/download/Hap_Codec_1.dmg)
+[Hap Codec for MacOS X](https://github.com/Vidvox/hap-qt-codec/releases/download/version-3/Hap.QuickTime.Codec.for.MacOS.v3.dmg)
+[Hap Codec for Windows](https://github.com/Vidvox/hap-qt-codec/releases/download/version-3/Hap.QuickTime.Codec.for.Windows.v3.msi)
 
 Requires at minimum MacOS 10.6 Snow Leapord, or Windows Vista with QuickTime 7 installed.
 
