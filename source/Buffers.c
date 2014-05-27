@@ -26,29 +26,75 @@
  */
 
 #include "Buffers.h"
+#ifdef __APPLE__
 #include <libkern/OSAtomic.h>
+#else
+#include <Windows.h>
+#include <malloc.h>
+#endif
 
 typedef struct HapCodecBufferPool {
+#if defined(__APPLE__)
     OSQueueHead             queue;
+#elif defined(_WIN32)
+    PSLIST_HEADER           queue;
+#endif
     long                    size;
 } HapCodecBufferPool;
 
 typedef struct HapCodecBuffer {
-    void                    *buffer;
+#if defined(__APPLE__)
     void                    *next;
+#elif defined(_WIN32)
+    SLIST_ENTRY             itemEntry;
+#endif
+    void                    *buffer;
     HapCodecBufferPoolRef   pool;
 } HapCodecBuffer;
 
 HapCodecBufferPoolRef HapCodecBufferPoolCreate(long size)
 {
-    HapCodecBufferPoolRef pool = malloc(sizeof(HapCodecBufferPool));
+    HapCodecBufferPoolRef pool = (HapCodecBufferPoolRef)malloc(sizeof(HapCodecBufferPool));
     if (pool)
     {
+        pool->size = size;
+#if defined(__APPLE__)
         pool->queue.opaque1 = NULL; // OS_ATOMIC_QUEUE_INIT
         pool->queue.opaque2 = 0; // OS_ATOMIC_QUEUE_INIT
-        pool->size = size;
+#elif defined(_WIN32)
+        pool->queue = (PSLIST_HEADER)_aligned_malloc(sizeof(SLIST_HEADER), MEMORY_ALLOCATION_ALIGNMENT);
+        if(pool->queue == NULL)
+        {
+            free(pool);
+            pool = NULL;
+        }
+        else
+        {
+            InitializeSListHead(pool->queue);
+        }
+#endif
     }
     return pool;
+}
+
+static HapCodecBufferRef HapCodecBufferPoolTryCopyBuffer(HapCodecBufferPoolRef pool)
+{
+#if defined(__APPLE__)
+    return OSAtomicDequeue(&pool->queue, offsetof(HapCodecBuffer, next));
+#elif defined(_WIN32)
+    return (HapCodecBufferRef)InterlockedPopEntrySList(pool->queue);
+#endif
+}
+
+static void HapCodecBufferDestroy(HapCodecBufferRef buffer)
+{
+#if defined(__APPLE__)
+    if (buffer->buffer) free(buffer->buffer);
+    free(buffer);
+#elif defined(_WIN32)
+    if (buffer->buffer) _aligned_free(buffer->buffer);
+    _aligned_free(buffer);
+#endif
 }
 
 void HapCodecBufferPoolDestroy(HapCodecBufferPoolRef pool)
@@ -58,13 +104,15 @@ void HapCodecBufferPoolDestroy(HapCodecBufferPoolRef pool)
         HapCodecBufferRef buffer;
         do
         {
-            buffer = OSAtomicDequeue(&pool->queue, offsetof(HapCodecBuffer, next));
+            buffer = HapCodecBufferPoolTryCopyBuffer(pool);
             if (buffer)
             {
-                free(buffer->buffer);
-                free(buffer);
+                HapCodecBufferDestroy(buffer);
             }
         } while (buffer != NULL);
+#if defined(_WIN32)
+        _aligned_free(pool->queue);
+#endif
         free(pool);
     }
 }
@@ -85,15 +133,28 @@ HapCodecBufferRef HapCodecBufferCreate(HapCodecBufferPoolRef pool)
 {
     if (pool)
     {
-        HapCodecBuffer *buffer = OSAtomicDequeue(&pool->queue, offsetof(HapCodecBuffer, next));
+        HapCodecBuffer *buffer = HapCodecBufferPoolTryCopyBuffer(pool);
         if (buffer == NULL)
         {
+#if defined(__APPLE__)
             buffer = malloc(sizeof(HapCodecBuffer));
+#elif defined(_WIN32)
+            buffer = (HapCodecBufferRef)_aligned_malloc(sizeof(HapCodecBuffer), MEMORY_ALLOCATION_ALIGNMENT);
+#endif
             if (buffer)
             {
+#if defined(__APPLE__)
                 buffer->next = NULL;
                 buffer->buffer = malloc(pool->size);
+#else
+                buffer->buffer = (HapCodecBufferRef)_aligned_malloc(pool->size, 16);
+#endif
                 buffer->pool = pool;
+                if (buffer->buffer == NULL)
+                {
+                    HapCodecBufferDestroy(buffer);
+                    buffer = NULL;
+                }
             }
         }
         return buffer;
@@ -108,7 +169,11 @@ void HapCodecBufferReturn(HapCodecBufferRef buffer)
 {
     if (buffer && buffer->pool)
     {
+#if defined(__APPLE__)
         OSAtomicEnqueue(&buffer->pool->queue, buffer, offsetof(HapCodecBuffer, next));
+#elif defined(_WIN32)
+        InterlockedPushEntrySList(buffer->pool->queue, &(buffer->itemEntry));
+#endif
     }
 }
 

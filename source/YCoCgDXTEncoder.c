@@ -28,13 +28,15 @@
 #include "YCoCgDXTEncoder.h"
 #include "YCoCgDXT.h"
 #include "PixelFormats.h"
+#include "HapPlatform.h"
+#include <stdlib.h>
 
 static void HapCodecYCoCgEncoderDestroy(HapCodecDXTEncoderRef encoder)
 {
     free(encoder);
 }
 
-static int HapCodecYCoCgDXTEncoderEncode(HapCodecDXTEncoderRef encoder,
+static int HapCodecYCoCgDXTEncoderEncode(HapCodecDXTEncoderRef encoder HAP_ATTR_UNUSED,
                                      const void *src,
                                      unsigned int src_bytes_per_row,
                                      OSType src_pixel_format,
@@ -42,29 +44,26 @@ static int HapCodecYCoCgDXTEncoderEncode(HapCodecDXTEncoderRef encoder,
                                      unsigned int width,
                                      unsigned int height)
 {
-#pragma unused(encoder)
     if (src_pixel_format != kHapCVPixelFormat_CoCgXY) return 1;
-    CompressYCoCgDXT5(src, dst, width, height, src_bytes_per_row);
+    CompressYCoCgDXT5((const byte *)src, (byte *)dst, width, height, src_bytes_per_row);
     return 0;
 }
 
-static OSType HapCodecYCoCgDXTEncoderWantedPixelFormat(HapCodecDXTEncoderRef encoder, OSType sourceFormat)
+static OSType HapCodecYCoCgDXTEncoderWantedPixelFormat(HapCodecDXTEncoderRef encoder HAP_ATTR_UNUSED, OSType sourceFormat HAP_ATTR_UNUSED)
 {
-#pragma unused(encoder, sourceFormat)
     return kHapCVPixelFormat_CoCgXY;
 }
 
 #if defined(DEBUG)
-static const char *HapCodecYCoCgDXTEncoderDescribe(HapCodecDXTEncoderRef encoder)
+static const char *HapCodecYCoCgDXTEncoderDescribe(HapCodecDXTEncoderRef encoder HAP_ATTR_UNUSED)
 {
-#pragma unused(encoder)
     return "YCoCg DXT5 Encoder";
 }
 #endif
 
 HapCodecDXTEncoderRef HapCodecYCoCgDXTEncoderCreate(void)
 {
-    HapCodecDXTEncoderRef encoder = malloc(sizeof(struct HapCodecDXTEncoder));
+    HapCodecDXTEncoderRef encoder = (HapCodecDXTEncoderRef)malloc(sizeof(struct HapCodecDXTEncoder));
     if (encoder)
     {
         encoder->pixelformat_function = HapCodecYCoCgDXTEncoderWantedPixelFormat;

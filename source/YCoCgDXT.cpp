@@ -32,7 +32,6 @@
       - Remove dependencies on other EAWebKit files
       - Mark unexported functions as static
       - Refactor to eliminate use of a global variable
-      - Revert Chris Sidhall's C++ function overloading for C
       - Correct spelling of NVIDIA_7X_HARDWARE_BUG_FIX macro
       - Remove single usage of an assert macro
 
@@ -73,7 +72,6 @@
 #include "YCoCgDXT.h"
 #include <string.h>
 #include <stdlib.h>
-#include <stdbool.h>
 
 /* ALWAYS_INLINE */
 /* Derived from EAWebKit's AlwaysInline.h, losing some of its support for other compilers */
@@ -129,7 +127,7 @@ typedef unsigned int    dword;
 
 #define NVIDIA_G7X_HARDWARE_BUG_FIX     // keep the colors sorted as: max, min
 
-#ifdef __LITTLE_ENDIAN__
+#if defined(__LITTLE_ENDIAN__) || defined(_WIN32)
 #define EA_SYSTEM_LITTLE_ENDIAN
 #endif
 
@@ -156,20 +154,6 @@ static ALWAYS_INLINE void EmitUShort( unsigned short s, byte **outData ){
     *outData += 2;
 }
 
-static ALWAYS_INLINE void EmitWord( word s, byte **outData ) {
-    (*outData)[0] = ( s >>  0 ) & 255;
-    (*outData)[1] = ( s >>  8 ) & 255;
-    *outData += 2;
-}
-
-static ALWAYS_INLINE void EmitDoubleWord( dword i, byte **outData ) {
-    (*outData)[0] = ( i >>  0 ) & 255;
-    (*outData)[1] = ( i >>  8 ) & 255;
-    (*outData)[2] = ( i >> 16 ) & 255;
-    (*outData)[3] = ( i >> 24 ) & 255;
-    (*outData) += 4;
-}
-
 static ALWAYS_INLINE void ExtractBlock( const byte *inPtr, const int stride, byte *colorBlock ) {
     for ( int j = 0; j < 4; j++ ) {
         memcpy( &colorBlock[j*4*4], inPtr, 4*4 );
@@ -179,7 +163,7 @@ static ALWAYS_INLINE void ExtractBlock( const byte *inPtr, const int stride, byt
 
 // This box extract replicates the last rows and columns if the row or columns are not 4 texels aligned
 // This is so we don't get random pixels which could affect the color interpolation
-static void ExtractEdgeBlock( const byte *inPtr, const int stride, const int widthRemain, const int heightRemain, byte *colorBlock ) {
+static void ExtractBlock( const byte *inPtr, const int stride, const int widthRemain, const int heightRemain, byte *colorBlock ) {
     int *pBlock32 = (int *) colorBlock;  // Since we are using ARGA, we assume 4 byte alignment is already being used
     int *pSource32 = (int*) inPtr; 
     
@@ -467,7 +451,7 @@ static void EmitColorIndices( const byte *colorBlock, const byte *minColor, cons
  1.2     1/10/10 Added stride
  */
 /*************************************************************************************************F*/
-int CompressYCoCgDXT5( const byte *inBuf, byte *outBuf, const int width, const int height , const int stride) {
+extern "C" int CompressYCoCgDXT5( const byte *inBuf, byte *outBuf, const int width, const int height , const int stride) {
     
     int outputBytes =0;
     
@@ -486,7 +470,7 @@ int CompressYCoCgDXT5( const byte *inBuf, byte *outBuf, const int width, const i
             // Note: Modified from orignal source so that it can handle the edge blending better with non aligned 4x textures
             int widthRemain = width - i;
             if ((heightRemain < 4) || (widthRemain < 4) ) {
-                ExtractEdgeBlock( inBuf + i * 4, stride, widthRemain, heightRemain,  block );  
+                ExtractBlock( inBuf + i * 4, stride, widthRemain, heightRemain,  block );  
             }
             else {
                 ExtractBlock( inBuf + i * 4, stride, block );
@@ -570,11 +554,13 @@ static ALWAYS_INLINE void Convert565ToColor( const unsigned short value , byte *
     pOutColor[2] = c << 3;  // was a 5 bit so scale back up 
 }
 
+#ifndef EA_SYSTEM_LITTLE_ENDIAN
 // Flip around the 2 bytes in a short
 static ALWAYS_INLINE short ShortFlipBytes( short raw ) 
 {
     return ((raw >> 8) & 0xff) | (raw << 8);
 }
+#endif
 
 static void RestoreChromaBlock( const void * pSource, byte *colorBlock)
 {
@@ -657,7 +643,7 @@ static int ALWAYS_INLINE StoreBlock( const byte *colorBlock, const int stride, b
 }
 
 // This store only the texels that are within the width and height boundaries so does not overflow
-static int StoreEdgeBlock( const byte *colorBlock , const int stride, const int widthRemain, const int heightRemain,  byte *outPtr) 
+static int StoreBlock( const byte *colorBlock , const int stride, const int widthRemain, const int heightRemain,  byte *outPtr) 
 {
     int outCount =0;
     int width = stride >> 2;    // Convert to int offsets
@@ -730,7 +716,7 @@ static int StoreEdgeBlock( const byte *colorBlock , const int stride, const int 
  1.2        11/10/10 CSidhall: Added stride for textures with different image and canvas sizes.
  */
 /*************************************************************************************************F*/
-int DeCompressYCoCgDXT5( const byte *inBuf, byte *outBuf, const int width, const int height, const int stride )
+extern "C" int DeCompressYCoCgDXT5( const byte *inBuf, byte *outBuf, const int width, const int height, const int stride )
 {
     byte colorBlock[64];    // 4x4 texel work space a linear array 
     int outByteCount =0;
@@ -756,7 +742,7 @@ int DeCompressYCoCgDXT5( const byte *inBuf, byte *outBuf, const int width, const
             RestoreLumaAlphaBlock(pCurInBuffer, colorBlock);
             RestoreChromaBlock(pCurInBuffer, colorBlock);
             
-            outByteCount += StoreEdgeBlock(colorBlock , stride, widthRemain, 4 /* heightRemain >= 4 */, outBuf + i * 4);
+            outByteCount += StoreBlock(colorBlock , stride, widthRemain, 4 /* heightRemain >= 4 */, outBuf + i * 4);
             
             pCurInBuffer += 16; // 16 bytes per block of compressed data
         }
@@ -773,7 +759,7 @@ int DeCompressYCoCgDXT5( const byte *inBuf, byte *outBuf, const int width, const
             RestoreChromaBlock(pCurInBuffer, colorBlock);
             
             int widthRemain = width - i;
-            outByteCount += StoreEdgeBlock(colorBlock , stride, widthRemain, heightRemain,  outBuf + i * 4);
+            outByteCount += StoreBlock(colorBlock , stride, widthRemain, heightRemain,  outBuf + i * 4);
             
             pCurInBuffer += 16; // 16 bytes per block of compressed data
         }

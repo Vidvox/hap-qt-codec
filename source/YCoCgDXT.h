@@ -91,6 +91,10 @@
 #ifndef HapCodec_YCoCgDXT_h
 #define HapCodec_YCoCgDXT_h
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #ifndef byte
 typedef unsigned char   byte;
 #endif
@@ -176,5 +180,8 @@ int CompressYCoCgDXT5( const byte *inBuf, byte *outBuf, const int width, const i
 /*************************************************************************************************F*/
 int DeCompressYCoCgDXT5( const byte *inBuf, byte *outBuf, const int width, const int height, const int stride );
 
+#ifdef __cplusplus
+}
+#endif
 
 #endif

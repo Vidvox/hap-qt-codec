@@ -66,7 +66,7 @@ struct HapCodecDXTEncoder {
 #if defined(DEBUG)
     HapCodecDXTEncoder_DescribeFunction describe_function;
 #endif
-    bool pad_source_buffers;
+    Boolean pad_source_buffers;
 };
 
 #define HapCodecDXTEncoderDestroy(x) if ((x) && (x)->destroy_function) (x)->destroy_function((x))

@@ -40,7 +40,9 @@ public:
 	SingleColourFit( ColourSet const* colours, int flags );
 	
 private:
+#if defined(HAP_SQUISH_EMIT_3_COLOUR_BLOCKS)
 	virtual void Compress3( void* block );
+#endif
 	virtual void Compress4( void* block );
 	
 	void ComputeEndPoints( SingleColourLookup const* const* lookups );

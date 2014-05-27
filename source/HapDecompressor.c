@@ -25,32 +25,38 @@
  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#if __APPLE_CC__
+#if defined(__APPLE__)
     #include <QuickTime/QuickTime.h>
 #else
     #include <ConditionalMacros.h>
-    #include <Endian.h>
     #include <ImageCodec.h>
+    #include <stdlib.h>
+    #include <malloc.h>
 #endif
 
-#include <libkern/OSAtomic.h>
+#include "HapPlatform.h"
 #include "HapCodecVersion.h"
 #include "Utility.h"
 #include "PixelFormats.h"
 #include "HapCodecSubTypes.h"
 #include "hap.h"
 #include "Buffers.h"
+#include "ParallelLoops.h"
 #include "YCoCg.h"
 #include "YCoCgDXT.h"
 
 /*
  Defines determine the decoding methods available.
- As MacOS supports the required EXT_texture_compression_s3tc extension at least as far back as 10.5
- and the results are the same, we don't enable squish decoding at all.
+ MacOS supports the required EXT_texture_compression_s3tc extension at least as far back as 10.5
+ so we don't enable squish decoding at all. For Windows we currently use Squish.
  If both are enabled, squish will be used as a fallback when the extension is not available.
  */
 
+#if defined(__APPLE__)
 #define HAP_GPU_DECODE
+#else
+#define HAP_SQUISH_DECODE
+#endif
 
 #ifndef HAP_GPU_DECODE
     #ifndef HAP_SQUISH_DECODE
@@ -63,8 +69,7 @@
 #endif
 
 #ifdef HAP_SQUISH_DECODE
-    #include "squish-c.h"
-    #include "ImageMath.h"
+    #include "SquishDecoder.h"
 #endif
 
 // Data structures
@@ -83,9 +88,6 @@ typedef struct	{
 #ifdef HAP_GPU_DECODE
     HapCodecGLRef               glDecoder;
 #endif
-#ifdef HAP_SQUISH_DECODE
-    HapCodecBufferPoolRef       permuteBufferPool;
-#endif
 } HapDecompressorGlobalsRecord, *HapDecompressorGlobals;
 
 typedef struct {
@@ -99,10 +101,6 @@ typedef struct {
 	Boolean                     decoded;
     HapCodecBufferRef           dxtBuffer;
     HapCodecBufferRef           convertBuffer; // used for YCoCg -> RGB
-#ifdef HAP_SQUISH_DECODE
-    HapCodecBufferRef           permuteBuffer; // used to re-order RGB
-    Boolean                     needsPermute;
-#endif
 } HapDecompressRecord;
 
 // Setup required for ComponentDispatchHelper.c
@@ -133,6 +131,15 @@ typedef struct {
 #include <ComponentDispatchHelper.c>
 #endif
 
+/*
+ Callback for multithreaded Hap decoding
+ */
+
+void HapMTDecode(HapDecodeWorkFunction function, void *p, unsigned int count, void *info HAP_ATTR_UNUSED)
+{
+    HapParallelFor((HapParallelFunction)function, p, count);
+}
+
 /* -- This Image Decompressor User the Base Image Decompressor Component --
 	The base image decompressor is an Apple-supplied component
 	that makes it easier for developers to create new decompressors.
@@ -144,16 +151,18 @@ typedef struct {
 // Component Open Request - Required
 #pragma GCC push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-pascal ComponentResult Hap_DOpen(HapDecompressorGlobals glob, ComponentInstance self)
+ComponentResult Hap_DOpen(HapDecompressorGlobals glob, ComponentInstance self)
 {
+    ComponentResult err;
+    ComponentDescription componentDescription;
+
     // Enable the following line to attach a debugger when a background helper is launched (eg for QuickTime Player X)
 //    raise(SIGSTOP);
-	ComponentResult err;
-    
+
 	// Allocate memory for our globals, set them up and inform the component manager that we've done so
     
 #ifndef __clang_analyzer__
-	glob = calloc( sizeof( HapDecompressorGlobalsRecord ), 1 );
+	glob = (HapDecompressorGlobals)calloc( sizeof( HapDecompressorGlobalsRecord ), 1 );
 #endif
 	if( ! glob ) {
 		err = memFullErr;
@@ -163,7 +172,6 @@ pascal ComponentResult Hap_DOpen(HapDecompressorGlobals glob, ComponentInstance 
 	SetComponentInstanceStorage(self, (Handle)glob);
     
     // Store the type of decompressor we are (Hap or Hap YCoCg)
-    ComponentDescription componentDescription;
     GetComponentInfo((Component)self, &componentDescription, 0, 0, 0);
     
 	glob->self = self;
@@ -171,13 +179,9 @@ pascal ComponentResult Hap_DOpen(HapDecompressorGlobals glob, ComponentInstance 
     glob->type = componentDescription.componentSubType;
 	glob->dxtBufferPool = NULL;
     glob->convertBufferPool = NULL;
-    
+
 #ifdef HAP_GPU_DECODE
     glob->glDecoder = NULL;
-#endif
-    
-#ifdef HAP_SQUISH_DECODE
-    glob->permuteBufferPool = NULL;
 #endif
     
 	// Open and target an instance of the base decompressor as we delegate
@@ -197,9 +201,8 @@ bail:
 #pragma GCC pop
 
 // Component Close Request - Required
-pascal ComponentResult Hap_DClose(HapDecompressorGlobals glob, ComponentInstance self)
+ComponentResult Hap_DClose(HapDecompressorGlobals glob, ComponentInstance self HAP_ATTR_UNUSED)
 {
-#pragma unused(self)
 	// Make sure to close the base component and deallocate our storage
 	if (glob)
     {
@@ -214,12 +217,8 @@ pascal ComponentResult Hap_DClose(HapDecompressorGlobals glob, ComponentInstance
             HapCodecGLDestroy(glob->glDecoder);
         }
 #endif
-        
         HapCodecBufferPoolDestroy(glob->convertBufferPool);
         
-#ifdef HAP_SQUISH_DECODE
-        HapCodecBufferPoolDestroy(glob->permuteBufferPool);
-#endif
 		DisposeHandle( glob->wantedDestinationPixelTypes );
 		glob->wantedDestinationPixelTypes = NULL;
 		
@@ -230,16 +229,15 @@ pascal ComponentResult Hap_DClose(HapDecompressorGlobals glob, ComponentInstance
 }
 
 // Component Version Request - Required
-pascal ComponentResult Hap_DVersion(HapDecompressorGlobals glob)
+ComponentResult Hap_DVersion(HapDecompressorGlobals glob HAP_ATTR_UNUSED)
 {
-#pragma unused(glob)
 	return kHapDecompressorVersion;
 }
 
 // Component Target Request
 // 		Allows another component to "target" you i.e., you call another component whenever
 // you would call yourself (as a result of your component being used by another component)
-pascal ComponentResult Hap_DTarget(HapDecompressorGlobals glob, ComponentInstance target)
+ComponentResult Hap_DTarget(HapDecompressorGlobals glob, ComponentInstance target)
 {
 	glob->target = target;
 	return noErr;
@@ -251,10 +249,8 @@ pascal ComponentResult Hap_DTarget(HapDecompressorGlobals glob, ComponentInstanc
 //		The first function call that your image decompressor component receives from the base image
 // decompressor is always a call to ImageCodecInitialize. In response to this call, your image decompressor
 // component returns an ImageSubCodecDecompressCapabilities structure that specifies its capabilities.
-pascal ComponentResult Hap_DInitialize(HapDecompressorGlobals glob, ImageSubCodecDecompressCapabilities *cap)
+ComponentResult Hap_DInitialize(HapDecompressorGlobals glob HAP_ATTR_UNUSED, ImageSubCodecDecompressCapabilities *cap)
 {
-#pragma unused(glob)
-
 	// Secifies the size of the ImageSubCodecDecompressRecord structure
 	// and say we can support asyncronous decompression
 	// With the help of the base image decompressor, any image decompressor
@@ -287,7 +283,7 @@ pascal ComponentResult Hap_DInitialize(HapDecompressorGlobals glob, ImageSubCode
 // which the ICM makes before decompressing an image. You are required only to provide values for
 // the wantedDestinationPixelSize and wantedDestinationPixelTypes fields and can also modify other
 // fields if necessary.
-pascal ComponentResult Hap_DPreflight(HapDecompressorGlobals glob, CodecDecompressParams *p)
+ComponentResult Hap_DPreflight(HapDecompressorGlobals glob, CodecDecompressParams *p)
 {
     // see also p->destinationBufferMemoryPreference and kICMImageBufferPreferVideoMemory
 	OSStatus err = noErr;
@@ -356,8 +352,15 @@ pascal ComponentResult Hap_DPreflight(HapDecompressorGlobals glob, CodecDecompre
     // Although ExampleIPBCodec creates extended pixels as the difference between the dimensions in the image description
     // and the desired buffer dimensions, code using a home-made GWorld gets stuck because it appears to interpret the
     // extended dimensions as relative to the GWorld, not the image description
-    capabilities->extendWidth = widthRoundedUp - p->dstPixMap.bounds.right;
-    capabilities->extendHeight = heightRoundedUp - p->dstPixMap.bounds.bottom;
+    if (p->dstPixMap.bounds.right == widthRoundedUp)
+        capabilities->extendWidth = 0;
+    else
+        capabilities->extendWidth = (short)(widthRoundedUp - glob->width);
+
+    if (p->dstPixMap.bounds.bottom == heightRoundedUp)
+        capabilities->extendHeight = 0;
+    else
+        capabilities->extendHeight = (short)(heightRoundedUp - glob->height);
 
     glob->dxtWidth = widthRoundedUp;
     glob->dxtHeight = heightRoundedUp;
@@ -373,12 +376,12 @@ bail:
 // preserves any changes your component makes to any of the fields in the ImageSubCodecDecompressRecord
 // or CodecDecompressParams structures. If your component supports asynchronous scheduled decompression, it
 // may receive more than one ImageCodecBeginBand call before receiving an ImageCodecDrawBand call.
-pascal ComponentResult Hap_DBeginBand(HapDecompressorGlobals glob, CodecDecompressParams *p, ImageSubCodecDecompressRecord *drp, long flags)
+ComponentResult Hap_DBeginBand(HapDecompressorGlobals glob, CodecDecompressParams *p, ImageSubCodecDecompressRecord *drp, long flags HAP_ATTR_UNUSED)
 {
-#pragma unused (flags)
 	OSStatus err = noErr;
 	HapDecompressRecord *myDrp = (HapDecompressRecord *)drp->userDecompressRecord;
-    
+    unsigned int hap_result;
+
 	myDrp->width = (**p->imageDescription).width;
 	myDrp->height = (**p->imageDescription).height;
     myDrp->dxtWidth = glob->dxtWidth;
@@ -412,7 +415,8 @@ pascal ComponentResult Hap_DBeginBand(HapDecompressorGlobals glob, CodecDecompre
     myDrp->destFormat = p->dstPixMap.pixelFormat;
     
     // Inspect the frame header to discover the texture format
-    unsigned int hap_result = HapGetFrameTextureFormat(drp->codecData, myDrp->dataSize, &myDrp->texFormat);
+    
+    hap_result = HapGetFrameTextureFormat(drp->codecData, myDrp->dataSize, &myDrp->texFormat);
     if (hap_result != HapResult_No_Error)
     {
         err = internalComponentErr;
@@ -479,33 +483,7 @@ pascal ComponentResult Hap_DBeginBand(HapDecompressorGlobals glob, CodecDecompre
 #endif
     }
 #endif
-
-#ifdef HAP_SQUISH_DECODE
-#ifdef HAP_GPU_DECODE
-    if (glob->glDecoder == NULL)
-    {
-#endif
-        if (isDXTPixelFormat(myDrp->destFormat) || (myDrp->destFormat == k32RGBAPixelFormat && myDrp->texFormat != HapTextureFormat_YCoCg_DXT5))
-        {
-            myDrp->needsPermute = false;
-        }
-        else
-        {
-            myDrp->needsPermute = true;
-        }
-        if (myDrp->needsPermute)
-        {
-            if (glob->permuteBufferPool == NULL || glob->dxtWidth * glob->dxtHeight * 4 != HapCodecBufferPoolGetBufferSize(glob->permuteBufferPool))
-            {
-                HapCodecBufferPoolDestroy(glob->permuteBufferPool);
-                glob->permuteBufferPool = HapCodecBufferPoolCreate(glob->dxtWidth * glob->dxtHeight * 4);
-            }
-            myDrp->permuteBuffer = HapCodecBufferCreate(glob->permuteBufferPool);
-        }
-#ifdef HAP_GPU_DECODE
-    }
-#endif
-#endif
+    
     // Classify the frame so that the base codec can do the right thing.
 	// It is very important to do this so that the base codec will know
 	// which frames it can drop if we're in danger of falling behind.
@@ -515,9 +493,12 @@ bail:
 	return err;
 }
 
-pascal ComponentResult Hap_DDecodeBand(HapDecompressorGlobals glob, ImageSubCodecDecompressRecord *drp, unsigned long flags)
+#if defined(DEBUG)
+ComponentResult Hap_DDecodeBand(HapDecompressorGlobals glob, ImageSubCodecDecompressRecord *drp, unsigned long flags HAP_ATTR_UNUSED)
+#else
+ComponentResult Hap_DDecodeBand(HapDecompressorGlobals glob HAP_ATTR_UNUSED, ImageSubCodecDecompressRecord *drp, unsigned long flags HAP_ATTR_UNUSED)
+#endif
 {
-#pragma unused (glob, flags)
 	OSErr err = noErr;
 	HapDecompressRecord *myDrp = (HapDecompressRecord *)drp->userDecompressRecord;
 	ICMDataProcRecordPtr dataProc = drp->dataProcRecord.dataProc ? &drp->dataProcRecord : NULL;
@@ -536,7 +517,7 @@ pascal ComponentResult Hap_DDecodeBand(HapDecompressorGlobals glob, ImageSubCode
     
     if (!isDXTPixelFormat(myDrp->destFormat))
     {
-        unsigned int hapResult = HapDecode(drp->codecData, myDrp->dataSize, HapCodecBufferGetBaseAddress(myDrp->dxtBuffer), HapCodecBufferGetSize(myDrp->dxtBuffer), NULL, &myDrp->texFormat);
+        unsigned int hapResult = HapDecode(drp->codecData, myDrp->dataSize, (HapDecodeCallback)HapMTDecode, NULL, HapCodecBufferGetBaseAddress(myDrp->dxtBuffer), HapCodecBufferGetSize(myDrp->dxtBuffer), NULL, &myDrp->texFormat);
         if (hapResult != HapResult_No_Error)
         {
             err = (hapResult == HapResult_Bad_Frame ? codecBadDataErr : internalComponentErr);
@@ -547,47 +528,8 @@ pascal ComponentResult Hap_DDecodeBand(HapDecompressorGlobals glob, ImageSubCode
         {
             // For now we use the dedicated YCoCgDXT decoder but we could use a regular
             // decoder if we add code to convert scaled YCoCg -> RGB
-            DeCompressYCoCgDXT5(HapCodecBufferGetBaseAddress(myDrp->dxtBuffer), HapCodecBufferGetBaseAddress(myDrp->convertBuffer), myDrp->width, myDrp->height, myDrp->dxtWidth * 4);
+            DeCompressYCoCgDXT5((const byte *)HapCodecBufferGetBaseAddress(myDrp->dxtBuffer), (byte *)HapCodecBufferGetBaseAddress(myDrp->convertBuffer), myDrp->width, myDrp->height, myDrp->dxtWidth * 4);
         }
-#ifdef HAP_SQUISH_DECODE
-        else
-        {
-#ifdef HAP_GPU_DECODE
-        // For GPU decoding we do it all in draw-band for now
-        // may be an optimisation to start texture upload now, finish in draw-band
-            if (glob->glDecoder == NULL)
-            {
-#endif
-                if (myDrp->needsPermute && myDrp->texFormat != HapTextureFormat_YCoCg_DXT5)
-                {
-                    int decompressFormatFlag = 0;
-                    switch (myDrp->texFormat)
-                    {
-                        case HapTextureFormat_RGB_DXT1:
-                        case HapTextureFormat_RGBA_DXT1:
-                            decompressFormatFlag = kDxt1;
-                            break;
-                        case HapTextureFormat_RGBA_DXT3:
-                            decompressFormatFlag = kDxt3;
-                            break;
-                        case HapTextureFormat_RGBA_DXT5:
-                            decompressFormatFlag = kDxt5;
-                            break;
-                        default:
-                            err = internalComponentErr;
-                            break;
-                    }
-                    if (err)
-                        goto bail;
-                    SquishDecompressImage(HapCodecBufferGetBaseAddress(myDrp->permuteBuffer),
-                                          myDrp->dxtWidth, myDrp->dxtHeight,
-                                          HapCodecBufferGetBaseAddress(myDrp->dxtBuffer), decompressFormatFlag);
-                }
-#ifdef HAP_GPU_DECODE
-            }
-#endif
-        }
-#endif // HAP_SQUISH_DECODE
     }
         
 	myDrp->decoded = true;
@@ -608,9 +550,9 @@ bail:
 // by the fields of the ImageSubCodecDecompressRecord structure. The structure includes any changes your component made to it
 // when performing the ImageCodecBeginBand function. If your component supports asynchronous scheduled decompression,
 // it may receive more than one ImageCodecBeginBand call before receiving an ImageCodecDrawBand call.
-pascal ComponentResult Hap_DDrawBand(HapDecompressorGlobals glob, ImageSubCodecDecompressRecord *drp)
+ComponentResult Hap_DDrawBand(HapDecompressorGlobals glob, ImageSubCodecDecompressRecord *drp)
 {
-	OSErr err = noErr;
+	ComponentResult err = noErr;
 	
 	HapDecompressRecord *myDrp = (HapDecompressRecord *)drp->userDecompressRecord;
     
@@ -629,8 +571,9 @@ pascal ComponentResult Hap_DDrawBand(HapDecompressorGlobals glob, ImageSubCodecD
         //
         // We only advertise the DXT type we contain, so we assume we never
         // get asked for the wrong one here
+        
         unsigned int bufferSize = dxtBytesForDimensions(myDrp->dxtWidth, myDrp->dxtHeight, glob->type);
-        unsigned int hapResult = HapDecode(drp->codecData, myDrp->dataSize, drp->baseAddr, bufferSize, NULL, &myDrp->texFormat);
+        unsigned int hapResult = HapDecode(drp->codecData, myDrp->dataSize, (HapDecodeCallback)HapMTDecode, NULL, drp->baseAddr, bufferSize, NULL, &myDrp->texFormat);
         if (hapResult != HapResult_No_Error)
         {
             err = (hapResult == HapResult_Bad_Frame ? codecBadDataErr : internalComponentErr);
@@ -641,13 +584,13 @@ pascal ComponentResult Hap_DDrawBand(HapDecompressorGlobals glob, ImageSubCodecD
     {
         if (myDrp->texFormat == HapTextureFormat_YCoCg_DXT5)
         {
-            if (myDrp->destFormat == kCVPixelFormatType_32RGBA)
+            if (myDrp->destFormat == k32RGBAPixelFormat)
             {
-                ConvertCoCg_Y8888ToRGB_(HapCodecBufferGetBaseAddress(myDrp->convertBuffer), (uint8_t *)drp->baseAddr, myDrp->width, myDrp->height, myDrp->dxtWidth * 4, drp->rowBytes);
+                ConvertCoCg_Y8888ToRGB_((uint8_t *)HapCodecBufferGetBaseAddress(myDrp->convertBuffer), (uint8_t *)drp->baseAddr, myDrp->width, myDrp->height, myDrp->dxtWidth * 4, drp->rowBytes, 1);
             }
             else
             {
-                ConvertCoCg_Y8888ToBGR_(HapCodecBufferGetBaseAddress(myDrp->convertBuffer), (uint8_t *)drp->baseAddr, myDrp->width, myDrp->height, myDrp->dxtWidth * 4, drp->rowBytes);
+                ConvertCoCg_Y8888ToBGR_((uint8_t *)HapCodecBufferGetBaseAddress(myDrp->convertBuffer), (uint8_t *)drp->baseAddr, myDrp->width, myDrp->height, myDrp->dxtWidth * 4, drp->rowBytes, 1);
             }
         }
         else
@@ -655,11 +598,16 @@ pascal ComponentResult Hap_DDrawBand(HapDecompressorGlobals glob, ImageSubCodecD
 #ifdef HAP_GPU_DECODE
             if (glob->glDecoder != NULL)
             {
-                HapCodecGLDecode(glob->glDecoder,
-                                 drp->rowBytes,
-                                 (myDrp->destFormat == k32RGBAPixelFormat ? HapCodecGLPixelFormat_RGBA8 : HapCodecGLPixelFormat_BGRA8),
-                                 HapCodecBufferGetBaseAddress(myDrp->dxtBuffer),
-                                 drp->baseAddr);
+                int decodeResult = HapCodecGLDecode(glob->glDecoder,
+                                                    drp->rowBytes,
+                                                    (myDrp->destFormat == k32RGBAPixelFormat ? HapCodecGLPixelFormat_RGBA8 : HapCodecGLPixelFormat_BGRA8),
+                                                    HapCodecBufferGetBaseAddress(myDrp->dxtBuffer),
+                                                    drp->baseAddr);
+                if (decodeResult != 0)
+                {
+                    err = internalComponentErr;
+                    goto bail;
+                }
             }
 #endif
             
@@ -668,49 +616,28 @@ pascal ComponentResult Hap_DDrawBand(HapDecompressorGlobals glob, ImageSubCodecD
             else
             {
 #endif
-                // TODO: avoid the permute stage
-                if (myDrp->needsPermute)
+                int decompressFormat = 0;
+                switch (myDrp->texFormat)
                 {
-                    uint8_t permuteMap[] = {2, 1, 0, 3};
-                    ImageMath_Permute8888(HapCodecBufferGetBaseAddress(myDrp->permuteBuffer),
-                                          myDrp->dxtWidth * 4,
-                                          drp->baseAddr,
-                                          drp->rowBytes,
-                                          myDrp->dxtWidth,
-                                          myDrp->dxtHeight,
-                                          permuteMap);
+                case HapTextureFormat_RGB_DXT1:
+                    decompressFormat = kHapCVPixelFormat_RGB_DXT1;
+                    break;
+                case HapTextureFormat_RGBA_DXT5:
+                    decompressFormat = kHapCVPixelFormat_RGBA_DXT5;
+                    break;
+                default:
+                    err = internalComponentErr;
+                    break;
                 }
-                else
-                {
-                    // TODO: At this stage it may happen that drp->rowBytes does not match what Squish will assume (myDrp->dxtWidth * 4)
-                    // So if we end up with this code enabled, we will need to recognise that, SquishDecompressImage() to a temporary
-                    // buffer then copy row-by-row to drp->baseAddr.
-                    // As this code is unlikely to be used because the GL decoder works fine, I haven't added the logic for that...
-#warning Need to check for a row-bytes mismatch here, see comment
-                    int decompressFormatFlag = 0;
-                    switch (myDrp->texFormat)
-                    {
-                        case HapTextureFormat_RGB_DXT1:
-                        case HapTextureFormat_RGBA_DXT1:
-                            decompressFormatFlag = kDxt1;
-                            break;
-                        case HapTextureFormat_RGBA_DXT3:
-                            decompressFormatFlag = kDxt3;
-                            break;
-                        case HapTextureFormat_RGBA_DXT5:
-                            decompressFormatFlag = kDxt5;
-                            break;
-                        default:
-                            err = internalComponentErr;
-                            break;
-                    }
-                    if (err)
-                        goto bail;
-                    
-                    SquishDecompressImage((u8 *)drp->baseAddr,
-                                          myDrp->dxtWidth, myDrp->dxtHeight,
-                                          HapCodecBufferGetBaseAddress(myDrp->dxtBuffer), decompressFormatFlag);
-                }
+                if (err)
+                    goto bail;
+                HapCodecSquishDecode(HapCodecBufferGetBaseAddress(myDrp->dxtBuffer),
+                    decompressFormat,
+                    drp->baseAddr,
+                    myDrp->destFormat,
+                    drp->rowBytes,
+                    glob->width,
+                    glob->height);
 #ifdef HAP_GPU_DECODE
             }
 #endif
@@ -731,20 +658,13 @@ bail:
 // can be called at interrupt time, your component cannot use this function to dispose of data structures; this
 // must occur after handling the function. The value of the result parameter should be set to noErr if the band or frame was
 // drawn successfully. If it is any other value, the band or frame was not drawn.
-pascal ComponentResult Hap_DEndBand(HapDecompressorGlobals glob, ImageSubCodecDecompressRecord *drp, OSErr result, long flags)
+ComponentResult Hap_DEndBand(HapDecompressorGlobals glob HAP_ATTR_UNUSED, ImageSubCodecDecompressRecord *drp, OSErr result HAP_ATTR_UNUSED, long flags HAP_ATTR_UNUSED)
 {
-#pragma unused(glob, result, flags)
 	HapDecompressRecord *myDrp = (HapDecompressRecord *)drp->userDecompressRecord;
     HapCodecBufferReturn(myDrp->dxtBuffer);
     myDrp->dxtBuffer = NULL;
     HapCodecBufferReturn(myDrp->convertBuffer);
     myDrp->convertBuffer = NULL;
-#ifdef HAP_SQUISH_DECODE
-    if (myDrp->needsPermute)
-    {
-        HapCodecBufferReturn(myDrp->permuteBuffer);
-    }
-#endif
 	return noErr;
 }
 
@@ -753,7 +673,7 @@ pascal ComponentResult Hap_DEndBand(HapDecompressorGlobals glob, ImageSubCodecDe
 // ImageCodecQueueStarting function before decompressing the frames in the queue. Your component is not required to implement this function.
 // It can implement the function if it needs to perform any tasks at this time, such as locking data structures.
 // The base image decompressor never calls the ImageCodecQueueStarting function at interrupt time.
-pascal ComponentResult Hap_DQueueStarting(HapDecompressorGlobals glob)
+ComponentResult Hap_DQueueStarting(HapDecompressorGlobals glob)
 {
 #pragma unused(glob)
 	
@@ -766,10 +686,8 @@ pascal ComponentResult Hap_DQueueStarting(HapDecompressorGlobals glob)
 // After your image decompressor component handles an ImageCodecQueueStopping call, it can perform any tasks that are required when decompression
 // of the frames is finished, such as disposing of data structures that are no longer needed. 
 // The base image decompressor never calls the ImageCodecQueueStopping function at interrupt time.
-pascal ComponentResult Hap_DQueueStopping(HapDecompressorGlobals glob)
+ComponentResult Hap_DQueueStopping(HapDecompressorGlobals glob HAP_ATTR_UNUSED)
 {
-#pragma unused(glob)
-	
 	return noErr;
 }
 
@@ -779,9 +697,13 @@ pascal ComponentResult Hap_DQueueStopping(HapDecompressorGlobals glob)
 // image description structure and don't know the exact size of one frame. In this case, the Image Compression Manager calls the component to determine
 // the size of the data. Your component should return a long integer indicating the number of bytes of data in the compressed image. You may want to store
 // the image size somewhere in the image description structure, so that you can respond to this request quickly. Only decompressors receive this request.
-pascal ComponentResult Hap_DGetCompressedImageSize(HapDecompressorGlobals glob, ImageDescriptionHandle desc, Ptr data, long dataSize, ICMDataProcRecordPtr dataProc, long *size)
+ComponentResult Hap_DGetCompressedImageSize(HapDecompressorGlobals glob HAP_ATTR_UNUSED,
+                                                   ImageDescriptionHandle desc HAP_ATTR_UNUSED,
+                                                   Ptr data HAP_ATTR_UNUSED,
+                                                   long dataSize HAP_ATTR_UNUSED,
+                                                   ICMDataProcRecordPtr dataProc HAP_ATTR_UNUSED,
+                                                   long *size)
 {
-#pragma	unused(glob, desc, data, dataSize, dataProc)
     ComponentResult err = unimpErr;
 	if (size == NULL) 
 		err = paramErr;
@@ -794,7 +716,7 @@ pascal ComponentResult Hap_DGetCompressedImageSize(HapDecompressorGlobals glob, 
 //		Your component receives the ImageCodecGetCodecInfo request whenever an application calls the Image Compression Manager's GetCodecInfo function.
 // Your component should return a formatted compressor information structure defining its capabilities.
 // Both compressors and decompressors may receive this request.
-pascal ComponentResult Hap_DGetCodecInfo(HapDecompressorGlobals glob, CodecInfo *info)
+ComponentResult Hap_DGetCodecInfo(HapDecompressorGlobals glob, CodecInfo *info)
 {
 	OSErr err = noErr;
 

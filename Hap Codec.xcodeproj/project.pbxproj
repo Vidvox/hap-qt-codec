@@ -24,17 +24,15 @@
 /* Begin PBXBuildFile section */
 		8D01CCCA0486CAD60068D4B7 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 089C167DFE841241C02AAC07 /* InfoPlist.strings */; };
 		8D01CCCE0486CAD60068D4B7 /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 08EA7FFBFE8413EDC02AAC07 /* Carbon.framework */; };
+		BD48EA6A1700A3B8004EC248 /* DXTBlocks.c in Sources */ = {isa = PBXBuildFile; fileRef = BD48EA691700A3B8004EC248 /* DXTBlocks.c */; };
+		BD48EA6C1700A3CD004EC248 /* DXTBlocksSSSE3.c in Sources */ = {isa = PBXBuildFile; fileRef = BD48EA6B1700A3CD004EC248 /* DXTBlocksSSSE3.c */; settings = {COMPILER_FLAGS = "-mssse3"; }; };
 		BD4C0D33169D955B00CA6AAE /* HapResCommon.r in Rez */ = {isa = PBXBuildFile; fileRef = BD4C0D32169D955B00CA6AAE /* HapResCommon.r */; };
 		BD833765136760EA0074367F /* squish-c.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BD833763136760EA0074367F /* squish-c.cpp */; };
-		BD9464B916171F43009B26E6 /* libsquish.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = BDE9DE0A16169D82008DC368 /* libsquish.0.dylib */; };
-		BD9464BA16171F5F009B26E6 /* libsquish.0.dylib in CopyFiles */ = {isa = PBXBuildFile; fileRef = BDE9DE0A16169D82008DC368 /* libsquish.0.dylib */; };
-		BD9464BB16171F64009B26E6 /* libsnappy.1.dylib in CopyFiles */ = {isa = PBXBuildFile; fileRef = BDDAEA971616108700FEC70D /* libsnappy.1.dylib */; };
 		BD9B51FD16D592490063B129 /* PixelFormats.c in Sources */ = {isa = PBXBuildFile; fileRef = BD9B51FC16D592490063B129 /* PixelFormats.c */; };
 		BDDA19C616190E190068EBB3 /* YCoCgDXTEncoder.c in Sources */ = {isa = PBXBuildFile; fileRef = BDDA19C516190E190068EBB3 /* YCoCgDXTEncoder.c */; };
 		BDDA19CA161927080068EBB3 /* SquishEncoder.c in Sources */ = {isa = PBXBuildFile; fileRef = BDDA19C9161927080068EBB3 /* SquishEncoder.c */; };
 		BDDA19CD1619A5C90068EBB3 /* GLDXTEncoder.c in Sources */ = {isa = PBXBuildFile; fileRef = BDDA19CC1619A5C90068EBB3 /* GLDXTEncoder.c */; };
 		BDDAEA8416160F7500FEC70D /* hap.c in Sources */ = {isa = PBXBuildFile; fileRef = BDDAEA8216160F7500FEC70D /* hap.c */; };
-		BDDAEAA81616115100FEC70D /* libsnappy.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = BDDAEA971616108700FEC70D /* libsnappy.1.dylib */; };
 		BDEAB312169D8A6E007FE844 /* HapComponent.r in Rez */ = {isa = PBXBuildFile; fileRef = BDEAB311169D8A6E007FE844 /* HapComponent.r */; };
 		BDEAB314169D8A7D007FE844 /* HapYCoCgComponent.r in Rez */ = {isa = PBXBuildFile; fileRef = BDEAB313169D8A7D007FE844 /* HapYCoCgComponent.r */; };
 		BDF1AF061376DD7C00C0F4D1 /* Buffers.c in Sources */ = {isa = PBXBuildFile; fileRef = BDF1AF041376DD7C00C0F4D1 /* Buffers.c */; };
@@ -42,11 +40,16 @@
 		BDF48B1D14377E0E00E7EAB8 /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BDF48B1C14377E0E00E7EAB8 /* OpenGL.framework */; };
 		BDFA8A341368E60100F959A4 /* Accelerate.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BDFA8A331368E60100F959A4 /* Accelerate.framework */; };
 		E2210D2B15CAE914009DD434 /* YCoCg.c in Sources */ = {isa = PBXBuildFile; fileRef = E2210D2715CAE914009DD434 /* YCoCg.c */; };
-		E2210D2C15CAE914009DD434 /* YCoCgDXT.c in Sources */ = {isa = PBXBuildFile; fileRef = E2210D2915CAE914009DD434 /* YCoCgDXT.c */; };
 		E2210D3B15CAF913009DD434 /* ImageMath.c in Sources */ = {isa = PBXBuildFile; fileRef = E2210D3915CAF913009DD434 /* ImageMath.c */; };
 		E22D0FEC169E13C6001C21D9 /* HapAlphaComponent.r in Rez */ = {isa = PBXBuildFile; fileRef = E22D0FEB169E13C6001C21D9 /* HapAlphaComponent.r */; };
+		E25D566317E0E4D5008DD459 /* libsnappy.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = E215F3EC16FE1C3A0048B13B /* libsnappy.dylib */; };
+		E25D566417E0E4DA008DD459 /* libsquish.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = BDE9DE0A16169D82008DC368 /* libsquish.dylib */; };
+		E25D566517E0E4E7008DD459 /* libsnappy.dylib in CopyFiles */ = {isa = PBXBuildFile; fileRef = E215F3EC16FE1C3A0048B13B /* libsnappy.dylib */; };
+		E25D566617E0E4E7008DD459 /* libsquish.dylib in CopyFiles */ = {isa = PBXBuildFile; fileRef = BDE9DE0A16169D82008DC368 /* libsquish.dylib */; };
 		E28C1FAB143B598500F2CD73 /* Utility.c in Sources */ = {isa = PBXBuildFile; fileRef = E28C1FAA143B598500F2CD73 /* Utility.c */; };
 		E2C99CAA13789AC60077AC75 /* Tasks.c in Sources */ = {isa = PBXBuildFile; fileRef = E2C99CA813789AC60077AC75 /* Tasks.c */; };
+		E2CCA54A18DBC577001FD4C0 /* ParallelLoops.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E2CCA54818DBC577001FD4C0 /* ParallelLoops.cpp */; };
+		E2ECC4CC16FE86830016167B /* YCoCgDXT.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E2ECC4CB16FE86830016167B /* YCoCgDXT.cpp */; };
 		FBFA8C990829E75000560632 /* HapCompressor.c in Sources */ = {isa = PBXBuildFile; fileRef = FBFA8C8C0829E75000560632 /* HapCompressor.c */; };
 		FBFA8C9A0829E75000560632 /* HapDecompressor.c in Sources */ = {isa = PBXBuildFile; fileRef = FBFA8C8E0829E75000560632 /* HapDecompressor.c */; };
 		FBFA8DED0829E7CF00560632 /* CoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FBFA8DEA0829E7CF00560632 /* CoreServices.framework */; };
@@ -55,32 +58,11 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		BDDAEA961616108700FEC70D /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = BDDAEA8F1616108600FEC70D /* snappy.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = E2F2B9CA1613B45A00DDB379;
-			remoteInfo = snappy;
-		};
-		BDDAEA981616109C00FEC70D /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = BDDAEA8F1616108600FEC70D /* snappy.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = E2F2B9C91613B45A00DDB379;
-			remoteInfo = snappy;
-		};
 		BDE9DE0916169D82008DC368 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = BDCB248616169B9300633182 /* squish.xcodeproj */;
 			proxyType = 2;
 			remoteGlobalIDString = BDF4CC5F1616941B0062DDC2;
-			remoteInfo = squish;
-		};
-		BDE9DE0B16169D89008DC368 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = BDCB248616169B9300633182 /* squish.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = BDF4CC5E1616941B0062DDC2;
 			remoteInfo = squish;
 		};
 		BDFA89C81368320E00F959A4 /* PBXContainerItemProxy */ = {
@@ -89,6 +71,27 @@
 			proxyType = 1;
 			remoteGlobalIDString = 8D01CCC60486CAD60068D4B7;
 			remoteInfo = VPUCodec;
+		};
+		E215F3EB16FE1C3A0048B13B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BDDAEA8F1616108600FEC70D /* snappy.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = E2F2B9CA1613B45A00DDB379;
+			remoteInfo = snappy;
+		};
+		E25D565F17E0E4BA008DD459 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BDDAEA8F1616108600FEC70D /* snappy.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = E2830FC917E0C43A005E72C3;
+			remoteInfo = snappy;
+		};
+		E25D566117E0E4BA008DD459 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BDCB248616169B9300633182 /* squish.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = E25D562417E0E02B008DD459;
+			remoteInfo = squish;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -99,8 +102,8 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				BD9464BB16171F64009B26E6 /* libsnappy.1.dylib in CopyFiles */,
-				BD9464BA16171F5F009B26E6 /* libsquish.0.dylib in CopyFiles */,
+				E25D566517E0E4E7008DD459 /* libsnappy.dylib in CopyFiles */,
+				E25D566617E0E4E7008DD459 /* libsquish.dylib in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -113,6 +116,9 @@
 		32BAE0B30371A71500C91783 /* Hap_Codec_Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Hap_Codec_Prefix.pch; sourceTree = "<group>"; };
 		8D01CCD10486CAD60068D4B7 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		8D01CCD20486CAD60068D4B7 /* Hap.component */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = Hap.component; sourceTree = BUILT_PRODUCTS_DIR; };
+		BD48EA691700A3B8004EC248 /* DXTBlocks.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = DXTBlocks.c; sourceTree = "<group>"; };
+		BD48EA6B1700A3CD004EC248 /* DXTBlocksSSSE3.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = DXTBlocksSSSE3.c; sourceTree = "<group>"; };
+		BD48EA6D1700A3DE004EC248 /* DXTBlocks.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DXTBlocks.h; sourceTree = "<group>"; };
 		BD4C0D32169D955B00CA6AAE /* HapResCommon.r */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.rez; path = HapResCommon.r; sourceTree = "<group>"; };
 		BD4C0D44169DCF5800CA6AAE /* HapCodecSubTypes.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = HapCodecSubTypes.h; sourceTree = "<group>"; };
 		BD51229816495811005F135B /* ExportedSymbols.exp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.exports; path = ExportedSymbols.exp; sourceTree = "<group>"; };
@@ -131,7 +137,7 @@
 		BDDA19CC1619A5C90068EBB3 /* GLDXTEncoder.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; lineEnding = 0; path = GLDXTEncoder.c; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.c; };
 		BDDAEA8216160F7500FEC70D /* hap.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = hap.c; path = external/hap/hap.c; sourceTree = SOURCE_ROOT; };
 		BDDAEA8316160F7500FEC70D /* hap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = hap.h; path = external/hap/hap.h; sourceTree = SOURCE_ROOT; };
-		BDDAEA8F1616108600FEC70D /* snappy.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = snappy.xcodeproj; path = external/snappy/snappy.xcodeproj; sourceTree = SOURCE_ROOT; };
+		BDDAEA8F1616108600FEC70D /* snappy.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = snappy.xcodeproj; path = "external/snappy/snappy-mac/snappy.xcodeproj"; sourceTree = SOURCE_ROOT; };
 		BDEAB311169D8A6E007FE844 /* HapComponent.r */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.rez; path = HapComponent.r; sourceTree = "<group>"; };
 		BDEAB313169D8A7D007FE844 /* HapYCoCgComponent.r */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.rez; path = HapYCoCgComponent.r; sourceTree = "<group>"; };
 		BDF1AF041376DD7C00C0F4D1 /* Buffers.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = Buffers.c; sourceTree = "<group>"; };
@@ -139,9 +145,10 @@
 		BDF48B1914377D0500E7EAB8 /* HapCodecGL.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; lineEnding = 0; path = HapCodecGL.c; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.c; };
 		BDF48B1C14377E0E00E7EAB8 /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = System/Library/Frameworks/OpenGL.framework; sourceTree = SDKROOT; };
 		BDFA8A331368E60100F959A4 /* Accelerate.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Accelerate.framework; path = System/Library/Frameworks/Accelerate.framework; sourceTree = SDKROOT; };
+		E20D395316FCDF3F001725BF /* HapPlatform.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = HapPlatform.h; sourceTree = "<group>"; };
+		E20D395516FCDF3F001725BF /* Lock.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Lock.h; sourceTree = "<group>"; };
 		E2210D2715CAE914009DD434 /* YCoCg.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; lineEnding = 0; path = YCoCg.c; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.c; };
 		E2210D2815CAE914009DD434 /* YCoCg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = YCoCg.h; sourceTree = "<group>"; };
-		E2210D2915CAE914009DD434 /* YCoCgDXT.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = YCoCgDXT.c; sourceTree = "<group>"; };
 		E2210D2A15CAE914009DD434 /* YCoCgDXT.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = YCoCgDXT.h; sourceTree = "<group>"; };
 		E2210D3915CAF913009DD434 /* ImageMath.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; lineEnding = 0; path = ImageMath.c; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.c; };
 		E2210D3A15CAF913009DD434 /* ImageMath.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = ImageMath.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
@@ -149,6 +156,9 @@
 		E28C1FAA143B598500F2CD73 /* Utility.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = Utility.c; sourceTree = "<group>"; };
 		E2C99CA813789AC60077AC75 /* Tasks.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = Tasks.c; sourceTree = "<group>"; };
 		E2C99CA913789AC60077AC75 /* Tasks.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Tasks.h; sourceTree = "<group>"; };
+		E2CCA54818DBC577001FD4C0 /* ParallelLoops.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ParallelLoops.cpp; sourceTree = "<group>"; };
+		E2CCA54918DBC577001FD4C0 /* ParallelLoops.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ParallelLoops.h; sourceTree = "<group>"; };
+		E2ECC4CB16FE86830016167B /* YCoCgDXT.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = YCoCgDXT.cpp; sourceTree = "<group>"; };
 		E2F8FE91143B5A8F00683004 /* Utility.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Utility.h; sourceTree = "<group>"; };
 		FBFA8C8B0829E75000560632 /* HapCodecVersion.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = HapCodecVersion.h; sourceTree = "<group>"; };
 		FBFA8C8C0829E75000560632 /* HapCompressor.c */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.c; path = HapCompressor.c; sourceTree = "<group>"; };
@@ -166,14 +176,14 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E25D566317E0E4D5008DD459 /* libsnappy.dylib in Frameworks */,
+				E25D566417E0E4DA008DD459 /* libsquish.dylib in Frameworks */,
 				BDF48B1D14377E0E00E7EAB8 /* OpenGL.framework in Frameworks */,
 				BDFA8A341368E60100F959A4 /* Accelerate.framework in Frameworks */,
 				8D01CCCE0486CAD60068D4B7 /* Carbon.framework in Frameworks */,
 				FBFA8DED0829E7CF00560632 /* CoreServices.framework in Frameworks */,
 				FBFA8DEE0829E7CF00560632 /* QuartzCore.framework in Frameworks */,
 				FBFA8DEF0829E7CF00560632 /* QuickTime.framework in Frameworks */,
-				BD9464B916171F43009B26E6 /* libsquish.0.dylib in Frameworks */,
-				BDDAEAA81616115100FEC70D /* libsnappy.1.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -234,8 +244,12 @@
 				FBFA8C8D0829E75000560632 /* HapCompressorDispatch.h */,
 				FBFA8C8E0829E75000560632 /* HapDecompressor.c */,
 				FBFA8C8F0829E75000560632 /* HapDecompressorDispatch.h */,
+				E20D395316FCDF3F001725BF /* HapPlatform.h */,
+				E20D395516FCDF3F001725BF /* Lock.h */,
 				BDF1AF051376DD7C00C0F4D1 /* Buffers.h */,
 				BDF1AF041376DD7C00C0F4D1 /* Buffers.c */,
+				E2CCA54918DBC577001FD4C0 /* ParallelLoops.h */,
+				E2CCA54818DBC577001FD4C0 /* ParallelLoops.cpp */,
 				E2C99CA913789AC60077AC75 /* Tasks.h */,
 				E2C99CA813789AC60077AC75 /* Tasks.c */,
 				E2F8FE91143B5A8F00683004 /* Utility.h */,
@@ -284,10 +298,13 @@
 				BDDA19C516190E190068EBB3 /* YCoCgDXTEncoder.c */,
 				BDDA19C8161926FD0068EBB3 /* SquishEncoder.h */,
 				BDDA19C9161927080068EBB3 /* SquishEncoder.c */,
+				BD48EA6D1700A3DE004EC248 /* DXTBlocks.h */,
+				BD48EA691700A3B8004EC248 /* DXTBlocks.c */,
+				BD48EA6B1700A3CD004EC248 /* DXTBlocksSSSE3.c */,
 				BDDA19CB1619A5B90068EBB3 /* GLDXTEncoder.h */,
 				BDDA19CC1619A5C90068EBB3 /* GLDXTEncoder.c */,
 				E2210D2A15CAE914009DD434 /* YCoCgDXT.h */,
-				E2210D2915CAE914009DD434 /* YCoCgDXT.c */,
+				E2ECC4CB16FE86830016167B /* YCoCgDXT.cpp */,
 				BD94BB62143357530064D679 /* HapCodecGL.h */,
 				BDF48B1914377D0500E7EAB8 /* HapCodecGL.c */,
 				BD833762136760CD0074367F /* squish */,
@@ -295,18 +312,18 @@
 			name = DXT;
 			sourceTree = "<group>";
 		};
-		BDDAEA901616108600FEC70D /* Products */ = {
+		BDE9DE0616169D82008DC368 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				BDDAEA971616108700FEC70D /* libsnappy.1.dylib */,
+				BDE9DE0A16169D82008DC368 /* libsquish.dylib */,
 			);
 			name = Products;
 			sourceTree = "<group>";
 		};
-		BDE9DE0616169D82008DC368 /* Products */ = {
+		E215F3E816FE1C3A0048B13B /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				BDE9DE0A16169D82008DC368 /* libsquish.0.dylib */,
+				E215F3EC16FE1C3A0048B13B /* libsnappy.dylib */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -338,8 +355,8 @@
 			buildRules = (
 			);
 			dependencies = (
-				BDE9DE0C16169D89008DC368 /* PBXTargetDependency */,
-				BDDAEA991616109C00FEC70D /* PBXTargetDependency */,
+				E25D566017E0E4BA008DD459 /* PBXTargetDependency */,
+				E25D566217E0E4BA008DD459 /* PBXTargetDependency */,
 			);
 			name = Hap;
 			productInstallPath = "$(HOME)/Library/Bundles";
@@ -353,7 +370,7 @@
 		089C1669FE841209C02AAC07 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0450;
+				LastUpgradeCheck = 0510;
 			};
 			buildConfigurationList = 2BF1EBEF08A92C280070D853 /* Build configuration list for PBXProject "Hap Codec" */;
 			compatibilityVersion = "Xcode 3.2";
@@ -366,7 +383,7 @@
 			projectDirPath = "";
 			projectReferences = (
 				{
-					ProductGroup = BDDAEA901616108600FEC70D /* Products */;
+					ProductGroup = E215F3E816FE1C3A0048B13B /* Products */;
 					ProjectRef = BDDAEA8F1616108600FEC70D /* snappy.xcodeproj */;
 				},
 				{
@@ -383,18 +400,18 @@
 /* End PBXProject section */
 
 /* Begin PBXReferenceProxy section */
-		BDDAEA971616108700FEC70D /* libsnappy.1.dylib */ = {
+		BDE9DE0A16169D82008DC368 /* libsquish.dylib */ = {
 			isa = PBXReferenceProxy;
 			fileType = "compiled.mach-o.dylib";
-			path = libsnappy.1.dylib;
-			remoteRef = BDDAEA961616108700FEC70D /* PBXContainerItemProxy */;
+			path = libsquish.dylib;
+			remoteRef = BDE9DE0916169D82008DC368 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
-		BDE9DE0A16169D82008DC368 /* libsquish.0.dylib */ = {
+		E215F3EC16FE1C3A0048B13B /* libsnappy.dylib */ = {
 			isa = PBXReferenceProxy;
 			fileType = "compiled.mach-o.dylib";
-			path = libsquish.0.dylib;
-			remoteRef = BDE9DE0916169D82008DC368 /* PBXContainerItemProxy */;
+			path = libsnappy.dylib;
+			remoteRef = E215F3EB16FE1C3A0048B13B /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 /* End PBXReferenceProxy section */
@@ -436,7 +453,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "# This shell script simply copies the built component to \"~/Library/QuickTime\" and overrides any previous version at that location\n\nmkdir -p \"$USER_LIBRARY_DIR/QuickTime\"\nrm -rf \"$USER_LIBRARY_DIR/QuickTime/VPUCodec.component\"\nrm -rf \"$USER_LIBRARY_DIR/QuickTime/Hap.component\"\ncp -rf \"$BUILT_PRODUCTS_DIR/Hap.component\" \"$USER_LIBRARY_DIR/QuickTime/\"\n";
+			shellScript = "# This shell script simply copies the built component to \"~/Library/QuickTime\" and overrides any previous version at that location\n\nmkdir -p \"$USER_LIBRARY_DIR/QuickTime\"\nrm -rf \"$USER_LIBRARY_DIR/QuickTime/Hap.component\"\ncp -rf \"$BUILT_PRODUCTS_DIR/Hap.component\" \"$USER_LIBRARY_DIR/QuickTime/\"\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -453,33 +470,36 @@
 				BDF48B1A14377D0500E7EAB8 /* HapCodecGL.c in Sources */,
 				E28C1FAB143B598500F2CD73 /* Utility.c in Sources */,
 				E2210D2B15CAE914009DD434 /* YCoCg.c in Sources */,
-				E2210D2C15CAE914009DD434 /* YCoCgDXT.c in Sources */,
 				E2210D3B15CAF913009DD434 /* ImageMath.c in Sources */,
 				BDDAEA8416160F7500FEC70D /* hap.c in Sources */,
+				E2CCA54A18DBC577001FD4C0 /* ParallelLoops.cpp in Sources */,
 				BDDA19C616190E190068EBB3 /* YCoCgDXTEncoder.c in Sources */,
 				BDDA19CA161927080068EBB3 /* SquishEncoder.c in Sources */,
 				BDDA19CD1619A5C90068EBB3 /* GLDXTEncoder.c in Sources */,
 				BD9B51FD16D592490063B129 /* PixelFormats.c in Sources */,
+				E2ECC4CC16FE86830016167B /* YCoCgDXT.cpp in Sources */,
+				BD48EA6A1700A3B8004EC248 /* DXTBlocks.c in Sources */,
+				BD48EA6C1700A3CD004EC248 /* DXTBlocksSSSE3.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		BDDAEA991616109C00FEC70D /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			name = snappy;
-			targetProxy = BDDAEA981616109C00FEC70D /* PBXContainerItemProxy */;
-		};
-		BDE9DE0C16169D89008DC368 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			name = squish;
-			targetProxy = BDE9DE0B16169D89008DC368 /* PBXContainerItemProxy */;
-		};
 		BDFA89C91368320E00F959A4 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 8D01CCC60486CAD60068D4B7 /* Hap */;
 			targetProxy = BDFA89C81368320E00F959A4 /* PBXContainerItemProxy */;
+		};
+		E25D566017E0E4BA008DD459 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = snappy;
+			targetProxy = E25D565F17E0E4BA008DD459 /* PBXContainerItemProxy */;
+		};
+		E25D566217E0E4BA008DD459 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = squish;
+			targetProxy = E25D566117E0E4BA008DD459 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -502,13 +522,13 @@
 				EXPORTED_SYMBOLS_FILE = source/ExportedSymbols.exp;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = source/Hap_Codec_Prefix.pch;
+				HEADER_SEARCH_PATHS = (
+					"\"$(TARGET_BUILD_DIR)/usr/local/include\"",
+					"\"$(DSTROOT)/usr/local/include\"",
+				);
 				INFOPLIST_FILE = source/Info.plist;
 				INSTALL_PATH = "$(HOME)/Library/QuickTime";
 				LD_RUNPATH_SEARCH_PATHS = "@loader_path/../Frameworks";
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"\"$(SRCROOT)\"",
-				);
 				PRODUCT_NAME = Hap;
 				WRAPPER_EXTENSION = component;
 			};
@@ -536,7 +556,9 @@
 				INFOPLIST_FILE = source/Info.plist;
 				LIBRARY_SEARCH_PATHS_QUOTED_FOR_TARGET_3 = "";
 				MACOSX_DEPLOYMENT_TARGET = 10.6;
+				ONLY_ACTIVE_ARCH = YES;
 				OTHER_REZFLAGS = "-d ppc_$(ppc) -d i386_$(i386)";
+				REZ_PREPROCESSOR_DEFINITIONS = "TARGET_REZ_CARBON_MACHO=1";
 				REZ_RESOURCE_MAP_READ_ONLY = YES;
 				RUN_CLANG_STATIC_ANALYZER = YES;
 				SDKROOT = macosx;
@@ -550,13 +572,13 @@
 				EXPORTED_SYMBOLS_FILE = source/ExportedSymbols.exp;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = source/Hap_Codec_Prefix.pch;
+				HEADER_SEARCH_PATHS = (
+					"\"$(TARGET_BUILD_DIR)/usr/local/include\"",
+					"\"$(DSTROOT)/usr/local/include\"",
+				);
 				INFOPLIST_FILE = source/Info.plist;
 				INSTALL_PATH = "$(HOME)/Library/QuickTime";
 				LD_RUNPATH_SEARCH_PATHS = "@loader_path/../Frameworks";
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"\"$(SRCROOT)\"",
-				);
 				PRODUCT_NAME = Hap;
 				WRAPPER_EXTENSION = component;
 			};
@@ -584,6 +606,7 @@
 				LIBRARY_SEARCH_PATHS_QUOTED_FOR_TARGET_3 = "";
 				MACOSX_DEPLOYMENT_TARGET = 10.6;
 				OTHER_REZFLAGS = "-d ppc_$(ppc) -d i386_$(i386)";
+				REZ_PREPROCESSOR_DEFINITIONS = "TARGET_REZ_CARBON_MACHO=1";
 				REZ_RESOURCE_MAP_READ_ONLY = YES;
 				RUN_CLANG_STATIC_ANALYZER = YES;
 				SDKROOT = macosx;

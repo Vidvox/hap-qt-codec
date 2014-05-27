@@ -115,6 +115,7 @@ bool ClusterFit::ConstructOrdering( Vec3 const& axis, int iteration )
 	return true;
 }
 
+#if defined(HAP_SQUISH_EMIT_3_COLOUR_BLOCKS)
 void ClusterFit::Compress3( void* block )
 {
 	// declare variables
@@ -243,6 +244,7 @@ void ClusterFit::Compress3( void* block )
 		m_besterror = besterror;
 	}
 }
+#endif
 
 void ClusterFit::Compress4( void* block )
 {

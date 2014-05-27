@@ -1,0 +1,13 @@
+LIBRARY		  Hap
+
+EXPORTS
+;=============================================================================================
+;	Everyone has one
+
+	DllMain	@1
+
+;=============================================================================================
+;	Component Entry Points for 'thng' registered components
+
+	Hap_CComponentDispatch
+	Hap_DComponentDispatch

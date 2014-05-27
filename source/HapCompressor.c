@@ -25,42 +25,44 @@
  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#if __APPLE_CC__
-    #include <QuickTime/QuickTime.h>
+#if defined(__APPLE__)
+#include <QuickTime/QuickTime.h>
+#define kHapCodecCVPixelBufferLockFlags kCVPixelBufferLock_ReadOnly
 #else
-    #include <ConditionalMacros.h>
-    #include <Endian.h>
-    #include <ImageCodec.h>
+#include <ConditionalMacros.h>
+#include <ImageCodec.h>
+#include <malloc.h>
+#define kHapCodecCVPixelBufferLockFlags 0
 #endif
 
+#include "HapPlatform.h"
 #include "HapCodecVersion.h"
 #include "Utility.h"
 #include "PixelFormats.h"
 #include "HapCodecSubTypes.h"
 #include "hap.h"
+#include "Lock.h"
 #include "Tasks.h"
 #include "Buffers.h"
 #include "DXTEncoder.h"
 #include "ImageMath.h"
-
+#if defined(DEBUG)
+#include <string.h>
+#endif
 /*
- Defines determining the method of DXT compression.
+ On Apple we support GL encoding using the GPU.
  The GPU is very fast but produces low quality results
  Squish produces nicer results but takes longer.
+ We select the GPU when the quality setting is above "High"
  YCoCg encodes YCoCg in DXT and requires a shader to draw, and produces very high quality results
- If both are available, the GPU is selected at the lowest quality setting.
  */
 
+#if defined(__APPLE__)
 #include "GLDXTEncoder.h"
+#endif
 #include "SquishEncoder.h"
 #include "YCoCg.h"
 #include "YCoCgDXTEncoder.h"
-
-#include <libkern/OSAtomic.h>
-
-#ifdef DEBUG
-    #include <mach/mach_time.h>
-#endif
 
 typedef struct HapCodecCompressTask HapCodecCompressTask;
 
@@ -80,7 +82,7 @@ typedef struct {
     
     int                             lastFrameOut;
     HapCodecBufferRef               finishedFrames;
-    OSSpinLock                      lock;
+    HapCodecLock                    lock;
     
     HapCodecBufferPoolRef           compressTaskPool;
     
@@ -108,7 +110,10 @@ struct HapCodecCompressTask
 {
     HapCompressorGlobals            glob;
     ICMCompressorSourceFrameRef     sourceFrame;
+    CVPixelBufferRef                sourceBuffer;
     ICMMutableEncodedFrameRef       encodedFrame;
+    void *                          encodedFrameBaseAddress;
+    unsigned long                   encodedFrameActualSize;
     ComponentResult                 error;
     HapCodecBufferRef               next; // Used to queue finished tasks
 };
@@ -157,9 +162,9 @@ Hap_COpen(
   ComponentInstance self )
 {    
 	ComponentResult err = noErr;
-    
+    ComponentDescription componentDescription;
 #ifndef __clang_analyzer__
-    glob = calloc( sizeof( HapCompressorGlobalsRecord ), 1 );
+    glob = (HapCompressorGlobals)calloc( sizeof( HapCompressorGlobalsRecord ), 1 );
 #endif
 	if( ! glob ) {
 		err = memFullErr;
@@ -168,7 +173,6 @@ Hap_COpen(
 	SetComponentInstanceStorage( self, (Handle)glob );
     
     // Store the type of compressor we are (Hap or Hap YCoCg)
-    ComponentDescription componentDescription;
     GetComponentInfo((Component)self, &componentDescription, 0, 0, 0);
     
 	glob->self = self;
@@ -181,7 +185,7 @@ Hap_COpen(
     glob->quality = codecNormalQuality;
     glob->lastFrameOut = 0;
     glob->finishedFrames = NULL;
-    glob->lock = OS_SPINLOCK_INIT;
+    glob->lock = HAP_CODEC_LOCK_INIT;
     glob->compressTaskPool = NULL;
     glob->dxtEncoder = NULL;
     glob->formatConvertPool = NULL;
@@ -201,40 +205,39 @@ bail:
 ComponentResult 
 Hap_CClose(
   HapCompressorGlobals glob,
-  ComponentInstance self )
+  ComponentInstance self HAP_ATTR_UNUSED)
 {
-#pragma unused (self)
+    HapCodecBufferRef buffer;
+    HapCodecBufferRef next;
 	if( glob )
     {
 #ifdef DEBUG
         if (glob->debugFrameCount)
         {
+            char stringBuffer[255];
             uint64_t elapsed = glob->debugLastFrameTime - glob->debugStartTime;
+            double time = (double)elapsed / CVGetHostClockFrequency();
             
-            // Convert to nanoseconds.
+            unsigned int uncompressed = glob->width * glob->height;
             
-            AbsoluteTime absoluteElapsed = UInt64ToUnsignedWide(elapsed);
-            Nanoseconds elapsedNano = AbsoluteToNanoseconds(absoluteElapsed);
+            if (glob->dxtFormat == HapTextureFormat_RGB_DXT1) uncompressed /= 2;
+            uncompressed += 4U; // Hap uses 4 extra bytes
+
+            sprintf(stringBuffer, "HAP CODEC: ");
             
-            // Convert to seconds
-            
-            double time = (double)UnsignedWideToUInt64(elapsedNano) / (double)NSEC_PER_SEC;
-            printf("HAP CODEC: ");
             if (glob->dxtEncoder == NULL)
             {
-                printf("DXT frames in");
+                sprintf(stringBuffer + strlen(stringBuffer), "DXT frames in");
             }
             else if (glob->dxtEncoder->describe_function)
             {
-                printf("%s ", glob->dxtEncoder->describe_function(glob->dxtEncoder));
+                sprintf(stringBuffer + strlen(stringBuffer), "%s ", glob->dxtEncoder->describe_function(glob->dxtEncoder));
             }
-            printf("%u frames over %.1f seconds %.1f FPS. ", glob->debugFrameCount, time, glob->debugFrameCount / time);
-            printf("Largest frame bytes: %lu smallest: %lu average: %lu ",
+            sprintf(stringBuffer + strlen(stringBuffer), "%u frames over %.1f seconds %.1f FPS. ", glob->debugFrameCount, time, glob->debugFrameCount / time);
+            sprintf(stringBuffer + strlen(stringBuffer), "Largest frame bytes: %lu smallest: %lu average: %lu ",
                    glob->debugLargestFrameBytes, glob->debugSmallestFrameBytes, glob->debugTotalFrameBytes/ glob->debugFrameCount);
-            unsigned int uncompressed = glob->width * glob->height;
-            if (glob->dxtFormat == HapTextureFormat_RGB_DXT1) uncompressed /= 2;
-            uncompressed += 4U; // Hap uses 4 extra bytes
-            printf("uncompressed: %d\n", uncompressed);
+            sprintf(stringBuffer + strlen(stringBuffer), "uncompressed: %d\n", uncompressed);
+            debug_print(glob, stringBuffer);
         }
 #endif
         HapCodecBufferPoolDestroy(glob->dxtBufferPool);
@@ -253,10 +256,9 @@ Hap_CClose(
         // We should never have queued frames when we are closed
         // but we check and properly release the memory if we do
         
-        HapCodecBufferRef this = glob->finishedFrames;
-        HapCodecBufferRef next = NULL;
-        while (this) {
-            HapCodecCompressTask *task = (HapCodecCompressTask *)HapCodecBufferGetBaseAddress(this);
+        buffer = glob->finishedFrames;
+        while (buffer) {
+            HapCodecCompressTask *task = (HapCodecCompressTask *)HapCodecBufferGetBaseAddress(buffer);
             if (task)
             {
                 releaseTaskFrames(task);
@@ -266,12 +268,15 @@ Hap_CClose(
             {
                 next = NULL;
             }
-            HapCodecBufferReturn(this);
-            this = next;
+            HapCodecBufferReturn(buffer);
+            buffer = next;
         }
         
         HapCodecBufferPoolDestroy(glob->compressTaskPool);
         glob->compressTaskPool = NULL;
+        
+        HapCodecLockDestroy(&glob->lock);
+        glob->lock = NULL;
         
 		free( glob );
 	}
@@ -291,10 +296,9 @@ Hap_CClose(
 // bumps when there is a major change in the interface.  
 // We recommend bumping the low short of the component version every time you ship a release of a component.
 // The version number in the 'thng' resource should be the same as the number returned by this function.
-ComponentResult 
-Hap_CVersion(HapCompressorGlobals glob)
+ComponentResult
+Hap_CVersion(HapCompressorGlobals glob HAP_ATTR_UNUSED)
 {
-#pragma unused (glob)
 	return kHapCompressorVersion;
 }
 
@@ -312,7 +316,7 @@ Hap_CTarget(HapCompressorGlobals glob, ComponentInstance target)
 // Your component receives the ImageCodecGetCodecInfo request whenever an application calls the Image Compression Manager's GetCodecInfo function.
 // Your component should return a formatted compressor information structure defining its capabilities.
 // Both compressors and decompressors may receive this request.
-ComponentResult 
+ComponentResult
 Hap_CGetCodecInfo(HapCompressorGlobals glob, CodecInfo *info)
 {
 	OSErr err = noErr;
@@ -350,29 +354,28 @@ bail:
 // memory to allocate for compressed frame buffers.
 ComponentResult 
 Hap_CGetMaxCompressionSize(
-	HapCompressorGlobals glob,
-	PixMapHandle        src,
+	HapCompressorGlobals glob HAP_ATTR_UNUSED,
+	PixMapHandle        src HAP_ATTR_UNUSED,
 	const Rect *        srcRect,
-	short               depth,
-	CodecQ              quality,
+	short               depth HAP_ATTR_UNUSED,
+	CodecQ              quality HAP_ATTR_UNUSED,
 	long *              size)
 {
-#pragma unused (glob, src, depth, quality)
-	
+    int dxtSize;
 	if( ! size )
 		return paramErr;
-    int dxtSize = dxtBytesForDimensions(srcRect->right - srcRect->left, srcRect->bottom - srcRect->top, glob->type);
+    dxtSize = dxtBytesForDimensions(srcRect->right - srcRect->left, srcRect->bottom - srcRect->top, glob->type);
 	*size = HapMaxEncodedLength(dxtSize);
     
 	return noErr;
 }
 
 // Create a dictionary that describes the kinds of pixel buffers that we want to receive.
-// The important keys to add are kCVPixelBufferPixelFormatTypeKey, 
+// The important keys to add are kCVPixelBufferPixelFormatTypeKey,
 // kCVPixelBufferWidthKey and kCVPixelBufferHeightKey.
-// Many compressors will also want to set kCVPixelBufferExtendedPixels, 
+// Many compressors will also want to set kCVPixelBufferExtendedPixels,
 // kCVPixelBufferBytesPerRowAlignmentKey, kCVImageBufferGammaLevelKey and kCVImageBufferYCbCrMatrixKey.
-static OSStatus 
+static OSStatus
 createPixelBufferAttributesDictionary( SInt32 width, SInt32 height,
                                       const OSType *pixelFormatList, int pixelFormatCount,
                                       Boolean padBuffers,
@@ -458,15 +461,15 @@ Hap_CPrepareToCompressFrames(
   ICMCompressorSessionRef session,
   ICMCompressionSessionOptionsRef sessionOptions,
   ImageDescriptionHandle imageDescription,
-  void *reserved,
+  void *reserved HAP_ATTR_UNUSED,
   CFDictionaryRef *compressorPixelBufferAttributesOut)
 {
-#pragma unused (reserved)
 	ComponentResult err = noErr;
 	CFMutableDictionaryRef compressorPixelBufferAttributes = NULL;
     OSType pixelFormatList[] = { k32BGRAPixelFormat, k32RGBAPixelFormat, 0, 0 };
     int pixelFormatCount;
 	Fixed gammaLevel;
+    long wantedDXTSize;
 	
     switch (glob->type) {
         case kHapCodecSubType:
@@ -554,7 +557,7 @@ Hap_CPrepareToCompressFrames(
 	compressorPixelBufferAttributes = NULL;
     
     // Work out the upper bound on encoded frame data size -- we'll allocate buffers of this size.
-    long wantedDXTSize = dxtBytesForDimensions(glob->width, glob->height, glob->type);
+    wantedDXTSize = dxtBytesForDimensions(glob->width, glob->height, glob->type);
     
     glob->maxEncodedDataSize = HapMaxEncodedLength(wantedDXTSize);
     
@@ -572,7 +575,7 @@ Hap_CPrepareToCompressFrames(
     glob->taskGroup = HapCodecTasksCreateGroup(Background_Encode, 20);
     
 #ifdef DEBUG    
-    glob->debugStartTime = mach_absolute_time();
+    glob->debugStartTime = CVGetCurrentHostTime();
 #endif
 bail:
 	if( compressorPixelBufferAttributes ) CFRelease( compressorPixelBufferAttributes );
@@ -584,59 +587,54 @@ static void Background_Encode(void *info)
 {
     HapCodecBufferRef formatConvertBuffer = NULL;
     HapCodecBufferRef dxtBuffer = NULL;
-    CVPixelBufferRef sourceBuffer = NULL;
-    HapCodecCompressTask *task = HapCodecBufferGetBaseAddress((HapCodecBufferRef)info);
+    HapCodecCompressTask *task = (HapCodecCompressTask *)HapCodecBufferGetBaseAddress((HapCodecBufferRef)info);
     HapCompressorGlobals glob = task->glob;
     
     const void *codec_src = NULL;
     unsigned int codec_src_length = 0;
     
+    unsigned int sourceBytesPerRow = 0;
+    OSType sourcePixelFormat = 0;
+    void *sourceBaseAddress = NULL;
+    
+    OSType dxtPixelFormat = 0;
+    
+    unsigned int hapResult;
+    
     ComponentResult err = noErr;
     
-    err = ICMEncodedFrameCreateMutable(glob->session, task->sourceFrame, glob->maxEncodedDataSize, &task->encodedFrame);
-    if (err)
-        goto bail;
-    
-    sourceBuffer = ICMCompressorSourceFrameGetPixelBuffer(task->sourceFrame);
-    
-    if (CVPixelBufferLockBaseAddress(sourceBuffer, kCVPixelBufferLock_ReadOnly) != kCVReturnSuccess)
+    if (CVPixelBufferLockBaseAddress(task->sourceBuffer, kHapCodecCVPixelBufferLockFlags) != kCVReturnSuccess)
     {
-        sourceBuffer = NULL;
+        task->sourceBuffer = NULL;
         err = internalComponentErr;
         goto bail;
     }
     
-    unsigned int sourceBytesPerRow = CVPixelBufferGetBytesPerRow(sourceBuffer);
-    OSType sourcePixelFormat = CVPixelBufferGetPixelFormatType(sourceBuffer);
-    void *sourceBaseAddress = CVPixelBufferGetBaseAddress(sourceBuffer);
+    sourceBytesPerRow = CVPixelBufferGetBytesPerRow(task->sourceBuffer);
+    sourcePixelFormat = CVPixelBufferGetPixelFormatType(task->sourceBuffer);
+    sourceBaseAddress = CVPixelBufferGetBaseAddress(task->sourceBuffer);
     
-    OSType dxtPixelFormat = (glob->type == kHapAlphaCodecSubType ? kHapCVPixelFormat_RGBA_DXT5 : (glob->type == kHapCodecSubType ? kHapCVPixelFormat_RGB_DXT1 : kHapCVPixelFormat_YCoCg_DXT5));
+    dxtPixelFormat = (glob->type == kHapAlphaCodecSubType ? kHapCVPixelFormat_RGBA_DXT5 : (glob->type == kHapCodecSubType ? kHapCVPixelFormat_RGB_DXT1 : kHapCVPixelFormat_YCoCg_DXT5));
     
     if (isDXTPixelFormat(sourcePixelFormat))
     {
-        if (sourcePixelFormat != dxtPixelFormat)
+        size_t expectedDXTLength = dxtBytesForDimensions(glob->width, glob->height, glob->type);
+        
+        if (sourcePixelFormat != dxtPixelFormat // This shouldn't happen because we don't offer to convert between DXT formats
+            || CVPixelBufferGetDataSize(task->sourceBuffer) < expectedDXTLength)
         {
-            // This shouldn't happen because we don't offer to convert between DXT formats
             err = internalComponentErr;
             goto bail;
         }
         
         codec_src = sourceBaseAddress;
-        
-        long expectedDXTLength = dxtBytesForDimensions(glob->width, glob->height, glob->type);
-        
-        if (CVPixelBufferGetDataSize(sourceBuffer) < expectedDXTLength)
-        {
-            err = internalComponentErr;
-            goto bail;
-        }
-        
         codec_src_length = expectedDXTLength;
     }
     else
     {
         const void *encode_src;
         unsigned int encode_src_bytes_per_row;
+        int result = 0;
         
         OSType wantedPixelFormat = glob->dxtEncoder->pixelformat_function(glob->dxtEncoder, sourcePixelFormat);
         
@@ -651,26 +649,29 @@ static void Background_Encode(void *info)
                 goto bail;
             }
             
+            // for all these we pass 0 as last argument so we don't tile, we are already multithreaded
             switch (wantedPixelFormat)
             {
                 case kHapCVPixelFormat_CoCgXY:
                     if (sourcePixelFormat == k32BGRAPixelFormat)
                     {
-                        ConvertBGR_ToCoCg_Y8888(sourceBaseAddress,
-                                                HapCodecBufferGetBaseAddress(formatConvertBuffer),
+                        ConvertBGR_ToCoCg_Y8888((uint8_t *)sourceBaseAddress,
+                                                (uint8_t *)HapCodecBufferGetBaseAddress(formatConvertBuffer),
                                                 glob->width,
                                                 glob->height,
                                                 sourceBytesPerRow,
-                                                glob->formatConvertBufferBytesPerRow);
+                                                glob->formatConvertBufferBytesPerRow,
+                                                0);
                     }
                     else
                     {
-                        ConvertRGB_ToCoCg_Y8888(sourceBaseAddress,
-                                                HapCodecBufferGetBaseAddress(formatConvertBuffer),
+                        ConvertRGB_ToCoCg_Y8888((uint8_t *)sourceBaseAddress,
+                                                (uint8_t *)HapCodecBufferGetBaseAddress(formatConvertBuffer),
                                                 glob->width,
                                                 glob->height,
                                                 sourceBytesPerRow,
-                                                glob->formatConvertBufferBytesPerRow);
+                                                glob->formatConvertBufferBytesPerRow,
+                                                0);
                     }
                     break;
                 case k32RGBAPixelFormat:
@@ -683,7 +684,8 @@ static void Background_Encode(void *info)
                                               glob->formatConvertBufferBytesPerRow,
                                               glob->width,
                                               glob->height,
-                                              permuteMap);
+                                              permuteMap,
+                                              0);
                     }
                     else
                     {
@@ -715,7 +717,7 @@ static void Background_Encode(void *info)
             goto bail;
         }
         
-        int result = glob->dxtEncoder->encode_function(glob->dxtEncoder,
+        result = glob->dxtEncoder->encode_function(glob->dxtEncoder,
                                                        encode_src,
                                                        encode_src_bytes_per_row,
                                                        wantedPixelFormat,
@@ -731,11 +733,13 @@ static void Background_Encode(void *info)
         
         // Unlock the source buffer as soon as we are finished with it
         // It has to be before we emit the frame because we lose our reference to it then
-        CVPixelBufferUnlockBaseAddress(sourceBuffer, kCVPixelBufferLock_ReadOnly);
-        sourceBuffer = NULL;
+        CVPixelBufferUnlockBaseAddress(task->sourceBuffer, kHapCodecCVPixelBufferLockFlags);
+        task->sourceBuffer = NULL;
         
-        // Detach the pixel buffer so it can be recycled
+#if defined(__APPLE__)
+        // Detach the pixel buffer so it can be recycled (not on Windows as QT isn't thread-safe there)
         ICMCompressorSourceFrameDetachPixelBuffer(task->sourceFrame);
+#endif
         
         // Return the format conversion buffer as soon as we can to minimise the number created
         HapCodecBufferReturn(formatConvertBuffer);
@@ -745,47 +749,31 @@ static void Background_Encode(void *info)
         codec_src_length = HapCodecBufferGetSize(dxtBuffer);
     }
     
-    unsigned long actualEncodedDataSize = 0;
-    unsigned int hapResult = HapEncode(codec_src,
+    hapResult = HapEncode(codec_src,
                                        codec_src_length,
                                        glob->dxtFormat,
                                        HapCompressorSnappy,
-                                       ICMEncodedFrameGetDataPtr(task->encodedFrame),
+                                       task->encodedFrameBaseAddress,
                                        glob->maxEncodedDataSize,
-                                       &actualEncodedDataSize);
+                                       &(task->encodedFrameActualSize));
     if (hapResult != HapResult_No_Error)
     {
         err = internalComponentErr;
         goto bail;
     }
     
-    ICMEncodedFrameSetDataSize(task->encodedFrame, actualEncodedDataSize);
-    
-    MediaSampleFlags mediaSampleFlags = 0;
-    
-    mediaSampleFlags |= mediaSampleDroppable;
-    mediaSampleFlags |= mediaSampleDoesNotDependOnOthers;
-	
-	err = ICMEncodedFrameSetMediaSampleFlags(task->encodedFrame, mediaSampleFlags );
-	if( err )
-		goto bail;
-	
-	err = ICMEncodedFrameSetFrameType( task->encodedFrame, kICMFrameType_I );
-	if (err)
-        goto bail;
-    
 #ifdef DEBUG
-    OSSpinLockLock(&glob->lock);
+    HapCodecLockLock(&glob->lock);
     glob->debugFrameCount++;
-    glob->debugLastFrameTime = mach_absolute_time();
-    glob->debugTotalFrameBytes += actualEncodedDataSize;
-    if (actualEncodedDataSize > glob->debugLargestFrameBytes) glob->debugLargestFrameBytes = actualEncodedDataSize;
-    if (actualEncodedDataSize < glob->debugSmallestFrameBytes || glob->debugSmallestFrameBytes == 0) glob->debugSmallestFrameBytes = actualEncodedDataSize;
-    OSSpinLockUnlock(&glob->lock);
+    glob->debugLastFrameTime = CVGetCurrentHostTime();
+    glob->debugTotalFrameBytes += task->encodedFrameActualSize;
+    if (task->encodedFrameActualSize > glob->debugLargestFrameBytes) glob->debugLargestFrameBytes = task->encodedFrameActualSize;
+    if (task->encodedFrameActualSize < glob->debugSmallestFrameBytes || glob->debugSmallestFrameBytes == 0) glob->debugSmallestFrameBytes = task->encodedFrameActualSize;
+    HapCodecLockUnlock(&glob->lock);
 #endif
 bail:
     debug_print_err(glob, err);
-    if (sourceBuffer) CVPixelBufferUnlockBaseAddress(sourceBuffer, kCVPixelBufferLock_ReadOnly);
+    if (task->sourceBuffer) CVPixelBufferUnlockBaseAddress(task->sourceBuffer, kHapCodecCVPixelBufferLockFlags);
     HapCodecBufferReturn(formatConvertBuffer);
     HapCodecBufferReturn(dxtBuffer);
     
@@ -804,13 +792,15 @@ ComponentResult
 Hap_CEncodeFrame(
   HapCompressorGlobals glob,
   ICMCompressorSourceFrameRef sourceFrame,
-  UInt32 flags )
+  UInt32 flags HAP_ATTR_UNUSED)
 {
-#pragma unused (flags)
 	ComponentResult err = noErr;
     
     CVPixelBufferRef sourcePixelBuffer = ICMCompressorSourceFrameGetPixelBuffer(sourceFrame);
     OSType sourceFormat = CVPixelBufferGetPixelFormatType(sourcePixelBuffer);
+    HapCodecBufferRef buffer;
+    HapCodecCompressTask *task;
+    ICMMutableEncodedFrameRef encodedFrame = NULL;
     
     if (!isDXTPixelFormat(sourceFormat))
     {
@@ -821,17 +811,21 @@ Hap_CEncodeFrame(
             {
                 glob->dxtEncoder = HapCodecYCoCgDXTEncoderCreate();
             }
+#if defined(__APPLE__)
             else if (glob->quality < codecHighQuality)
             {
                 glob->dxtEncoder = HapCodecGLEncoderCreate(glob->width,
                                                            glob->height,
                                                            (glob->type == kHapAlphaCodecSubType ? kHapCVPixelFormat_RGBA_DXT5 : kHapCVPixelFormat_RGB_DXT1));
             }
+#endif
             else
             {
-                glob->dxtEncoder = HapCodecSquishEncoderCreate(HapCodecSquishEncoderMediumQuality,
-                                                               (glob->type == kHapAlphaCodecSubType ? kHapCVPixelFormat_RGBA_DXT5 : kHapCVPixelFormat_RGB_DXT1));
+                HapCodecSquishEncoderQuality squishQuality = (glob->quality < codecHighQuality ? HapCodecSquishEncoderWorstQuality : HapCodecSquishEncoderMediumQuality);
+                OSType squishPixelFormat = (glob->type == kHapAlphaCodecSubType ? kHapCVPixelFormat_RGBA_DXT5 : kHapCVPixelFormat_RGB_DXT1);
+                glob->dxtEncoder = HapCodecSquishEncoderCreate(squishQuality, squishPixelFormat);
             }
+            
             if (glob->dxtEncoder == NULL)
             {
                 err = internalComponentErr;
@@ -876,9 +870,14 @@ Hap_CEncodeFrame(
         }
     }
     
+    // Create an empty encoded frame
+    err = ICMEncodedFrameCreateMutable(glob->session, sourceFrame, glob->maxEncodedDataSize, &encodedFrame);
+    if (err)
+        goto bail;
+    
     // Create a task and dispatch it
-    HapCodecBufferRef buffer = HapCodecBufferCreate(glob->compressTaskPool);
-    HapCodecCompressTask *task = (HapCodecCompressTask *)HapCodecBufferGetBaseAddress(buffer);
+    buffer = HapCodecBufferCreate(glob->compressTaskPool);
+    task = (HapCodecCompressTask *)HapCodecBufferGetBaseAddress(buffer);
     if (task == NULL)
     {
         err = memFullErr;
@@ -886,10 +885,14 @@ Hap_CEncodeFrame(
     }
     
     task->sourceFrame = ICMCompressorSourceFrameRetain(sourceFrame);
+    task->sourceBuffer = ICMCompressorSourceFrameGetPixelBuffer(sourceFrame);
     task->glob = glob;
     task->error = noErr;
-    task->encodedFrame = NULL;
+    task->encodedFrame = encodedFrame;
+    task->encodedFrameBaseAddress = ICMEncodedFrameGetDataPtr(encodedFrame);
     task->next = NULL;
+    
+    encodedFrame = NULL;
     
     HapCodecTasksAddTask(glob->taskGroup, buffer);
     
@@ -906,6 +909,10 @@ Hap_CEncodeFrame(
     } while (buffer != NULL);
     
 bail:
+    if (encodedFrame != NULL)
+    {
+        ICMEncodedFrameRelease(encodedFrame);
+    }
     debug_print_err(glob, err);
 	return err;
 }
@@ -921,11 +928,12 @@ bail:
 ComponentResult 
 Hap_CCompleteFrame( 
   HapCompressorGlobals glob,
-  ICMCompressorSourceFrameRef sourceFrame,
-  UInt32 flags )
+  ICMCompressorSourceFrameRef sourceFrame HAP_ATTR_UNUSED,
+  UInt32 flags HAP_ATTR_UNUSED)
 {
-#pragma unused (sourceFrame, flags)
     ComponentResult err = noErr;
+    HapCodecBufferRef buffer;
+    
     if (glob->taskGroup)
     {
         // This waits for all pending frames rather than the particular frame
@@ -933,7 +941,6 @@ Hap_CCompleteFrame(
         // a problem.
         HapCodecTasksWaitForGroupToComplete(glob->taskGroup);
     }
-    HapCodecBufferRef buffer;
     
     do
     {
@@ -966,13 +973,25 @@ static ComponentResult finishFrame(HapCodecBufferRef buffer)
     ComponentResult err = noErr;
     if (buffer != NULL)
     {
-        HapCodecCompressTask *task = HapCodecBufferGetBaseAddress(buffer);
+        HapCodecCompressTask *task = (HapCodecCompressTask *)HapCodecBufferGetBaseAddress(buffer);
         
         err = task->error;
         
         task->glob->lastFrameOut = ICMCompressorSourceFrameGetDisplayNumber(task->sourceFrame);
         
-        if (task->error == noErr)
+        if (err == noErr)
+        {
+            err = ICMEncodedFrameSetDataSize(task->encodedFrame, task->encodedFrameActualSize);
+        }
+        if (err == noErr)
+        {
+            err = ICMEncodedFrameSetMediaSampleFlags(task->encodedFrame, mediaSampleDroppable | mediaSampleDoesNotDependOnOthers);
+        }
+        if (err == noErr)
+        {
+            err = ICMEncodedFrameSetFrameType( task->encodedFrame, kICMFrameType_I );
+        }
+        if (err == noErr)
         {
             ICMCompressorSessionEmitEncodedFrame(task->glob->session, task->encodedFrame, 1, &task->sourceFrame);
         }
@@ -990,10 +1009,10 @@ static void queueEncodedFrame(HapCompressorGlobals glob, HapCodecBufferRef frame
     HapCodecCompressTask *task = (HapCodecCompressTask *)HapCodecBufferGetBaseAddress(frame);
     if (glob && task)
     {
-        OSSpinLockLock(&glob->lock);
+        HapCodecLockLock(&glob->lock);
         task->next = glob->finishedFrames;
         glob->finishedFrames = frame;
-        OSSpinLockUnlock(&glob->lock);
+        HapCodecLockUnlock(&glob->lock);
     }
 }
 
@@ -1002,30 +1021,33 @@ static HapCodecBufferRef dequeueNextFrameOut(HapCompressorGlobals glob)
     HapCodecBufferRef found = NULL;
     if (glob)
     {
-        OSSpinLockLock(&glob->lock);
-        HapCodecBufferRef *prevPtr = &glob->finishedFrames;
-        HapCodecBufferRef this = glob->finishedFrames;
-        while (this) {
-            HapCodecCompressTask *task = (HapCodecCompressTask *)HapCodecBufferGetBaseAddress(this);
+        HapCodecBufferRef *prevPtr;
+        HapCodecBufferRef buffer;
+        
+        HapCodecLockLock(&glob->lock);
+        prevPtr = &glob->finishedFrames;
+        buffer = glob->finishedFrames;
+        while (buffer) {
+            HapCodecCompressTask *task = (HapCodecCompressTask *)HapCodecBufferGetBaseAddress(buffer);
             if (task)
             {
                 long frameNumber = ICMCompressorSourceFrameGetDisplayNumber(task->sourceFrame);
                 if (frameNumber == glob->lastFrameOut + 1)
                 {
-                    found = this;
+                    found = buffer;
                     *prevPtr = task->next;
                     break;
                 }
-                this = task->next;
+                buffer = task->next;
                 prevPtr = &task->next;
             }
             else
             {
-                this = NULL;
+                buffer = NULL;
             }
             
         }
-        OSSpinLockUnlock(&glob->lock);
+        HapCodecLockUnlock(&glob->lock);
     }
     return found;
 }

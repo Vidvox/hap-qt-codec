@@ -71,6 +71,7 @@ SingleColourFit::SingleColourFit( ColourSet const* colours, int flags )
 	m_besterror = INT_MAX;
 }
 
+#if defined(HAP_SQUISH_EMIT_3_COLOUR_BLOCKS)
 void SingleColourFit::Compress3( void* block )
 {
 	// build the table of lookups
@@ -98,6 +99,7 @@ void SingleColourFit::Compress3( void* block )
 		m_besterror = m_error;
 	}
 }
+#endif
 
 void SingleColourFit::Compress4( void* block )
 {

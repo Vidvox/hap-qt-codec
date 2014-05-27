@@ -1,0 +1,184 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{505578FB-B98D-4DDB-9B06-B6F85A40B3A2}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>HapCodec</RootNamespace>
+    <ProjectName>Hap</ProjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v110</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v110</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+    <TargetExt>.dll</TargetExt>
+    <ExtensionsToDeleteOnClean>*.qtr;*.qtx;$(ExtensionsToDeleteOnClean)</ExtensionsToDeleteOnClean>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+    <TargetExt>.dll</TargetExt>
+    <ExtensionsToDeleteOnClean>*.qtr;*.qtx;$(ExtensionsToDeleteOnClean)</ExtensionsToDeleteOnClean>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;WINVER=0x0600;_WIN32_WINNT=0x0600;WIN32_LEAN_AND_MEAN;_DEBUG;DEBUG;_WINDOWS;_USRDLL;HAPCODEC_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\external\hap;$(SolutionDir)..\external\squish\squish-source;$(SolutionDir)..\external\snappy\snappy-source;$(PROGRAMFILES)\QuickTime SDK\ComponentIncludes;$(PROGRAMFILES)\QuickTime SDK\CIncludes;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>$(PROGRAMFILES)\QuickTime SDK\Libraries;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>qtmlclient.lib;cvclient.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <IgnoreSpecificDefaultLibraries>libcmt.lib;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <ModuleDefinitionFile>$(SolutionDir)..\source\HapComponent.def</ModuleDefinitionFile>
+    </Link>
+    <PreBuildEvent>
+      <Command>@echo on
+"$(ProgramFiles)\QuickTime SDK\Tools\Rez.exe" -rd -i "$(ProgramFiles)\QuickTime SDK\RIncludes" -i .\..\source -o "$(TargetDir)$(TargetName).qtr" &lt; "$(ProjectDir)../source/HapResWindows.r"</Command>
+    </PreBuildEvent>
+    <PostBuildEvent>
+      <Command>@echo on
+attrib -R "$(OutDir)$(TargetName)$(TargetExt)"
+"$(ProgramFiles)\QuickTime SDK\Tools\RezWack.exe" -f -d "$(TargetDir)$(TargetName)$(TargetExt)" -r "$(TargetDir)$(TargetName).qtr" -o "$(TargetDir)$(TargetName).qtx"
+attrib -R "$(TargetDir)$(TargetName).qtx"
+</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;WINVER=0x0600;_WIN32_WINNT=0x0600;WIN32_LEAN_AND_MEAN;NDEBUG;_WINDOWS;_USRDLL;HAPCODEC_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\external\hap;$(SolutionDir)..\external\squish\squish-source;$(SolutionDir)..\external\snappy\snappy-source;$(PROGRAMFILES)\QuickTime SDK\ComponentIncludes;$(PROGRAMFILES)\QuickTime SDK\CIncludes;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalLibraryDirectories>$(PROGRAMFILES)\QuickTime SDK\Libraries;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>qtmlclient.lib;cvclient.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <IgnoreSpecificDefaultLibraries>libcmt.lib;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <ModuleDefinitionFile>$(SolutionDir)..\source\HapComponent.def</ModuleDefinitionFile>
+    </Link>
+    <PreBuildEvent>
+      <Command>@echo on
+"$(ProgramFiles)\QuickTime SDK\Tools\Rez.exe" -rd -i "$(ProgramFiles)\QuickTime SDK\RIncludes" -i .\..\source -o "$(TargetDir)$(TargetName).qtr" &lt; "$(ProjectDir)../source/HapResWindows.r"</Command>
+    </PreBuildEvent>
+    <PostBuildEvent>
+      <Command>@echo on
+attrib -R "$(OutDir)$(TargetName)$(TargetExt)"
+"$(ProgramFiles)\QuickTime SDK\Tools\RezWack.exe" -f -d "$(TargetDir)$(TargetName)$(TargetExt)" -r "$(TargetDir)$(TargetName).qtr" -o "$(TargetDir)$(TargetName).qtx"
+attrib -R "$(TargetDir)$(TargetName).qtx"
+</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="..\external\hap\hap.c" />
+    <ClCompile Include="..\source\Buffers.c" />
+    <ClCompile Include="..\source\Dllmain.c" />
+    <ClCompile Include="..\source\DXTBlocks.c" />
+    <ClCompile Include="..\source\DXTBlocksSSSE3.c" />
+    <ClCompile Include="..\source\HapCompressor.c" />
+    <ClCompile Include="..\source\HapDecompressor.c" />
+    <ClCompile Include="..\source\ImageMath.c" />
+    <ClCompile Include="..\source\ParallelLoops.cpp" />
+    <ClCompile Include="..\source\PixelFormats.c" />
+    <ClCompile Include="..\source\squish-c.cpp" />
+    <ClCompile Include="..\source\SquishDecoder.c" />
+    <ClCompile Include="..\source\SquishEncoder.c" />
+    <ClCompile Include="..\source\Tasks.c" />
+    <ClCompile Include="..\source\Utility.c">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </CompileAs>
+    </ClCompile>
+    <ClCompile Include="..\source\YCoCg.c" />
+    <ClCompile Include="..\source\Lock.c" />
+    <ClCompile Include="..\source\YCoCgDXT.cpp">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
+    </ClCompile>
+    <ClCompile Include="..\source\YCoCgDXTEncoder.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\external\hap\hap.h" />
+    <ClInclude Include="..\source\Buffers.h" />
+    <ClInclude Include="..\source\DXTBlocks.h" />
+    <ClInclude Include="..\source\DXTEncoder.h" />
+    <ClInclude Include="..\source\HapCodecSubTypes.h" />
+    <ClInclude Include="..\source\HapCodecVersion.h" />
+    <ClInclude Include="..\source\HapCompressorDispatch.h" />
+    <ClInclude Include="..\source\HapDecompressorDispatch.h" />
+    <ClInclude Include="..\source\HapPlatform.h" />
+    <ClInclude Include="..\source\HapResCommon.h" />
+    <ClInclude Include="..\source\ImageMath.h" />
+    <ClInclude Include="..\source\ParallelLoops.h" />
+    <ClInclude Include="..\source\PixelFormats.h" />
+    <ClInclude Include="..\source\squish-c.h" />
+    <ClInclude Include="..\source\SquishDecoder.h" />
+    <ClInclude Include="..\source\SquishEncoder.h" />
+    <ClInclude Include="..\source\Tasks.h" />
+    <ClInclude Include="..\source\Utility.h" />
+    <ClInclude Include="..\source\YCoCg.h" />
+    <ClInclude Include="..\source\Lock.h" />
+    <ClInclude Include="..\source\YCoCgDXT.h" />
+    <ClInclude Include="..\source\YCoCgDXTEncoder.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\source\HapAlphaComponent.r" />
+    <None Include="..\source\HapComponent.def" />
+    <None Include="..\source\HapComponent.r" />
+    <None Include="..\source\HapResCommon.r" />
+    <None Include="..\source\HapYCoCgComponent.r" />
+    <None Include="..\source\HapResWindows.r" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\external\snappy\snappy-windows\snappy.vcxproj">
+      <Project>{ea240c00-1f49-4c14-ae7c-a7d5d00af7fb}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\external\squish\squish-windows\squish.vcxproj">
+      <Project>{6a8518c3-d81a-4428-bd7f-c37933088ac1}</Project>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

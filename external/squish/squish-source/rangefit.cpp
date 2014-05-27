@@ -93,6 +93,7 @@ RangeFit::RangeFit( ColourSet const* colours, int flags, float* metric )
 	m_end = Truncate( grid*end + half )*gridrcp;
 }
 
+#if defined(HAP_SQUISH_EMIT_3_COLOUR_BLOCKS)
 void RangeFit::Compress3( void* block )
 {
 	// cache some values
@@ -144,6 +145,7 @@ void RangeFit::Compress3( void* block )
 		m_besterror = error;
 	}
 }
+#endif
 
 void RangeFit::Compress4( void* block )
 {

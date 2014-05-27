@@ -28,16 +28,23 @@
 #ifndef HapCodec_Utility_h
 #define HapCodec_Utility_h
 
+#if defined(__APPLE__)
 #include <CoreFoundation/CoreFoundation.h>
+#elif defined(_WIN32)
+#include <CoreFoundation.h>
+#include <stdio.h>
+#endif
+#include "HapPlatform.h"
 
 #define kHapCodecSampleDescriptionExtension 'HAPe'
 
 void addNumberToDictionary( CFMutableDictionaryRef dictionary, CFStringRef key, SInt32 numberSInt32 );
 void addDoubleToDictionary( CFMutableDictionaryRef dictionary, CFStringRef key, double numberDouble );
 int roundUpToMultipleOf4( int n );
+int roundDownToMultipleOf4( int n );
 int roundUpToMultipleOf16( int n );
 
-size_t dxtBytesForDimensions(int width, int height, OSType codecSubType);
+unsigned long dxtBytesForDimensions(int width, int height, OSType codecSubType);
 
 /*
  Boolean isDXTPixelFormat(OSType fmt)
@@ -53,9 +60,17 @@ size_t dxtBytesForDimensions(int width, int height, OSType codecSubType);
 SInt16 resourceIDForComponentType(OSType componentType, OSType resourceType);
 
 #ifdef DEBUG
-#define debug_print_function_call(glob) fprintf(stdout, "%p %s\n", (glob), __func__)
-#define debug_print(glob, s) fprintf(stdout, "%p %s %s\n", (glob), __func__, s)
-#define debug_print_err(glob, e) if ((e) != noErr) fprintf(stdout, "%p %s error code %d\n", (glob), __func__, (int)(e))
+#if defined(_WIN32)
+#define debug_print_function_call(glob) debug_print((glob), NULL)
+#define debug_print(glob, s) debug_print_s((glob), HAP_FUNC, (s))
+#define debug_print_err(glob, e) { if ((e) != noErr) debug_print_i(glob, HAP_FUNC, (e)); }
+void debug_print_s(void *glob, const char *func, const char *s);
+void debug_print_i(void *glob, const char *func, int e);
+#else
+#define debug_print_function_call(glob) fprintf(stdout, "%p %s\n", (glob), HAP_FUNC)
+#define debug_print(glob, s) fprintf(stdout, "%p %s %s\n", (glob), HAP_FUNC, s)
+#define debug_print_err(glob, e) if ((e) != noErr) fprintf(stdout, "%p %s error code %d\n", (glob), HAP_FUNC, (int)(e))
+#endif
 #else
 #define debug_print_function_call(glob)
 #define debug_print(glob, s)

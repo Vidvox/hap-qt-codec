@@ -27,6 +27,7 @@
 
 #include "Tasks.h"
 
+#if defined(__APPLE__)
 struct HapCodecTaskGroup {
     HapCodecTaskWorkFunction    task;
     dispatch_group_t            group;
@@ -89,3 +90,191 @@ void HapCodecTasksDestroyGroup(HapCodecTaskGroupRef group)
         free(group);
     }
 }
+
+#else
+
+#include <Windows.h>
+#include <malloc.h>
+
+struct HapCodecTaskGroup {
+    HapCodecTaskWorkFunction    task;
+    unsigned int                maxTasks;
+    PTP_POOL                    pool;
+    PTP_WORK                    work;
+    PTP_CLEANUP_GROUP           cleanup;
+    /*
+    Below this line members are shared between threads
+    */ 
+    HANDLE                      sharedSemaphore;
+    CRITICAL_SECTION            sharedCritical;
+    void **                     sharedContexts;
+};
+
+static void NTAPI HapCodecTasksWorkCallback(PTP_CALLBACK_INSTANCE instance, PVOID context, PTP_WORK work)
+{
+    struct HapCodecTaskGroup *group = (struct HapCodecTaskGroup *)context;
+    if (group)
+    {
+        void *userContext = NULL;
+        unsigned int i;
+
+        EnterCriticalSection(&(group->sharedCritical));
+
+        // Get the first item from the queue
+        userContext = group->sharedContexts[0];
+
+        // Move queue items down so we behave as a FIFO queue
+        for (i = 0; i < group->maxTasks - 1; i++)
+        {
+            group->sharedContexts[i] = group->sharedContexts[i+1];
+        }
+        group->sharedContexts[group->maxTasks - 1] = NULL;
+
+        LeaveCriticalSection(&(group->sharedCritical));
+
+        group->task(userContext);
+
+        ReleaseSemaphoreWhenCallbackReturns(instance, group->sharedSemaphore, 1);
+    }
+}
+
+static void NTAPI HapCodecTasksCleanupCallback(PVOID ObjectContext, PVOID CleanupContext)
+{
+    // For now we have no cleanup to perform here
+}
+
+void HapCodecTasksAddTask(HapCodecTaskGroupRef group, void *context)
+{
+    if (group && group->work && group->sharedSemaphore)
+    {
+        unsigned int i;
+        // TODO: If we can coordinate waiting for ALL threads to finish
+        // we can make this much simpler using
+        // TrySubmitThreadpoolCallback(....) and 
+        WaitForSingleObject(group->sharedSemaphore, INFINITE);
+        
+        EnterCriticalSection(&(group->sharedCritical));
+        for (i = 0; i < group->maxTasks; i++)
+        {
+            if (group->sharedContexts[i] == NULL)
+            {
+                group->sharedContexts[i] = context;
+                break;
+            }
+        }
+        LeaveCriticalSection(&(group->sharedCritical));
+        
+        SubmitThreadpoolWork(group->work);
+    }
+}
+
+void HapCodecTasksWaitForGroupToComplete(HapCodecTaskGroupRef group)
+{
+    if (group && group->work) WaitForThreadpoolWorkCallbacks(group->work, FALSE);
+}
+
+HapCodecTaskGroupRef HapCodecTasksCreateGroup(HapCodecTaskWorkFunction task, unsigned int maxTasks)
+{
+    HapCodecTaskGroupRef group = NULL;
+    if (task)
+    {
+        group = (HapCodecTaskGroupRef)malloc(sizeof(struct HapCodecTaskGroup));
+        if (group)
+        {
+            BOOL success = FALSE;
+            TP_CALLBACK_ENVIRON         callbackEnviron;
+            SYSTEM_INFO system;
+            
+            GetSystemInfo(&system);
+
+            InitializeThreadpoolEnvironment(&callbackEnviron);
+
+            InitializeCriticalSection(&group->sharedCritical);
+
+            group->task = task;
+            group->maxTasks = maxTasks;
+            group->pool = CreateThreadpool(NULL);
+            group->work = NULL;
+            group->cleanup = NULL;
+            group->sharedSemaphore = NULL;
+            group->sharedContexts = NULL;
+
+            if (group->pool)
+            {
+                SetThreadpoolThreadMaximum(group->pool, system.dwNumberOfProcessors);
+                success = SetThreadpoolThreadMinimum(group->pool, 1);
+            }
+            if (success)
+            {
+                SetThreadpoolCallbackPool(&callbackEnviron, group->pool);
+            }
+            if (success)
+            {
+                group->cleanup = CreateThreadpoolCleanupGroup();
+                if (group->cleanup == NULL) success = FALSE;
+            }
+            if (success)
+            {
+                SetThreadpoolCallbackCleanupGroup(&callbackEnviron, group->cleanup, (PTP_CLEANUP_GROUP_CANCEL_CALLBACK)HapCodecTasksCleanupCallback);
+            }
+            if (success)
+            {
+                group->work = CreateThreadpoolWork((PTP_WORK_CALLBACK)HapCodecTasksWorkCallback, group, &callbackEnviron);
+                if (group->work == NULL) success = FALSE;
+            }
+            if (success)
+            {
+                group->sharedSemaphore = CreateSemaphore(NULL, maxTasks, maxTasks, NULL);
+                if (group->sharedSemaphore == NULL) success = FALSE;
+            }
+            if (success)
+            {
+                unsigned int i;
+                group->sharedContexts = (void **)malloc(sizeof(void *) * maxTasks);
+                if (group->sharedContexts)
+                {
+                    for (i = 0; i < maxTasks; i++)
+                        group->sharedContexts[i] = NULL;
+                }
+                else
+                {
+                    success = FALSE;
+                }
+            }
+            if (success == FALSE)
+            {
+                HapCodecTasksDestroyGroup(group);
+                group = NULL;
+            }
+            DestroyThreadpoolEnvironment(&callbackEnviron);
+        }
+    }
+    return group;
+}
+
+void HapCodecTasksDestroyGroup(HapCodecTaskGroupRef group)
+{
+    if (group)
+    {
+        DeleteCriticalSection(&(group->sharedCritical));
+        if (group->cleanup)
+        {
+            CloseThreadpoolCleanupGroupMembers(group->cleanup, FALSE, NULL);
+            CloseThreadpoolCleanupGroup(group->cleanup);
+        }
+        if (group->pool)
+        {
+            CloseThreadpool(group->pool);
+        }
+        if (group->sharedSemaphore)
+        {
+            CloseHandle(group->sharedSemaphore);
+        }
+        if (group->sharedContexts)
+        {
+            free(group->sharedContexts);
+        }
+        free(group);
+    }
+}
+#endif

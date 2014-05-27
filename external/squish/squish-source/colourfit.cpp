@@ -40,6 +40,7 @@ ColourFit::~ColourFit()
 
 void ColourFit::Compress( void* block )
 {
+#if defined(HAP_SQUISH_EMIT_3_COLOUR_BLOCKS)
 	bool isDxt1 = ( ( m_flags & kDxt1 ) != 0 );
 	if( isDxt1 )
 	{
@@ -48,6 +49,7 @@ void ColourFit::Compress( void* block )
 			Compress4( block );
 	}
 	else
+#endif
 		Compress4( block );
 }
 

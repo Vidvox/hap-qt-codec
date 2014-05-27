@@ -25,8 +25,15 @@
  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "Utility.h"
+#if defined(__APPLE__)
 #include <QuickTime/QuickTime.h>
+#elif defined(_WIN32)
+#include <ConditionalMacros.h>
+#include <ImageCodec.h>
+#include <Windows.h>
+#endif
+
+#include "Utility.h"
 #include "HapCodecSubTypes.h"
 
 // Utility to add an SInt32 to a CFMutableDictionary.
@@ -65,9 +72,14 @@ int roundUpToMultipleOf4( int n )
 	return n;
 }
 
-size_t dxtBytesForDimensions(int width, int height, OSType codecSubType)
+int roundDownToMultipleOf4( int n )
 {
-    size_t length = roundUpToMultipleOf4(width) * roundUpToMultipleOf4(height);
+    return n & ~3;
+}
+
+unsigned long dxtBytesForDimensions(int width, int height, OSType codecSubType)
+{
+    unsigned long length = roundUpToMultipleOf4(width) * roundUpToMultipleOf4(height);
     if (codecSubType == kHapCodecSubType) length /= 2;
     return length;
 }
@@ -89,3 +101,26 @@ SInt16 resourceIDForComponentType(OSType componentType, OSType resourceType)
     }
     return 0;
 }
+
+#if defined(_WIN32)
+void debug_print_s(void *glob, const char *func, const char *s)
+{
+    char buffer[255];
+    if (s)
+    {
+        _sprintf_p(buffer, sizeof(buffer), "%p %s %s\n", glob, func, s);
+    }
+    else
+    {
+        _sprintf_p(buffer, sizeof(buffer), "%p %s\n", glob, func);
+    }
+    OutputDebugStringA(buffer);
+}
+
+void debug_print_i(void *glob, const char *func, int e)
+{
+    char buffer[255];
+    _sprintf_p(buffer, sizeof(buffer), "%p %s %d\n", glob, func, e);
+    OutputDebugStringA(buffer);
+}
+#endif

@@ -85,14 +85,15 @@ static int HapCodecGLEncoderEncode(HapCodecDXTEncoderRef encoder,
         default:
             return 1;
     }
+    __block int result;
     dispatch_sync(((struct HapCodecGLEncoder *)encoder)->queue, ^{
-        HapCodecGLEncode(((struct HapCodecGLEncoder *)encoder)->encoder,
-                         src_bytes_per_row,
-                         encoder_pixel_format,
-                         src,
-                         dst);
+        result = HapCodecGLEncode(((struct HapCodecGLEncoder *)encoder)->encoder,
+                                  src_bytes_per_row,
+                                  encoder_pixel_format,
+                                  src,
+                                  dst);
     });
-    return 0;
+    return result;
 }
 
 #if defined(DEBUG)

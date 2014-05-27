@@ -26,6 +26,7 @@
  */
 
 #include "HapCodecGL.h"
+#include "Utility.h"
 #include <OpenGL/OpenGL.h>
 #include <OpenGL/CGLMacro.h>
 #include <stdbool.h>
@@ -33,7 +34,6 @@
 #include <stdlib.h>
 
 static bool openGLFormatAndTypeForFormat(HapCodecGLPixelFormat pixel_format, GLenum *format_out, GLenum *type_out) __attribute__((nonnull(2,3)));
-static int roundUpToMultipleOf4( int n );
 static bool openGLSupportsExtension(CGLContextObj cgl_ctx, const char *extension) __attribute__((nonnull(1,2)));
 
 enum HapCodecGLCoderMode {
@@ -45,18 +45,13 @@ struct HapCodecGL {
     CGLContextObj   context;
     unsigned int    mode;
     GLuint          texture;
+    void            *copyBuffer;
+    GLuint          texWidth;
+    GLuint          texHeight;
     GLuint          width;
     GLuint          height;
     GLenum          format;
 };
-
-// Utility to round up to a multiple of 4.
-static int roundUpToMultipleOf4( int n )
-{
-	if( 0 != ( n & 3 ) )
-		n = ( n + 3 ) & ~3;
-	return n;
-}
 
 static bool openGLSupportsExtension(CGLContextObj cgl_ctx, const char *extension)
 
@@ -131,9 +126,6 @@ static HapCodecGLRef HapCodecGLCreate(unsigned int mode, unsigned int width, uns
          for non-rounded dimensions on Intel HD 4000.
          
          */
-        coder->width = roundUpToMultipleOf4(width);
-        coder->height = roundUpToMultipleOf4(height);
-        coder->format = compressed_format;
         
         CGLPixelFormatAttribute attribs[] = {
             kCGLPFAAccelerated,
@@ -162,6 +154,26 @@ static HapCodecGLRef HapCodecGLCreate(unsigned int mode, unsigned int width, uns
         }
         CGLContextObj cgl_ctx = coder->context;
         
+        GLint maxTexSize = 0;
+        glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxTexSize);
+        
+        coder->texWidth = roundUpToMultipleOf4(width);
+        coder->texHeight = roundUpToMultipleOf4(height);
+        
+        if (coder->texWidth > maxTexSize)
+        {
+            coder->texWidth = roundDownToMultipleOf4(maxTexSize);
+        }
+        if (coder->texHeight > maxTexSize)
+        {
+            coder->texHeight = roundDownToMultipleOf4(maxTexSize);
+        }
+        
+        coder->width = roundUpToMultipleOf4(width);
+        coder->height = roundUpToMultipleOf4(height);
+        coder->format = compressed_format;
+        coder->copyBuffer = NULL;
+        
         /*
          Check the context supports the extensions we need
          If GL_EXT_texture_compression_s3tc is supported then GL_ARB_texture_compression
@@ -179,8 +191,8 @@ static HapCodecGLRef HapCodecGLCreate(unsigned int mode, unsigned int width, uns
             glTexImage2D(GL_TEXTURE_2D,
                          0,
                          compressed_format,
-                         coder->width,
-                         coder->height,
+                         coder->texWidth,
+                         coder->texHeight,
                          0,
                          GL_BGRA,
                          GL_UNSIGNED_INT_8_8_8_8_REV,
@@ -218,17 +230,8 @@ void HapCodecGLDestroy(HapCodecGLRef coder)
         glDeleteTextures(1, &coder->texture);
     }
     CGLReleaseContext(coder->context);
+    free(coder->copyBuffer);
     free(coder);
-}
-
-unsigned int HapCodecGLGetWidth(HapCodecGLRef coder)
-{
-    return coder->width;
-}
-
-unsigned int HapCodecGLGetHeight(HapCodecGLRef coder)
-{
-    return coder->height;
 }
 
 unsigned int HapCodecGLGetCompressedFormat(HapCodecGLRef coder)
@@ -236,7 +239,7 @@ unsigned int HapCodecGLGetCompressedFormat(HapCodecGLRef coder)
     return coder->format;
 }
 
-void HapCodecGLEncode(HapCodecGLRef coder, unsigned int bytes_per_row, HapCodecGLPixelFormat pixel_format, const void *source, void *destination)
+int HapCodecGLEncode(HapCodecGLRef coder, unsigned int source_bytes_per_row, HapCodecGLPixelFormat pixel_format, const void *source, void *destination)
 {
     // See http://www.oldunreal.com/editing/s3tc/ARB_texture_compression.pdf
     CGLContextObj cgl_ctx = coder->context;
@@ -244,78 +247,195 @@ void HapCodecGLEncode(HapCodecGLRef coder, unsigned int bytes_per_row, HapCodecG
     GLenum format_gl;
     GLenum type_gl;
     bool valid = openGLFormatAndTypeForFormat(pixel_format, &format_gl, &type_gl);
-    if (!valid) return;
-    
-    unsigned int bytes_per_pixel = (pixel_format == HapCodecGLPixelFormat_YCbCr422 ? 2 : 4);
-    if (bytes_per_row != coder->width * bytes_per_pixel)
+    if (!valid) return 1;
+        
+    unsigned int source_bytes_per_pixel = (pixel_format == HapCodecGLPixelFormat_YCbCr422 ? 2 : 4);
+    if (source_bytes_per_row != coder->texWidth * source_bytes_per_pixel)
     {
         // Just by the by, 10.7 introduced universal support for GL_UNPACK_ROW_BYTES_APPLE
         // (see http://www.opengl.org/registry/specs/APPLE/row_bytes.txt )
         
-        glPixelStorei(GL_UNPACK_ROW_LENGTH, bytes_per_row / bytes_per_pixel);
+        glPixelStorei(GL_UNPACK_ROW_LENGTH, source_bytes_per_row / source_bytes_per_pixel);
     }
-//    glTextureRangeAPPLE(GL_TEXTURE_2D, bytes_per_row * coder->height, source);
     
-    glTexSubImage2D(GL_TEXTURE_2D,
-                    0,
-                    0,
-                    0,
-                    coder->width,
-                    coder->height,
-                    format_gl,
-                    type_gl,
-                    source);
-    
-    GLint compressed = 0;
-    glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_COMPRESSED_ARB, &compressed);
-    if (compressed == GL_TRUE)
+    // A DXT row is 4 pixels high
+    size_t destination_bytes_per_dxt_row = coder->width * 4;
+    size_t copy_buffer_bytes_per_dxt_row = coder->texWidth * 4;
+    if (coder->format == GL_COMPRESSED_RGB_S3TC_DXT1_EXT)
     {
-        /*
-        GLint internalformat = 0;
-        GLint compressed_size = 0;
-        glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_INTERNAL_FORMAT, &internalformat);
+        destination_bytes_per_dxt_row /= 2;
+        copy_buffer_bytes_per_dxt_row /= 2;
+    }
+    
         
-        glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_COMPRESSED_IMAGE_SIZE_ARB, &compressed_size);
-        */
-        glGetCompressedTexImage(GL_TEXTURE_2D, 0, destination);
-    }
-    else
-    {
-        // ARGH!
+    for (int y = 0; y < coder->height; y += coder->texHeight) {
+        
+        GLuint remaining_height = coder->height - y;
+        GLuint tile_height = MIN(remaining_height, coder->texHeight);
+        
+        for (int x = 0; x < coder->width; x += coder->texWidth) {
+            
+            const void *tile_source = source + (y * source_bytes_per_row) + (x * source_bytes_per_pixel);
+            void *tile_destination = destination + (y / 4 * destination_bytes_per_dxt_row) + (coder->format == GL_COMPRESSED_RGB_S3TC_DXT1_EXT ? x * 2 : x * 4);
+            
+            GLuint remaining_width = coder->width - x;
+            GLuint tile_width = MIN(remaining_width, coder->texWidth);
+            
+    //      glTextureRangeAPPLE(GL_TEXTURE_2D, bytes_per_row * coder->height, source);
+            
+            glTexSubImage2D(GL_TEXTURE_2D,
+                            0,
+                            0,
+                            0,
+                            tile_width,
+                            tile_height,
+                            format_gl,
+                            type_gl,
+                            tile_source);
+            
+            GLint compressed = 0;
+            glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_COMPRESSED_ARB, &compressed);
+            if (compressed == GL_TRUE)
+            {                
+                if (tile_width == coder->texWidth && tile_height == coder->texHeight)
+                {
+                    // This is the normal case
+                    
+                    glGetCompressedTexImage(GL_TEXTURE_2D, 0, tile_destination);
+                }
+                else
+                {
+                    // Copy the full texture to a temporary buffer then transfer the tile's portion
+                    // to the destination
+                    
+                    if (coder->copyBuffer == NULL && coder->texHeight != 0 && copy_buffer_bytes_per_dxt_row != 0)
+                    {
+                        // A buffer the size of the full texture
+                        coder->copyBuffer = malloc(copy_buffer_bytes_per_dxt_row * coder->texHeight);
+                    }
+                    if (coder->copyBuffer == NULL)
+                    {
+                        return 1;
+                    }
+                    else
+                    {
+                        glGetCompressedTexImage(GL_TEXTURE_2D, 0, coder->copyBuffer);
+                        
+                        void *copy_source = coder->copyBuffer;
+                        void *copy_destination = tile_destination;
+                        size_t copy_bytes = (coder->format == GL_COMPRESSED_RGB_S3TC_DXT1_EXT ? tile_width * 2 : tile_width * 4);
+                        for (int i = 0; i < tile_height; i += 4) {
+                            memcpy(copy_destination, copy_source, copy_bytes);
+                            copy_destination += destination_bytes_per_dxt_row;
+                            copy_source += copy_buffer_bytes_per_dxt_row;
+                        }
+                    }
+                }
+            }
+            else
+            {
+                // ARGH!
+            }
+        }
     }
     glFlush();
+    return 0;
 }
 
-void HapCodecGLDecode(HapCodecGLRef coder, unsigned int bytes_per_row, HapCodecGLPixelFormat pixel_format, const void *source, void *destination)
+int HapCodecGLDecode(HapCodecGLRef coder, unsigned int destination_bytes_per_row, HapCodecGLPixelFormat pixel_format, const void *source, void *destination)
 {
     CGLContextObj cgl_ctx = coder->context;
     
     GLenum format_gl;
     GLenum type_gl;
     bool valid = openGLFormatAndTypeForFormat(pixel_format, &format_gl, &type_gl);
-    if (!valid) return;
+    if (!valid) return 1;
     
-    GLuint source_buffer_size = coder->width * coder->height;
-    if (coder->format == GL_COMPRESSED_RGBA_S3TC_DXT1_EXT || coder->format == GL_COMPRESSED_RGB_S3TC_DXT1_EXT)
+    size_t source_bytes_per_dxt_row = coder->width * 4; // A DXT row is 4 pixels high
+    if (coder->format == GL_COMPRESSED_RGB_S3TC_DXT1_EXT)
     {
-        source_buffer_size *= 0.5;
+        source_bytes_per_dxt_row /= 2;
     }
     
-    glCompressedTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, coder->width, coder->height, coder->format, source_buffer_size, source);
+    size_t destination_bytes_per_pixel = (pixel_format == HapCodecGLPixelFormat_YCbCr422 ? 2 : 4);
     
-    if (bytes_per_row != coder->width * 4)
-    {
-        // Just by the by, 10.7 introduced universal support for GL_UNPACK_ROW_BYTES_APPLE
-        // (see http://www.opengl.org/registry/specs/APPLE/row_bytes.txt )
+    size_t copy_buffer_bytes_per_row = destination_bytes_per_pixel * coder->texWidth;
+    
+    for (int y = 0; y < coder->height; y += coder->texHeight) {
         
-        glPixelStorei(GL_PACK_ROW_LENGTH, bytes_per_row / 4);
+        GLuint remaining_height = coder->height - y;
+        GLuint tile_height = MIN(remaining_height, coder->texHeight);
+        
+        for (int x = 0; x < coder->width; x += coder->texWidth) {
+            
+            const void *tile_source = source + (y / 4 * source_bytes_per_dxt_row) + (coder->format == GL_COMPRESSED_RGB_S3TC_DXT1_EXT ? x * 2 : x * 4);
+            void *tile_destination = destination + (y * destination_bytes_per_row) + (x * destination_bytes_per_pixel);
+            
+            GLuint remaining_width = coder->width - x;
+            GLuint tile_width = MIN(remaining_width, coder->texWidth);
+            
+            size_t tile_bytes_per_dxt_row = (coder->format == GL_COMPRESSED_RGB_S3TC_DXT1_EXT ? tile_width * 2 : tile_width * 4);
+            
+            if (tile_bytes_per_dxt_row == source_bytes_per_dxt_row)
+            {
+                glCompressedTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, tile_width, tile_height, coder->format, tile_bytes_per_dxt_row * tile_height / 4, tile_source);
+            }
+            else
+            {
+                const void *unpack_source = tile_source;
+                for (int i = 0; i < tile_height; i += 4) {
+                    glCompressedTexSubImage2D(GL_TEXTURE_2D, 0, 0, i, tile_width, 4, coder->format, tile_bytes_per_dxt_row, unpack_source);
+                    unpack_source += source_bytes_per_dxt_row;
+                }
+            }
+            
+            if (tile_width == coder->texWidth && tile_height == coder->texHeight)
+            {
+                // This is the normal case
+                glPixelStorei(GL_PACK_ROW_LENGTH, destination_bytes_per_row / destination_bytes_per_pixel);
+                
+                glGetTexImage(GL_TEXTURE_2D,
+                              0,
+                              format_gl,
+                              type_gl,
+                              tile_destination);
+            }
+            else
+            {
+                // Copy the full texture to a temporary buffer then transfer the tile's portion
+                // to the destination
+                
+                if (coder->copyBuffer == NULL && coder->texHeight != 0 && copy_buffer_bytes_per_row != 0)
+                {
+                    // A buffer the size of the full texture
+                    coder->copyBuffer = malloc(copy_buffer_bytes_per_row * coder->texHeight);
+                }
+                if (coder->copyBuffer == NULL)
+                {
+                    return 1;
+                }
+                {
+                    glPixelStorei(GL_PACK_ROW_LENGTH, copy_buffer_bytes_per_row / destination_bytes_per_pixel);
+                    
+                    glGetTexImage(GL_TEXTURE_2D,
+                                  0,
+                                  format_gl,
+                                  type_gl,
+                                  coder->copyBuffer);
+                    
+                    void *copy_source = coder->copyBuffer;
+                    void *copy_destination = tile_destination;
+                    size_t copy_bytes = tile_width * destination_bytes_per_pixel;
+                    for (int i = 0; i < tile_height; i++) {
+                        memcpy(copy_destination, copy_source, copy_bytes);
+                        copy_destination += destination_bytes_per_row;
+                        copy_source += copy_buffer_bytes_per_row;
+                    }
+                }
+            }
+        }
     }
-    
-    glGetTexImage(GL_TEXTURE_2D,
-                  0,
-                  format_gl,
-                  type_gl,
-                  destination);
     glFlush();
+    return 0;
 }
 

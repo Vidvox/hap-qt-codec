@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+    <Product Id="*" Name="Hap QuickTime Component" Language="1033" Version="3.0.0" Manufacturer="Vidvox" UpgradeCode="36A1CCCB-8DF7-40F9-A6AB-D900C873ED9B">
+        <Package Description="A QuickTime component to permit creating and playing Hap movies." Comments="Hap QuickTime Component" InstallerVersion="405" Compressed="yes" />
+        <Media Id="1" Cabinet="simple.cab" EmbedCab="yes" />
+        <Property Id="INSTALLDIR">
+            <RegistrySearch Id='QTComponentsRegistry' Type='directory' Root='HKLM' Key='SOFTWARE\Apple Computer, Inc.\QuickTime' Name='QTComponentsDir' Win64="no" />
+        </Property>
+        <Condition Message="QuickTime for Windows must be installed to install the Hap QuickTime component."><![CDATA[Installed OR INSTALLDIR]]></Condition>
+        <Directory Id="TARGETDIR" Name="SourceDir">
+            <Directory Id="INSTALLDIR" Name="Component Directory">
+                <Component Id="HAP.QTX" DiskId="1" Guid="7BAC52F0-ED51-4065-9C08-74121BDDBEB6">
+                    <File Id="HAP.QTX" Name="Hap.qtx" Source="..\Release\Hap.qtx" />
+                </Component>
+            </Directory>
+        </Directory>
+        <Feature Id="DefaultFeature" Title="Main Feature" Level="1">
+            <ComponentRef Id="HAP.QTX" />
+        </Feature>
+        <WixVariable Id="WixUILicenseRtf" Value="License.rtf" />
+		<WixVariable Id="WixUIBannerBmp" Value="banner.bmp" />
+		<WixVariable Id="WixUIDialogBmp" Value="dialog.bmp" />
+        <UI>
+            <UIRef Id="WixUI_Minimal" />
+        </UI>
+        <Condition Message="The Hap QuickTime component is only supported on Windows Vista, Windows Server 2008, or higher."><![CDATA[Installed OR (VersionNT >= 600)]]></Condition>
+        <DirectoryRef Id="TARGETDIR">
+            <Merge Id="VCRedist" SourceFile="C:\Program Files (x86)\Common Files\Merge Modules\Microsoft_VC110_CRT_x86.msm" DiskId="1" Language="0" />
+        </DirectoryRef>
+        <Feature Id="VCRedist" Title="Visual C++ 11.0 Runtime" AllowAdvertise="no" Display="hidden" Level="1">
+            <MergeRef Id="VCRedist" />
+        </Feature>
+        <MajorUpgrade
+            AllowDowngrades="no"
+            AllowSameVersionUpgrades="no"
+            Schedule="afterInstallInitialize"
+            DowngradeErrorMessage="A later version of [ProductName] is already installed."
+        />
+	<Property Id="ARPNOREPAIR" Value="yes" Secure="yes" />
+    </Product>
+</Wix>
