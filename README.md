@@ -39,9 +39,13 @@ This project was originally written by [Tom Butterworth][4] and commissioned by 
 Changes
 =======
 
-Version 2
+Version 3
 
 * Support for Windows
+* Improved playback for some Hap movies
+
+Version 2
+
 * Support for extremely large frames
 * Avoid an issue which resulted in poor quality output on some hardware due to a common driver bug
 
