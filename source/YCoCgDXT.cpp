@@ -180,9 +180,9 @@ static void ExtractBlock( const byte *inPtr, const int stride, const int widthRe
         
         // Set up offset for next texel row source (keep existing if we are at the end)
         pBlock32 +=4;    
-        hIndex++;
         if(hIndex < (heightRemain-1)) {
             pSource32 +=(stride >> 2);
+            hIndex++;
         }
     }
 }
