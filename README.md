@@ -12,10 +12,7 @@ For information and example code to support accelerated playback via this codec 
 Download
 ====
 
-An installer for the Hap QuickTime component can be downloaded here:
-
-- [Hap Codec for MacOS X](https://github.com/Vidvox/hap-qt-codec/releases/download/version-3/Hap.QuickTime.Codec.for.MacOS.v3.dmg)
-- [Hap Codec for Windows](https://github.com/Vidvox/hap-qt-codec/releases/download/version-3/Hap.QuickTime.Codec.for.Windows.v3.msi)
+An installer for the Hap QuickTime component can be downloaded from the [Releases](https://github.com/Vidvox/hap-qt-codec/releases/latest) page.
 
 Requires at minimum MacOS 10.6 Snow Leapord, or Windows Vista with QuickTime 7 installed.
 
@@ -36,23 +33,6 @@ Open-Source
 The Hap codec project is open-source, licensed under a [FreeBSD License][3], meaning you can use it in your commercial or non-commercial applications free of charge.
 
 This project was originally written by [Tom Butterworth][4] and commissioned by [VIDVOX][5], 2012.
-
-Changes
-=======
-
-Version 3
-
-* Support for Windows
-* Improved playback for some Hap movies
-
-Version 2
-
-* Support for extremely large frames
-* Avoid an issue which resulted in poor quality output on some hardware due to a common driver bug
-
-Version 1
-
-* Initial public release
 
 [1]: http://github.com/vidvox/hap
 [2]: http://github.com/vidvox/hap-quicktime-playback-demo
