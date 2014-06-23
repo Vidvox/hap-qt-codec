@@ -129,11 +129,10 @@ static int HapCodecSquishEncoderEncode(HapCodecDXTEncoderRef encoder HAP_ATTR_UN
                             else HapCodecSquishCopyPixelRGBA(copy_src, copy_dst);
                             
                             mask |= ( 1 << ( 4*py + px ) );
+
+                            copy_src += 4;
                         }
-                        else
-                        {
-                            copy_dst += 4;
-                        }
+                        copy_dst += 4;
                     }
                     copy_src += src_bytes_per_row - (MIN(remaining_width, 4) * 4);
                 }
