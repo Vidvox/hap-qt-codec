@@ -395,6 +395,7 @@ unsigned int HapDecode(const void *inputBuffer, unsigned long inputBufferBytes,
      Check arguments
      */
     if (inputBuffer == NULL
+        || callback == NULL
         || outputBuffer == NULL
         || outputBufferTextureFormat == NULL
         )
