@@ -354,7 +354,7 @@ bail:
 // memory to allocate for compressed frame buffers.
 ComponentResult 
 Hap_CGetMaxCompressionSize(
-	HapCompressorGlobals glob HAP_ATTR_UNUSED,
+	HapCompressorGlobals glob,
 	PixMapHandle        src HAP_ATTR_UNUSED,
 	const Rect *        srcRect,
 	short               depth HAP_ATTR_UNUSED,

@@ -76,7 +76,7 @@ static void HapCodecSquishEncoderDestroy(HapCodecDXTEncoderRef encoder)
     }
 }
 
-static int HapCodecSquishEncoderEncode(HapCodecDXTEncoderRef encoder HAP_ATTR_UNUSED,
+static int HapCodecSquishEncoderEncode(HapCodecDXTEncoderRef encoder,
                                    const void *src,
                                    unsigned int src_bytes_per_row,
                                    OSType src_pixel_format,
