@@ -44,8 +44,8 @@
 		E22D0FEC169E13C6001C21D9 /* HapAlphaComponent.r in Rez */ = {isa = PBXBuildFile; fileRef = E22D0FEB169E13C6001C21D9 /* HapAlphaComponent.r */; };
 		E25D566317E0E4D5008DD459 /* libsnappy.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = E215F3EC16FE1C3A0048B13B /* libsnappy.dylib */; };
 		E25D566417E0E4DA008DD459 /* libsquish.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = BDE9DE0A16169D82008DC368 /* libsquish.dylib */; };
-		E25D566517E0E4E7008DD459 /* libsnappy.dylib in CopyFiles */ = {isa = PBXBuildFile; fileRef = E215F3EC16FE1C3A0048B13B /* libsnappy.dylib */; };
-		E25D566617E0E4E7008DD459 /* libsquish.dylib in CopyFiles */ = {isa = PBXBuildFile; fileRef = BDE9DE0A16169D82008DC368 /* libsquish.dylib */; };
+		E25D566517E0E4E7008DD459 /* libsnappy.dylib in CopyFiles */ = {isa = PBXBuildFile; fileRef = E215F3EC16FE1C3A0048B13B /* libsnappy.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		E25D566617E0E4E7008DD459 /* libsquish.dylib in CopyFiles */ = {isa = PBXBuildFile; fileRef = BDE9DE0A16169D82008DC368 /* libsquish.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		E28C1FAB143B598500F2CD73 /* Utility.c in Sources */ = {isa = PBXBuildFile; fileRef = E28C1FAA143B598500F2CD73 /* Utility.c */; };
 		E2C99CAA13789AC60077AC75 /* Tasks.c in Sources */ = {isa = PBXBuildFile; fileRef = E2C99CA813789AC60077AC75 /* Tasks.c */; };
 		E2CCA54A18DBC577001FD4C0 /* ParallelLoops.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E2CCA54818DBC577001FD4C0 /* ParallelLoops.cpp */; };
@@ -370,7 +370,7 @@
 		089C1669FE841209C02AAC07 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0510;
+				LastUpgradeCheck = 0610;
 			};
 			buildConfigurationList = 2BF1EBEF08A92C280070D853 /* Build configuration list for PBXProject "Hap Codec" */;
 			compatibilityVersion = "Xcode 3.2";
