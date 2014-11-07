@@ -4,7 +4,7 @@
         <Package Description="A QuickTime component to permit creating and playing Hap movies." Comments="Hap QuickTime Component" InstallerVersion="405" Compressed="yes" />
         <Media Id="1" Cabinet="simple.cab" EmbedCab="yes" />
         <Property Id="INSTALLDIR">
-            <RegistrySearch Id='QTComponentsRegistry' Type='directory' Root='HKLM' Key='SOFTWARE\Apple Computer, Inc.\QuickTime' Name='QTComponentsDir' Win64="no" />
+            <RegistrySearch Id='QTSystemRegistry' Type='directory' Root='HKLM' Key='SOFTWARE\Apple Computer, Inc.\QuickTime' Name='QTSysDir' Win64="no" />
         </Property>
         <Condition Message="QuickTime for Windows must be installed to install the Hap QuickTime component."><![CDATA[Installed OR INSTALLDIR]]></Condition>
         <Directory Id="TARGETDIR" Name="SourceDir">
