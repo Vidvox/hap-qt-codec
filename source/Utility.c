@@ -102,7 +102,7 @@ SInt16 resourceIDForComponentType(OSType componentType, OSType resourceType)
     return 0;
 }
 
-#if defined(_WIN32)
+#if defined(_WIN32) && defined(DEBUG)
 void debug_print_s(void *glob, const char *func, const char *s)
 {
     char buffer[255];
