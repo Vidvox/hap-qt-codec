@@ -572,7 +572,7 @@ Hap_CPrepareToCompressFrames(
         goto bail;
     }
     
-    glob->taskGroup = HapCodecTasksCreateGroup(Background_Encode, 20);
+    glob->taskGroup = HapCodecTasksCreateGroup(Background_Encode, hapCodecMaxTasks());
     
 #ifdef DEBUG    
     glob->debugStartTime = CVGetCurrentHostTime();

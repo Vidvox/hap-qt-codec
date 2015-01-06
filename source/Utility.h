@@ -57,6 +57,8 @@ unsigned long dxtBytesForDimensions(int width, int height, OSType codecSubType);
 
 SInt16 resourceIDForComponentType(OSType componentType, OSType resourceType);
 
+int hapCodecMaxTasks();
+
 #ifdef DEBUG
 #if defined(_WIN32)
 #define debug_print_function_call(glob) debug_print((glob), NULL)
