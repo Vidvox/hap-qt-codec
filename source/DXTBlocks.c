@@ -61,7 +61,7 @@ static void hap_cpuid(int info[4],int infoType){
 
 int HapCodecHasSSSE3(void)
 {
-    int info[4];
+    int info[4] = { 0, 0, 0, 0 };
     int hasSSE2, hasSSE3, hasSSSE3;
     
     hap_cpuid(info,0x00000001);
