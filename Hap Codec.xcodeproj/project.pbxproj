@@ -47,6 +47,8 @@
 		E25D566517E0E4E7008DD459 /* libsnappy.dylib in CopyFiles */ = {isa = PBXBuildFile; fileRef = E215F3EC16FE1C3A0048B13B /* libsnappy.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		E25D566617E0E4E7008DD459 /* libsquish.dylib in CopyFiles */ = {isa = PBXBuildFile; fileRef = BDE9DE0A16169D82008DC368 /* libsquish.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		E28C1FAB143B598500F2CD73 /* Utility.c in Sources */ = {isa = PBXBuildFile; fileRef = E28C1FAA143B598500F2CD73 /* Utility.c */; };
+		E2B74BA01A5C566F000BE3CD /* Utility.m in Sources */ = {isa = PBXBuildFile; fileRef = E2B74B9F1A5C566F000BE3CD /* Utility.m */; };
+		E2B74BA21A5C58AC000BE3CD /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E2B74BA11A5C58AC000BE3CD /* Foundation.framework */; };
 		E2C99CAA13789AC60077AC75 /* Tasks.c in Sources */ = {isa = PBXBuildFile; fileRef = E2C99CA813789AC60077AC75 /* Tasks.c */; };
 		E2CCA54A18DBC577001FD4C0 /* ParallelLoops.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E2CCA54818DBC577001FD4C0 /* ParallelLoops.cpp */; };
 		E2ECC4CC16FE86830016167B /* YCoCgDXT.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E2ECC4CB16FE86830016167B /* YCoCgDXT.cpp */; };
@@ -154,6 +156,8 @@
 		E2210D3A15CAF913009DD434 /* ImageMath.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = ImageMath.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
 		E22D0FEB169E13C6001C21D9 /* HapAlphaComponent.r */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.rez; path = HapAlphaComponent.r; sourceTree = "<group>"; };
 		E28C1FAA143B598500F2CD73 /* Utility.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = Utility.c; sourceTree = "<group>"; };
+		E2B74B9F1A5C566F000BE3CD /* Utility.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Utility.m; sourceTree = "<group>"; };
+		E2B74BA11A5C58AC000BE3CD /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		E2C99CA813789AC60077AC75 /* Tasks.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = Tasks.c; sourceTree = "<group>"; };
 		E2C99CA913789AC60077AC75 /* Tasks.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Tasks.h; sourceTree = "<group>"; };
 		E2CCA54818DBC577001FD4C0 /* ParallelLoops.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ParallelLoops.cpp; sourceTree = "<group>"; };
@@ -176,6 +180,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E2B74BA21A5C58AC000BE3CD /* Foundation.framework in Frameworks */,
 				E25D566317E0E4D5008DD459 /* libsnappy.dylib in Frameworks */,
 				E25D566417E0E4DA008DD459 /* libsquish.dylib in Frameworks */,
 				BDF48B1D14377E0E00E7EAB8 /* OpenGL.framework in Frameworks */,
@@ -204,6 +209,7 @@
 		089C1671FE841209C02AAC07 /* External Frameworks and Libraries */ = {
 			isa = PBXGroup;
 			children = (
+				E2B74BA11A5C58AC000BE3CD /* Foundation.framework */,
 				BDF48B1C14377E0E00E7EAB8 /* OpenGL.framework */,
 				BDFA8A331368E60100F959A4 /* Accelerate.framework */,
 				FBFA8DEA0829E7CF00560632 /* CoreServices.framework */,
@@ -254,6 +260,7 @@
 				E2C99CA813789AC60077AC75 /* Tasks.c */,
 				E2F8FE91143B5A8F00683004 /* Utility.h */,
 				E28C1FAA143B598500F2CD73 /* Utility.c */,
+				E2B74B9F1A5C566F000BE3CD /* Utility.m */,
 				32BAE0B30371A71500C91783 /* Hap_Codec_Prefix.pch */,
 				BD51229816495811005F135B /* ExportedSymbols.exp */,
 			);
@@ -470,6 +477,7 @@
 				BDF48B1A14377D0500E7EAB8 /* HapCodecGL.c in Sources */,
 				E28C1FAB143B598500F2CD73 /* Utility.c in Sources */,
 				E2210D2B15CAE914009DD434 /* YCoCg.c in Sources */,
+				E2B74BA01A5C566F000BE3CD /* Utility.m in Sources */,
 				E2210D3B15CAF913009DD434 /* ImageMath.c in Sources */,
 				BDDAEA8416160F7500FEC70D /* hap.c in Sources */,
 				E2CCA54A18DBC577001FD4C0 /* ParallelLoops.cpp in Sources */,

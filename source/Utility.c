@@ -102,12 +102,12 @@ SInt16 resourceIDForComponentType(OSType componentType, OSType resourceType)
     return 0;
 }
 
+#if defined(_WIN32)
 int hapCodecMaxTasks()
 {
     /*
     Some Adobe products throw an error if they queue more than 10 buffers
     */
-#if defined(_WIN32)
     TCHAR executablePath[MAX_PATH + 1];
     if (GetModuleFileName(0, executablePath, MAX_PATH + 1) != 0)
     {
@@ -116,9 +116,10 @@ int hapCodecMaxTasks()
             return 10;
         }
     }
-#endif
     return 20;
 }
+// Mac version is in Utility.m
+#endif
 
 #if defined(_WIN32) && defined(DEBUG)
 void debug_print_s(void *glob, const char *func, const char *s)
