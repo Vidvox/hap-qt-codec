@@ -26,7 +26,7 @@
  */
 
 // The high word is the codecInterfaceVersion
-#define kHapDecompressorVersion		(0x00040005)
+#define kHapDecompressorVersion		(0x00040006)
 
 // The high word is the codecInterfaceVersion
-#define kHapCompressorVersion		(0x00040005)
+#define kHapCompressorVersion		(0x00040006)
