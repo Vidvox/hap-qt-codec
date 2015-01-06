@@ -20,7 +20,6 @@ int hapCodecMaxTasks()
     {
         return 10;
     }
-    NSLog(@"%@", name);
     return 20;
 }
 
