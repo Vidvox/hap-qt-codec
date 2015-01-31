@@ -35,7 +35,7 @@ int hapCodecMaxTasks()
      Some Adobe products throw an error if they queue more than 10 buffers
      */
     NSString *name = [[NSProcessInfo processInfo] processName];
-    if ([name containsString:@"Adobe"])
+    if ([name rangeOfString:@"Adobe"].length > 0)
     {
         return 10;
     }
