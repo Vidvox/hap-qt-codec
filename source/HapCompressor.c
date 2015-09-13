@@ -208,7 +208,6 @@ Hap_CClose(
   ComponentInstance self HAP_ATTR_UNUSED)
 {
     HapCodecBufferRef buffer;
-    HapCodecBufferRef next;
 	if( glob )
     {
 #ifdef DEBUG
@@ -259,6 +258,7 @@ Hap_CClose(
         buffer = glob->finishedFrames;
         while (buffer) {
             HapCodecCompressTask *task = (HapCodecCompressTask *)HapCodecBufferGetBaseAddress(buffer);
+            HapCodecBufferRef next;
             if (task)
             {
                 releaseTaskFrames(task);
