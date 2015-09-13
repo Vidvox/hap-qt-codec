@@ -912,7 +912,8 @@ Hap_CEncodeFrame(
     }
 
     HapCodecTasksAddTask(glob->taskGroup, buffer);
-    
+    sourceFrame = NULL; // indicate to bail: that we don't need to drop it
+
     // Dequeue and deliver any encoded frames
     do
     {
@@ -930,6 +931,8 @@ bail:
     {
         ICMEncodedFrameRelease(encodedFrame);
     }
+    if (sourceFrame)
+        ICMCompressorSessionDropFrame(glob->session, sourceFrame);
     debug_print_err(glob, err);
 	return err;
 }
