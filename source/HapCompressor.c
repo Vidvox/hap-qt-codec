@@ -457,6 +457,17 @@ bail:
 	return err;
 }
 
+// A worst-case estimate of bytes per frame
+static size_t estimateBytesPerFrame(HapCompressorGlobals glob)
+{
+    size_t inputSize = roundUpToMultipleOf4(glob->width) * roundUpToMultipleOf4(glob->height) * 4;
+    size_t formatConvertSize = inputSize;
+    size_t dxtSize = dxtBytesForDimensions(glob->width, glob->height, glob->type);
+    size_t outputSize = glob->maxEncodedDataSize;
+    size_t encodeSize = sizeof(HapCodecCompressTask);
+    return inputSize + formatConvertSize + dxtSize + outputSize + encodeSize;
+}
+
 // Prepare to compress frames.
 // Compressor should record session and sessionOptions for use in later calls.
 // Compressor may modify imageDescription at this point.
@@ -476,7 +487,8 @@ Hap_CPrepareToCompressFrames(
     int pixelFormatCount;
 	Fixed gammaLevel;
     long wantedDXTSize;
-	
+    int maxTasks;
+
     switch (glob->type) {
         case kHapCodecSubType:
             pixelFormatList[2] = kHapCVPixelFormat_RGB_DXT1;
@@ -577,8 +589,14 @@ Hap_CPrepareToCompressFrames(
         err = memFullErr;
         goto bail;
     }
+
+    // Only use half of addressable memory (we're 32-bit, so UINT32_MAX)
+    maxTasks = (UINT32_MAX / 2) / estimateBytesPerFrame(glob);
+    // hapCodecMaxTasks() returns any system or host restrictions
+    if (maxTasks > hapCodecMaxTasks())
+        maxTasks = hapCodecMaxTasks();
     
-    glob->taskGroup = HapCodecTasksCreateGroup(Background_Encode, hapCodecMaxTasks());
+    glob->taskGroup = HapCodecTasksCreateGroup(Background_Encode, maxTasks);
     
 #ifdef DEBUG    
     glob->debugStartTime = CVGetCurrentHostTime();
