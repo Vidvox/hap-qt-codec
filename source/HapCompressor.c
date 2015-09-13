@@ -114,6 +114,8 @@ struct HapCodecCompressTask
     ICMMutableEncodedFrameRef       encodedFrame;
     void *                          encodedFrameBaseAddress;
     unsigned long                   encodedFrameActualSize;
+    HapCodecBufferRef               formatConvertBuffer;
+    HapCodecBufferRef               dxtBuffer;
     ComponentResult                 error;
     HapCodecBufferRef               next; // Used to queue finished tasks
 };
@@ -145,7 +147,11 @@ struct HapCodecCompressTask
 #endif
 
 static void Background_Encode(void *info);
-static void releaseTaskFrames(HapCodecCompressTask *task);
+/*
+ createTask() returns a complete task or NULL on error (which is likely to be due to buffer allocation failure)
+ */
+static HapCodecBufferRef createTask(HapCompressorGlobals glob, ICMCompressorSourceFrameRef sourceFrame, ICMMutableEncodedFrameRef encodedFrame);
+static void disposeTask(HapCodecCompressTask *task);
 static ComponentResult finishFrame(HapCodecBufferRef buffer);
 static void queueEncodedFrame(HapCompressorGlobals glob, HapCodecBufferRef frame);
 static HapCodecBufferRef dequeueNextFrameOut(HapCompressorGlobals glob);
@@ -261,7 +267,7 @@ Hap_CClose(
             HapCodecBufferRef next;
             if (task)
             {
-                releaseTaskFrames(task);
+                disposeTask(task);
                 next = task->next;
             }
             else
@@ -585,8 +591,6 @@ bail:
 
 static void Background_Encode(void *info)
 {
-    HapCodecBufferRef formatConvertBuffer = NULL;
-    HapCodecBufferRef dxtBuffer = NULL;
     HapCodecCompressTask *task = (HapCodecCompressTask *)HapCodecBufferGetBaseAddress((HapCodecBufferRef)info);
     HapCompressorGlobals glob = task->glob;
     
@@ -641,14 +645,6 @@ static void Background_Encode(void *info)
         // If necessary, convert the pixels to a format the encoder can ingest
         if (wantedPixelFormat != sourcePixelFormat)
         {
-            formatConvertBuffer = HapCodecBufferCreate(glob->formatConvertPool);
-            
-            if (formatConvertBuffer == NULL)
-            {
-                err = memFullErr;
-                goto bail;
-            }
-            
             // for all these we pass 0 as last argument so we don't tile, we are already multithreaded
             switch (wantedPixelFormat)
             {
@@ -656,7 +652,7 @@ static void Background_Encode(void *info)
                     if (sourcePixelFormat == k32BGRAPixelFormat)
                     {
                         ConvertBGR_ToCoCg_Y8888((uint8_t *)sourceBaseAddress,
-                                                (uint8_t *)HapCodecBufferGetBaseAddress(formatConvertBuffer),
+                                                (uint8_t *)HapCodecBufferGetBaseAddress(task->formatConvertBuffer),
                                                 glob->width,
                                                 glob->height,
                                                 sourceBytesPerRow,
@@ -666,7 +662,7 @@ static void Background_Encode(void *info)
                     else
                     {
                         ConvertRGB_ToCoCg_Y8888((uint8_t *)sourceBaseAddress,
-                                                (uint8_t *)HapCodecBufferGetBaseAddress(formatConvertBuffer),
+                                                (uint8_t *)HapCodecBufferGetBaseAddress(task->formatConvertBuffer),
                                                 glob->width,
                                                 glob->height,
                                                 sourceBytesPerRow,
@@ -680,7 +676,7 @@ static void Background_Encode(void *info)
                         uint8_t permuteMap[] = {2, 1, 0, 3};
                         ImageMath_Permute8888(sourceBaseAddress,
                                               sourceBytesPerRow,
-                                              HapCodecBufferGetBaseAddress(formatConvertBuffer),
+                                              HapCodecBufferGetBaseAddress(task->formatConvertBuffer),
                                               glob->formatConvertBufferBytesPerRow,
                                               glob->width,
                                               glob->height,
@@ -699,7 +695,7 @@ static void Background_Encode(void *info)
                     break;
             }
             
-            encode_src = HapCodecBufferGetBaseAddress(formatConvertBuffer);
+            encode_src = HapCodecBufferGetBaseAddress(task->formatConvertBuffer);
             encode_src_bytes_per_row = glob->formatConvertBufferBytesPerRow;
         }
         else // wantedPixelFormat == sourcePixelFormat
@@ -710,18 +706,11 @@ static void Background_Encode(void *info)
         
         // Encode the DXT frame
         
-        dxtBuffer = HapCodecBufferCreate(glob->dxtBufferPool);
-        if (dxtBuffer == NULL)
-        {
-            err = memFullErr;
-            goto bail;
-        }
-        
         result = glob->dxtEncoder->encode_function(glob->dxtEncoder,
                                                        encode_src,
                                                        encode_src_bytes_per_row,
                                                        wantedPixelFormat,
-                                                       HapCodecBufferGetBaseAddress(dxtBuffer),
+                                                       HapCodecBufferGetBaseAddress(task->dxtBuffer),
                                                        glob->width,
                                                        glob->height);
         
@@ -742,11 +731,11 @@ static void Background_Encode(void *info)
 #endif
         
         // Return the format conversion buffer as soon as we can to minimise the number created
-        HapCodecBufferReturn(formatConvertBuffer);
-        formatConvertBuffer = NULL;
+        HapCodecBufferReturn(task->formatConvertBuffer);
+        task->formatConvertBuffer = NULL;
         
-        codec_src = HapCodecBufferGetBaseAddress(dxtBuffer);
-        codec_src_length = HapCodecBufferGetSize(dxtBuffer);
+        codec_src = HapCodecBufferGetBaseAddress(task->dxtBuffer);
+        codec_src_length = HapCodecBufferGetSize(task->dxtBuffer);
     }
     
     hapResult = HapEncode(codec_src,
@@ -774,9 +763,11 @@ static void Background_Encode(void *info)
 bail:
     debug_print_err(glob, err);
     if (task->sourceBuffer) CVPixelBufferUnlockBaseAddress(task->sourceBuffer, kHapCodecCVPixelBufferLockFlags);
-    HapCodecBufferReturn(formatConvertBuffer);
-    HapCodecBufferReturn(dxtBuffer);
-    
+    HapCodecBufferReturn(task->formatConvertBuffer);
+    task->formatConvertBuffer = NULL;
+    HapCodecBufferReturn(task->dxtBuffer);
+    task->dxtBuffer = NULL;
+
     task->error = err;
     
     // Queue the encoded frame for output
@@ -798,8 +789,7 @@ Hap_CEncodeFrame(
     
     CVPixelBufferRef sourcePixelBuffer = ICMCompressorSourceFrameGetPixelBuffer(sourceFrame);
     OSType sourceFormat = CVPixelBufferGetPixelFormatType(sourcePixelBuffer);
-    HapCodecBufferRef buffer;
-    HapCodecCompressTask *task;
+    HapCodecBufferRef buffer = NULL;
     ICMMutableEncodedFrameRef encodedFrame = NULL;
     
     if (!isDXTPixelFormat(sourceFormat))
@@ -869,31 +859,40 @@ Hap_CEncodeFrame(
 
         }
     }
-    
+
     // Create an empty encoded frame
     err = ICMEncodedFrameCreateMutable(glob->session, sourceFrame, glob->maxEncodedDataSize, &encodedFrame);
-    if (err)
-        goto bail;
+    if (err != noErr)
+        encodedFrame = NULL;
     
-    // Create a task and dispatch it
-    buffer = HapCodecBufferCreate(glob->compressTaskPool);
-    task = (HapCodecCompressTask *)HapCodecBufferGetBaseAddress(buffer);
-    if (task == NULL)
+    if (err == noErr)
+    {
+        buffer = createTask(glob, sourceFrame, encodedFrame);
+        if (buffer == NULL)
+            err = memFullErr;
+    }
+
+    if (err == memFullErr)
+    {
+        // in case of memory allocation failure, finish all pending tasks and try again
+        Hap_CCompleteFrame(glob, NULL, 0);
+
+        if (encodedFrame == NULL)
+            err = ICMEncodedFrameCreateMutable(glob->session, sourceFrame, glob->maxEncodedDataSize, &encodedFrame);
+
+        if (err == noErr)
+            buffer = createTask(glob, sourceFrame, encodedFrame);
+    }
+
+    ICMEncodedFrameRelease(encodedFrame);
+    encodedFrame = NULL;
+
+    if (buffer == NULL)
     {
         err = memFullErr;
         goto bail;
     }
-    
-    task->sourceFrame = ICMCompressorSourceFrameRetain(sourceFrame);
-    task->sourceBuffer = ICMCompressorSourceFrameGetPixelBuffer(sourceFrame);
-    task->glob = glob;
-    task->error = noErr;
-    task->encodedFrame = encodedFrame;
-    task->encodedFrameBaseAddress = ICMEncodedFrameGetDataPtr(encodedFrame);
-    task->next = NULL;
-    
-    encodedFrame = NULL;
-    
+
     HapCodecTasksAddTask(glob->taskGroup, buffer);
     
     // Dequeue and deliver any encoded frames
@@ -959,12 +958,14 @@ bail:
 	return err;
 }
 
-static void releaseTaskFrames(HapCodecCompressTask *task)
+static void disposeTask(HapCodecCompressTask *task)
 {
     if (task)
     {
         ICMCompressorSourceFrameRelease(task->sourceFrame);
         ICMEncodedFrameRelease(task->encodedFrame);
+        HapCodecBufferReturn(task->dxtBuffer);
+        HapCodecBufferReturn(task->formatConvertBuffer);
     }
 }
 
@@ -999,7 +1000,7 @@ static ComponentResult finishFrame(HapCodecBufferRef buffer)
         {
             ICMCompressorSessionDropFrame(task->glob->session, task->sourceFrame);
         }
-        releaseTaskFrames(task);
+        disposeTask(task);
     }
     return err;
 }
@@ -1050,4 +1051,56 @@ static HapCodecBufferRef dequeueNextFrameOut(HapCompressorGlobals glob)
         HapCodecLockUnlock(&glob->lock);
     }
     return found;
+}
+
+static HapCodecBufferRef createTask(HapCompressorGlobals glob, ICMCompressorSourceFrameRef sourceFrame, ICMMutableEncodedFrameRef encodedFrame)
+{
+    HapCodecBufferRef buffer = HapCodecBufferCreate(glob->compressTaskPool);
+    if (buffer)
+    {
+        HapCodecCompressTask *task = (HapCodecCompressTask *)HapCodecBufferGetBaseAddress(buffer);
+
+        task->sourceFrame = ICMCompressorSourceFrameRetain(sourceFrame);
+        task->sourceBuffer = ICMCompressorSourceFrameGetPixelBuffer(sourceFrame);
+        task->glob = glob;
+        task->encodedFrame = (ICMMutableEncodedFrameRef)ICMEncodedFrameRetain(encodedFrame);
+        task->encodedFrameBaseAddress = ICMEncodedFrameGetDataPtr(task->encodedFrame);
+        task->error = noErr;
+        task->next = NULL;
+        task->formatConvertBuffer = NULL;
+        task->dxtBuffer = NULL;
+
+        if (task->error == noErr)
+        {
+            // Create any necessary temporary buffers
+            OSType sourcePixelFormat = CVPixelBufferGetPixelFormatType(task->sourceBuffer);
+            if (!isDXTPixelFormat(sourcePixelFormat))
+            {
+                OSType wantedPixelFormat = glob->dxtEncoder->pixelformat_function(glob->dxtEncoder, sourcePixelFormat);
+
+                if (wantedPixelFormat != sourcePixelFormat)
+                {
+                    task->formatConvertBuffer = HapCodecBufferCreate(glob->formatConvertPool);
+
+                    if (task->formatConvertBuffer == NULL)
+                        task->error = memFullErr;
+                }
+
+                if (task->error == noErr)
+                {
+                    task->dxtBuffer = HapCodecBufferCreate(glob->dxtBufferPool);
+
+                    if (task->dxtBuffer == NULL)
+                        task->error = memFullErr;
+                }
+            }
+        }
+        if (task->error != noErr)
+        {
+            disposeTask(task);
+            HapCodecBufferReturn(buffer);
+            buffer = NULL;
+        }
+    }
+    return buffer;
 }
