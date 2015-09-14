@@ -535,7 +535,7 @@
 					"\"$(DSTROOT)/usr/local/include\"",
 				);
 				INFOPLIST_FILE = source/Info.plist;
-				INSTALL_PATH = "$(HOME)/Library/QuickTime";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/QuickTime";
 				LD_RUNPATH_SEARCH_PATHS = "@loader_path/../Frameworks";
 				PRODUCT_NAME = Hap;
 				WRAPPER_EXTENSION = component;
@@ -585,7 +585,7 @@
 					"\"$(DSTROOT)/usr/local/include\"",
 				);
 				INFOPLIST_FILE = source/Info.plist;
-				INSTALL_PATH = "$(HOME)/Library/QuickTime";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/QuickTime";
 				LD_RUNPATH_SEARCH_PATHS = "@loader_path/../Frameworks";
 				PRODUCT_NAME = Hap;
 				WRAPPER_EXTENSION = component;
