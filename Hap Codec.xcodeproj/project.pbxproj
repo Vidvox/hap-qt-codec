@@ -377,7 +377,7 @@
 		089C1669FE841209C02AAC07 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0610;
+				LastUpgradeCheck = 0640;
 			};
 			buildConfigurationList = 2BF1EBEF08A92C280070D853 /* Build configuration list for PBXProject "Hap Codec" */;
 			compatibilityVersion = "Xcode 3.2";
@@ -535,7 +535,7 @@
 					"\"$(DSTROOT)/usr/local/include\"",
 				);
 				INFOPLIST_FILE = source/Info.plist;
-				INSTALL_PATH = "$(HOME)/Library/QuickTime";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/QuickTime";
 				LD_RUNPATH_SEARCH_PATHS = "@loader_path/../Frameworks";
 				PRODUCT_NAME = Hap;
 				WRAPPER_EXTENSION = component;
@@ -585,7 +585,7 @@
 					"\"$(DSTROOT)/usr/local/include\"",
 				);
 				INFOPLIST_FILE = source/Info.plist;
-				INSTALL_PATH = "$(HOME)/Library/QuickTime";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/QuickTime";
 				LD_RUNPATH_SEARCH_PATHS = "@loader_path/../Frameworks";
 				PRODUCT_NAME = Hap;
 				WRAPPER_EXTENSION = component;
