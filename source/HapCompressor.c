@@ -130,7 +130,10 @@ struct HapCodecCompressTask
 {
     HapCompressorGlobals            glob;
     ICMCompressorSourceFrameRef     sourceFrame;
+    CVPixelBufferRef                sourceFramePixelBuffer;
+    const uint8_t                   *sourceFramePixelBufferBaseAddress;
     ICMMutableEncodedFrameRef       encodedFrame;
+    UInt8                           *encodedFrameDataPtr;
     unsigned long                   encodedFrameActualSize;
     HapCodecBufferRef               dxtBuffer;
     ComponentResult                 error;
@@ -636,7 +639,7 @@ static void Encode_Slice(void *p, unsigned int index)
     HapCodecEncodeDXTTask *task = (HapCodecEncodeDXTTask *)p;
 
     unsigned int sliceHeight = task->sliceHeight;
-    if ((index + 1) * sliceHeight > task->height)
+    if ((index + 1) * sliceHeight > (unsigned int)task->height)
         sliceHeight = task->height - (index * sliceHeight);
 
     const uint8_t *src = task->source + (index * task->sliceHeight * task->sourceBytesPerRow);
@@ -704,7 +707,6 @@ static void Background_Encode(void *info)
 {
     HapCodecCompressTask *task = (HapCodecCompressTask *)HapCodecBufferGetBaseAddress((HapCodecBufferRef)info);
     HapCompressorGlobals glob = task->glob;
-    CVPixelBufferRef pixelBuffer = ICMCompressorSourceFrameGetPixelBuffer(task->sourceFrame);
 
     const void *codec_src = NULL;
     unsigned int codec_src_length = 0;
@@ -720,13 +722,7 @@ static void Background_Encode(void *info)
     }
     else
     {
-        if (CVPixelBufferLockBaseAddress(pixelBuffer, kHapCodecCVPixelBufferLockFlags) != kCVReturnSuccess)
-        {
-            err = internalComponentErr;
-            goto bail;
-        }
-
-        codec_src = CVPixelBufferGetBaseAddress(pixelBuffer);
+        codec_src = task->sourceFramePixelBufferBaseAddress;
         codec_src_length = dxtBytesForDimensions(glob->width, glob->height, glob->type);
     }
 
@@ -734,7 +730,7 @@ static void Background_Encode(void *info)
                           codec_src_length,
                           glob->dxtFormat,
                           HapCompressorSnappy,
-                          ICMEncodedFrameGetDataPtr(task->encodedFrame),
+                          task->encodedFrameDataPtr,
                           glob->maxEncodedDataSize,
                           &(task->encodedFrameActualSize));
 
@@ -761,15 +757,15 @@ bail:
         HapCodecBufferReturn(task->dxtBuffer);
         task->dxtBuffer = NULL;
     }
-
-    if (pixelBuffer)
-    {
-        CVPixelBufferUnlockBaseAddress(pixelBuffer, kHapCodecCVPixelBufferLockFlags);
 #if defined(__APPLE__)
+    if (task->sourceFramePixelBuffer)
+    {
+        CVPixelBufferUnlockBaseAddress(task->sourceFramePixelBuffer, kHapCodecCVPixelBufferLockFlags);
         // Detach the pixel buffer so it can be recycled (not on Windows as QT isn't thread-safe there)
         ICMCompressorSourceFrameDetachPixelBuffer(task->sourceFrame);
-#endif
+        task->sourceFramePixelBuffer = NULL;
     }
+#endif
 
     task->error = err;
     
@@ -1050,6 +1046,10 @@ static void disposeTask(HapCodecCompressTask *task)
 {
     if (task)
     {
+        if (task->sourceFramePixelBuffer)
+        {
+            CVPixelBufferUnlockBaseAddress(task->sourceFramePixelBuffer, kHapCodecCVPixelBufferLockFlags);
+        }
         ICMCompressorSourceFrameRelease(task->sourceFrame);
         ICMEncodedFrameRelease(task->encodedFrame);
         HapCodecBufferReturn(task->dxtBuffer);
@@ -1148,8 +1148,19 @@ static HapCodecBufferRef createTask(HapCompressorGlobals glob, HapCodecBufferRef
         HapCodecCompressTask *task = (HapCodecCompressTask *)HapCodecBufferGetBaseAddress(buffer);
 
         task->sourceFrame = ICMCompressorSourceFrameRetain(sourceFrame);
+        task->sourceFramePixelBuffer = ICMCompressorSourceFrameGetPixelBuffer(sourceFrame);
+        if (task->sourceFramePixelBuffer)
+        {
+            CVPixelBufferLockBaseAddress(task->sourceFramePixelBuffer, kHapCodecCVPixelBufferLockFlags);
+            task->sourceFramePixelBufferBaseAddress = CVPixelBufferGetBaseAddress(task->sourceFramePixelBuffer);
+        }
+        else
+        {
+            task->sourceFramePixelBufferBaseAddress = NULL;
+        }
         task->glob = glob;
         task->encodedFrame = (ICMMutableEncodedFrameRef)ICMEncodedFrameRetain(encodedFrame);
+        task->encodedFrameDataPtr = ICMEncodedFrameGetDataPtr(encodedFrame);
         task->error = noErr;
         task->next = NULL;
         task->dxtBuffer = dxtBuffer;
