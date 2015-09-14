@@ -377,7 +377,7 @@
 		089C1669FE841209C02AAC07 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0610;
+				LastUpgradeCheck = 0640;
 			};
 			buildConfigurationList = 2BF1EBEF08A92C280070D853 /* Build configuration list for PBXProject "Hap Codec" */;
 			compatibilityVersion = "Xcode 3.2";
