@@ -67,6 +67,7 @@ struct HapCodecDXTEncoder {
     HapCodecDXTEncoder_DescribeFunction describe_function;
 #endif
     Boolean pad_source_buffers;
+    Boolean can_slice;
 };
 
 #define HapCodecDXTEncoderDestroy(x) if ((x) && (x)->destroy_function) (x)->destroy_function((x))

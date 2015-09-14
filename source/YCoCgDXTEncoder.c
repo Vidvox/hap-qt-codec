@@ -73,6 +73,7 @@ HapCodecDXTEncoderRef HapCodecYCoCgDXTEncoderCreate(void)
         encoder->describe_function = HapCodecYCoCgDXTEncoderDescribe;
 #endif
         encoder->pad_source_buffers = false;
+        encoder->can_slice = true;
     }
     return encoder;
 }

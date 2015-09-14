@@ -125,6 +125,7 @@ HapCodecDXTEncoderRef HapCodecGLEncoderCreate(unsigned int width, unsigned int h
         encoder->base.pixelformat_function = HapCodecGLEncoderWantedPixelFormat;
         encoder->base.encode_function = HapCodecGLEncoderEncode;
         encoder->base.pad_source_buffers = true;
+        encoder->base.can_slice = false;
         
         encoder->queue = dispatch_queue_create(NULL, DISPATCH_QUEUE_SERIAL);
         encoder->encoder = HapCodecGLCreateEncoder(width, height, encoder_format);

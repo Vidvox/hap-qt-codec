@@ -692,15 +692,17 @@ static void Encode_Slice(void *p, unsigned int index)
         }
     }
 
-    // Encode the DXT frame
-
-    task->encoder->encode_function(task->encoder,
-                                   dxtInput,
-                                   task->dxtInputBytesPerRow,
-                                   task->dxtInputFormat,
-                                   dxt,
-                                   task->width,
-                                   sliceHeight);
+    if (task->encoder->can_slice)
+    {
+        // Encode the DXT frame
+        task->encoder->encode_function(task->encoder,
+                                       dxtInput,
+                                       task->dxtInputBytesPerRow,
+                                       task->dxtInputFormat,
+                                       dxt,
+                                       task->width,
+                                       sliceHeight);
+    }
 }
 
 static void Background_Encode(void *info)
@@ -931,6 +933,17 @@ Hap_CEncodeFrame(
         dxtTask.dxt = HapCodecBufferGetBaseAddress(dxtBuffer);
 
         HapParallelFor(Encode_Slice, &dxtTask, glob->sliceCount);
+
+        if (dxtTask.encoder->can_slice == false)
+        {
+            dxtTask.encoder->encode_function(dxtTask.encoder,
+                                             dxtTask.dxtInput,
+                                             dxtTask.dxtInputBytesPerRow,
+                                             dxtTask.dxtInputFormat,
+                                             dxtTask.dxt,
+                                             dxtTask.width,
+                                             dxtTask.height);
+        }
 
         CVPixelBufferUnlockBaseAddress(sourcePixelBuffer, kHapCodecCVPixelBufferLockFlags);
 

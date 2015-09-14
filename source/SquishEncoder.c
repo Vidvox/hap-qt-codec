@@ -192,6 +192,7 @@ HapCodecDXTEncoderRef HapCodecSquishEncoderCreate(HapCodecSquishEncoderQuality q
         encoder->base.encode_function = HapCodecSquishEncoderEncode;
         encoder->base.destroy_function = HapCodecSquishEncoderDestroy;
         encoder->base.pad_source_buffers = false;
+        encoder->base.can_slice = true;
         
         switch (quality) {
             case HapCodecSquishEncoderWorstQuality:
