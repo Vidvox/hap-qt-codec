@@ -622,7 +622,7 @@ Hap_CPrepareToCompressFrames(
         glob->sliceCount = 32;
     
     // decrease slice count until it yeilds whole DXT rows
-    while ((roundUpToMultipleOf4(glob->height) / glob->sliceCount) % 4 != 0)
+    while ((roundUpToMultipleOf4(glob->height) / 4) % glob->sliceCount != 0)
         glob->sliceCount--;
 
 #ifdef DEBUG    
