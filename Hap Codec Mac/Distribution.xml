@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<installer-gui-script minSpecVersion="1">
+    <pkg-ref id="com.Vidvox.pkg.Hap"/>
+    <license file="License.txt"/>
+    <options customize="never" require-scripts="false"/>
+    <choices-outline>
+        <line choice="default">
+            <line choice="com.Vidvox.pkg.Hap"/>
+        </line>
+    </choices-outline>
+    <choice id="default"/>
+    <choice id="com.Vidvox.pkg.Hap" visible="false">
+        <pkg-ref id="com.Vidvox.pkg.Hap"/>
+    </choice>
+    <pkg-ref id="com.Vidvox.pkg.Hap" version="8" onConclusion="none">Hap.pkg</pkg-ref>
+</installer-gui-script>
