@@ -377,7 +377,7 @@
 		089C1669FE841209C02AAC07 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0640;
+				LastUpgradeCheck = 0720;
 			};
 			buildConfigurationList = 2BF1EBEF08A92C280070D853 /* Build configuration list for PBXProject "Hap Codec" */;
 			compatibilityVersion = "Xcode 3.2";
@@ -537,6 +537,7 @@
 				INFOPLIST_FILE = ../source/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/QuickTime";
 				LD_RUNPATH_SEARCH_PATHS = "@loader_path/../Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.vidvox.Hap-Codec";
 				PRODUCT_NAME = Hap;
 				WRAPPER_EXTENSION = component;
 			};
@@ -548,6 +549,7 @@
 				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
 				CLANG_WARN_EMPTY_BODY = YES;
 				DEAD_CODE_STRIPPING = YES;
+				ENABLE_TESTABILITY = YES;
 				GCC_ENABLE_CPP_EXCEPTIONS = NO;
 				GCC_ENABLE_CPP_RTTI = NO;
 				GCC_OPTIMIZATION_LEVEL = 0;
@@ -587,6 +589,7 @@
 				INFOPLIST_FILE = ../source/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/QuickTime";
 				LD_RUNPATH_SEARCH_PATHS = "@loader_path/../Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.vidvox.Hap-Codec";
 				PRODUCT_NAME = Hap;
 				WRAPPER_EXTENSION = component;
 			};
