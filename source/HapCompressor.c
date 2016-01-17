@@ -389,10 +389,22 @@ Hap_CGetMaxCompressionSize(
 	long *              size)
 {
     int dxtSize;
+    unsigned int textureType;
 	if( ! size )
 		return paramErr;
+    switch (glob->type) {
+        case kHapAlphaCodecSubType:
+            textureType = HapTextureFormat_RGBA_DXT5;
+            break;
+        case kHapYCoCgCodecSubType:
+            textureType = HapTextureFormat_YCoCg_DXT5;
+            break;
+        default:
+            textureType = HapTextureFormat_RGB_DXT1;
+            break;
+    }
     dxtSize = dxtBytesForDimensions(srcRect->right - srcRect->left, srcRect->bottom - srcRect->top, glob->type);
-	*size = HapMaxEncodedLength(dxtSize);
+	*size = HapMaxEncodedLength(dxtSize, textureType, 1);
     
 	return noErr;
 }
@@ -596,7 +608,7 @@ Hap_CPrepareToCompressFrames(
     // Work out the upper bound on encoded frame data size -- we'll allocate buffers of this size.
     wantedDXTSize = dxtBytesForDimensions(glob->width, glob->height, glob->type);
     
-    glob->maxEncodedDataSize = HapMaxEncodedLength(wantedDXTSize);
+    glob->maxEncodedDataSize = HapMaxEncodedLength(wantedDXTSize, glob->dxtFormat, 1);
     
     if (glob->compressTaskPool == NULL)
     {
@@ -732,6 +744,7 @@ static void Background_Encode(void *info)
                           codec_src_length,
                           glob->dxtFormat,
                           HapCompressorSnappy,
+                          1,
                           task->encodedFrameDataPtr,
                           glob->maxEncodedDataSize,
                           &(task->encodedFrameActualSize));
