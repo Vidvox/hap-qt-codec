@@ -12,5 +12,5 @@
     <choice id="com.Vidvox.pkg.Hap" visible="false">
         <pkg-ref id="com.Vidvox.pkg.Hap"/>
     </choice>
-    <pkg-ref id="com.Vidvox.pkg.Hap" version="8" onConclusion="none">Hap.pkg</pkg-ref>
+    <pkg-ref id="com.Vidvox.pkg.Hap" version="9" onConclusion="none">Hap.pkg</pkg-ref>
 </installer-gui-script>
