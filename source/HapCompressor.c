@@ -278,7 +278,11 @@ Hap_CClose(
         HapCodecDXTEncoderDestroy(glob->dxtEncoder);
         glob->dxtEncoder = NULL;
         
+#if defined(__APPLE__)
         free(glob->formatConvertBuffer);
+#else
+        _aligned_free(glob->formatConvertBuffer);
+#endif
         glob->formatConvertBuffer = NULL;
         
         HapCodecTasksWaitForGroupToComplete(glob->taskGroup);
