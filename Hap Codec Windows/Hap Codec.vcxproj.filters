@@ -80,6 +80,9 @@
     <ClCompile Include="..\source\ParallelLoops.cpp">
       <Filter>Basics</Filter>
     </ClCompile>
+    <ClCompile Include="..\source\SquishRGTC1Decoder.c">
+      <Filter>DXT</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\source\HapResCommon.h">
@@ -148,6 +151,9 @@
     <ClInclude Include="..\source\ParallelLoops.h">
       <Filter>Basics</Filter>
     </ClInclude>
+    <ClInclude Include="..\source\SquishRGTC1Decoder.h">
+      <Filter>DXT</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\source\HapAlphaComponent.r">
@@ -167,6 +173,9 @@
     </None>
     <None Include="..\source\HapComponent.def">
       <Filter>Components</Filter>
+    </None>
+    <None Include="..\source\HapYCoCgAComponent.r">
+      <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>
 </Project>

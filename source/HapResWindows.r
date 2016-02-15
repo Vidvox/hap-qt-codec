@@ -38,3 +38,4 @@
 #include "HapComponent.r"
 #include "HapAlphaComponent.r"
 #include "HapYCoCgComponent.r"
+#include "HapYCoCgAComponent.r"

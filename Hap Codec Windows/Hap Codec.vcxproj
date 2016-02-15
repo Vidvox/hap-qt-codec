@@ -126,6 +126,7 @@ attrib -R "$(TargetDir)$(TargetName).qtx"
     <ClCompile Include="..\source\squish-c.cpp" />
     <ClCompile Include="..\source\SquishDecoder.c" />
     <ClCompile Include="..\source\SquishEncoder.c" />
+    <ClCompile Include="..\source\SquishRGTC1Decoder.c" />
     <ClCompile Include="..\source\Tasks.c" />
     <ClCompile Include="..\source\Utility.c">
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -155,6 +156,7 @@ attrib -R "$(TargetDir)$(TargetName).qtx"
     <ClInclude Include="..\source\squish-c.h" />
     <ClInclude Include="..\source\SquishDecoder.h" />
     <ClInclude Include="..\source\SquishEncoder.h" />
+    <ClInclude Include="..\source\SquishRGTC1Decoder.h" />
     <ClInclude Include="..\source\Tasks.h" />
     <ClInclude Include="..\source\Utility.h" />
     <ClInclude Include="..\source\YCoCg.h" />
@@ -167,6 +169,7 @@ attrib -R "$(TargetDir)$(TargetName).qtx"
     <None Include="..\source\HapComponent.def" />
     <None Include="..\source\HapComponent.r" />
     <None Include="..\source\HapResCommon.r" />
+    <None Include="..\source\HapYCoCgAComponent.r" />
     <None Include="..\source\HapYCoCgComponent.r" />
     <None Include="..\source\HapResWindows.r" />
   </ItemGroup>
