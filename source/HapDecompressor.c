@@ -140,8 +140,8 @@ typedef struct {
 #endif
 
 struct PlanarPixmapInfoHapYCoCgA {
-    CVPlanarComponentInfo  componentInfoYCoCgDXT5;
-    CVPlanarComponentInfo  componentInfoARGTC1;
+    PlanarComponentInfo  componentInfoYCoCgDXT5;
+    PlanarComponentInfo  componentInfoARGTC1;
 };
 
 typedef struct PlanarPixmapInfoHapYCoCgA PlanarPixmapInfoHapYCoCgA;
@@ -443,7 +443,7 @@ ComponentResult Hap_DBeginBand(HapDecompressorGlobals glob, CodecDecompressParam
         goto bail;
     }
 
-    for (int i = 0; i < frame_texture_count; i++) {
+    for (unsigned int i = 0; i < frame_texture_count; i++) {
         unsigned int texture_format;
         hap_result = HapGetFrameTextureFormat(drp->codecData, myDrp->dataSize, i, &texture_format);
         if (hap_result != HapResult_No_Error)
