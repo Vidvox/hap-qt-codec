@@ -46,7 +46,10 @@ enum
 	
 	//! Use DXT5 compression.
 	kDxt5 = ( 1 << 2 ), 
-	
+
+    //! Use RGTC1 compression of the alpha channel
+    kRgtc1A = (1 << 5),
+    
 	//! Use a very slow but very high quality colour compressor.
 	kColourIterativeClusterFit = ( 1 << 8 ),	
 	

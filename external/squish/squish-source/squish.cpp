@@ -37,12 +37,12 @@ namespace squish {
 static int FixFlags( int flags )
 {
 	// grab the flag bits
-	int method = flags & ( kDxt1 | kDxt3 | kDxt5 );
+	int method = flags & ( kDxt1 | kDxt3 | kDxt5 | kRgtc1A );
 	int fit = flags & ( kColourIterativeClusterFit | kColourClusterFit | kColourRangeFit );
 	int extra = flags & kWeightColourByAlpha;
 	
 	// set defaults
-	if( method != kDxt3 && method != kDxt5 )
+	if( method != kDxt3 && method != kDxt5 && method != kRgtc1A )
 		method = kDxt1;
 	if( fit != kColourRangeFit && fit != kColourIterativeClusterFit )
 		fit = kColourClusterFit;
@@ -62,33 +62,35 @@ void CompressMasked( u8 const* rgba, int mask, void* block, int flags, float* me
 	if( ( flags & ( kDxt3 | kDxt5 ) ) != 0 )
 		colourBlock = reinterpret_cast< u8* >( block ) + 8;
 
-	// create the minimal point set
-	ColourSet colours( rgba, mask, flags );
-	
-	// check the compression type and compress colour
-	if( colours.GetCount() == 1 )
-	{
-		// always do a single colour fit
-		SingleColourFit fit( &colours, flags );
-		fit.Compress( colourBlock );
-	}
-	else if( ( flags & kColourRangeFit ) != 0 || colours.GetCount() == 0 )
-	{
-		// do a range fit
-		RangeFit fit( &colours, flags, metric );
-		fit.Compress( colourBlock );
-	}
-	else
-	{
-		// default to a cluster fit (could be iterative or not)
-		ClusterFit fit( &colours, flags, metric );
-		fit.Compress( colourBlock );
-	}
-	
+    if ( ( flags & ( kDxt1 | kDxt3 | kDxt5 ) ) != 0 )
+    {
+        // create the minimal point set
+        ColourSet colours( rgba, mask, flags );
+        
+        // check the compression type and compress colour
+        if( colours.GetCount() == 1 )
+        {
+            // always do a single colour fit
+            SingleColourFit fit( &colours, flags );
+            fit.Compress( colourBlock );
+        }
+        else if( ( flags & kColourRangeFit ) != 0 || colours.GetCount() == 0 )
+        {
+            // do a range fit
+            RangeFit fit( &colours, flags, metric );
+            fit.Compress( colourBlock );
+        }
+        else
+        {
+            // default to a cluster fit (could be iterative or not)
+            ClusterFit fit( &colours, flags, metric );
+            fit.Compress( colourBlock );
+        }
+    }
 	// compress alpha separately if necessary
 	if( ( flags & kDxt3 ) != 0 )
 		CompressAlphaDxt3( rgba, mask, alphaBock );
-	else if( ( flags & kDxt5 ) != 0 )
+	else if( ( flags & ( kDxt5 | kRgtc1A ) ) != 0 )
 		CompressAlphaDxt5( rgba, mask, alphaBock );
 }
 
@@ -103,13 +105,16 @@ void Decompress( u8* rgba, void const* block, int flags )
 	if( ( flags & ( kDxt3 | kDxt5 ) ) != 0 )
 		colourBlock = reinterpret_cast< u8 const* >( block ) + 8;
 
-	// decompress colour
-	DecompressColour( rgba, colourBlock, ( flags & kDxt1 ) != 0 );
+    if ( ( flags & ( kDxt1 | kDxt3 | kDxt5 ) ) != 0 )
+    {
+        // decompress colour
+        DecompressColour( rgba, colourBlock, ( flags & kDxt1 ) != 0 );
+    }
 
 	// decompress alpha separately if necessary
 	if( ( flags & kDxt3 ) != 0 )
 		DecompressAlphaDxt3( rgba, alphaBock );
-	else if( ( flags & kDxt5 ) != 0 )
+	else if( ( flags & ( kDxt5 | kRgtc1A ) ) != 0 )
 		DecompressAlphaDxt5( rgba, alphaBock );
 }
 
@@ -131,7 +136,7 @@ void CompressImage( u8 const* rgba, int width, int height, void* blocks, int fla
 
 	// initialise the block output
 	u8* targetBlock = reinterpret_cast< u8* >( blocks );
-	int bytesPerBlock = ( ( flags & kDxt1 ) != 0 ) ? 8 : 16;
+	int bytesPerBlock = ( ( flags & ( kDxt1 | kRgtc1A ) ) != 0 ) ? 8 : 16;
 
 	// loop over blocks
 	for( int y = 0; y < height; y += 4 )
@@ -185,7 +190,7 @@ void DecompressImage( u8* rgba, int width, int height, void const* blocks, int f
 
 	// initialise the block input
 	u8 const* sourceBlock = reinterpret_cast< u8 const* >( blocks );
-	int bytesPerBlock = ( ( flags & kDxt1 ) != 0 ) ? 8 : 16;
+	int bytesPerBlock = ( ( flags & ( kDxt1 | kRgtc1A ) ) != 0 ) ? 8 : 16;
 
 	// loop over blocks
 	for( int y = 0; y < height; y += 4 )

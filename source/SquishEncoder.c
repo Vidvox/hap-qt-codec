@@ -87,7 +87,7 @@ static int HapCodecSquishEncoderEncode(HapCodecDXTEncoderRef encoder,
     // We feed Squish block by block to handle extra bytes at the ends of rows
     
 	uint8_t* dst_block = (uint8_t *)dst;
-	int bytes_per_block = ( ( ((struct HapCodecSquishEncoder *)encoder)->flags & kDxt1 ) != 0 ) ? 8 : 16;
+	int bytes_per_block = ( ( ((struct HapCodecSquishEncoder *)encoder)->flags & ( kDxt1 | kRgtc1A ) ) != 0 ) ? 8 : 16;
     unsigned int y, x, py, px;
     
 #if !defined(HAP_SSSE3_ALWAYS_AVAILABLE)
@@ -212,6 +212,9 @@ HapCodecDXTEncoderRef HapCodecSquishEncoderCreate(HapCodecSquishEncoderQuality q
             case kHapCVPixelFormat_RGBA_DXT5:
                 encoder->flags |= kDxt5;
                 break;
+            case kHapCVPixelFormat_A_RGTC1:
+                encoder->flags |= kRgtc1A;
+                break;
             default:
                 HapCodecSquishEncoderDestroy((HapCodecDXTEncoderRef)encoder);
                 encoder = NULL;
@@ -221,7 +224,7 @@ HapCodecDXTEncoderRef HapCodecSquishEncoderCreate(HapCodecSquishEncoderQuality q
 #if defined(DEBUG)
         if (encoder)
         {
-            char *format = encoder->flags & kDxt1 ? "RGB DXT1" : "RGBA DXT5";
+            char *format = encoder->flags & kDxt1 ? "RGB DXT1" : encoder->flags & kDxt5 ? "RGBA DXT5" : "A RGTC1";
             
             char *qualityString;
             if (encoder->flags & kColourRangeFit)

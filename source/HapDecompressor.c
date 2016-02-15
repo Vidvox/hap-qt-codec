@@ -72,6 +72,8 @@
     #include "SquishDecoder.h"
 #endif
 
+#include "SquishRGTC1Decoder.h"
+
 // Data structures
 typedef struct	{
 	ComponentInstance			self;
@@ -84,6 +86,7 @@ typedef struct	{
     long                        dxtHeight;
 	Handle						wantedDestinationPixelTypes;
     HapCodecBufferPoolRef       dxtBufferPool;
+    HapCodecBufferPoolRef       alphaBufferPool;
     HapCodecBufferPoolRef       convertBufferPool;
 #ifdef HAP_GPU_DECODE
     HapCodecGLRef               glDecoder;
@@ -96,10 +99,15 @@ typedef struct {
     long                        dxtWidth;
     long                        dxtHeight;
 	size_t                      dataSize;
-    unsigned int                texFormat;
+    Boolean                     hasColour;
+    Boolean                     hasAlpha;
+    unsigned int                dxtFormat;
+    unsigned int                dxtIndex;
+    unsigned int                alphaIndex;
     OSType                      destFormat;
 	Boolean                     decoded;
     HapCodecBufferRef           dxtBuffer;
+    HapCodecBufferRef           alphaBuffer;
     HapCodecBufferRef           convertBuffer; // used for YCoCg -> RGB
 } HapDecompressRecord;
 
@@ -131,6 +139,12 @@ typedef struct {
 #include <ComponentDispatchHelper.c>
 #endif
 
+struct PlanarPixmapInfoHapYCoCgA {
+    CVPlanarComponentInfo  componentInfoYCoCgDXT5;
+    CVPlanarComponentInfo  componentInfoARGTC1;
+};
+
+typedef struct PlanarPixmapInfoHapYCoCgA PlanarPixmapInfoHapYCoCgA;
 /*
  Callback for multithreaded Hap decoding
  */
@@ -178,6 +192,7 @@ ComponentResult Hap_DOpen(HapDecompressorGlobals glob, ComponentInstance self)
 	glob->target = self;
     glob->type = componentDescription.componentSubType;
 	glob->dxtBufferPool = NULL;
+    glob->alphaBufferPool = NULL;
     glob->convertBufferPool = NULL;
 
 #ifdef HAP_GPU_DECODE
@@ -211,6 +226,7 @@ ComponentResult Hap_DClose(HapDecompressorGlobals glob, ComponentInstance self H
 		}
 		
         HapCodecBufferPoolDestroy(glob->dxtBufferPool);
+        HapCodecBufferPoolDestroy(glob->alphaBufferPool);
 #ifdef HAP_GPU_DECODE
         if (glob->glDecoder)
         {
@@ -331,6 +347,9 @@ ComponentResult Hap_DPreflight(HapDecompressorGlobals glob, CodecDecompressParam
         case kHapAlphaCodecSubType:
             (*p->wantedDestinationPixelTypes)[2] = kHapCVPixelFormat_RGBA_DXT5;
             break;
+        case kHapYCoCgACodecSubType:
+            (*p->wantedDestinationPixelTypes)[2] = kHapCVPixelFormat_YCoCg_DXT5_A_RGTC1;
+            break;
         default:
             err = internalComponentErr;
             goto bail;
@@ -381,13 +400,15 @@ ComponentResult Hap_DBeginBand(HapDecompressorGlobals glob, CodecDecompressParam
 	OSStatus err = noErr;
 	HapDecompressRecord *myDrp = (HapDecompressRecord *)drp->userDecompressRecord;
     unsigned int hap_result;
+    unsigned int frame_texture_count;
 
 	myDrp->width = (**p->imageDescription).width;
 	myDrp->height = (**p->imageDescription).height;
     myDrp->dxtWidth = glob->dxtWidth;
     myDrp->dxtHeight = glob->dxtHeight;
-    myDrp->convertBuffer = NULL;
-    myDrp->dxtBuffer = NULL;
+    myDrp->convertBuffer = myDrp->dxtBuffer = myDrp->alphaBuffer = NULL;
+    myDrp->alphaIndex = myDrp->dxtIndex;
+    myDrp->hasAlpha = myDrp->hasColour = false;
     
     if (myDrp->width != glob->width || myDrp->height != glob->height)
     {
@@ -414,28 +435,63 @@ ComponentResult Hap_DBeginBand(HapDecompressorGlobals glob, CodecDecompressParam
     
     myDrp->destFormat = p->dstPixMap.pixelFormat;
     
-    // Inspect the frame header to discover the texture format
-    
-    hap_result = HapGetFrameTextureFormat(drp->codecData, myDrp->dataSize, &myDrp->texFormat);
+    // Inspect the frame header to discover the texture format(s)
+    hap_result = HapGetFrameTextureCount(drp->codecData, myDrp->dataSize, &frame_texture_count);
     if (hap_result != HapResult_No_Error)
     {
         err = internalComponentErr;
         goto bail;
     }
 
+    for (int i = 0; i < frame_texture_count; i++) {
+        unsigned int texture_format;
+        hap_result = HapGetFrameTextureFormat(drp->codecData, myDrp->dataSize, i, &texture_format);
+        if (hap_result != HapResult_No_Error)
+        {
+            err = internalComponentErr;
+            goto bail;
+        }
+        if (texture_format == HapTextureFormat_A_RGTC1)
+        {
+            myDrp->alphaIndex = i;
+            myDrp->hasAlpha = true;
+        }
+        else if (texture_format == HapTextureFormat_RGB_DXT1 || texture_format == HapTextureFormat_RGBA_DXT5 || texture_format == HapTextureFormat_YCoCg_DXT5)
+        {
+            myDrp->dxtIndex = i;
+            myDrp->dxtFormat = texture_format;
+            myDrp->hasColour = true;
+        }
+    }
+
     if (!isDXTPixelFormat(myDrp->destFormat))
     {
-        long dxtBufferLength = dxtBytesForDimensions(myDrp->dxtWidth, myDrp->dxtHeight, glob->type);
-        if (glob->dxtBufferPool == NULL || dxtBufferLength != HapCodecBufferPoolGetBufferSize(glob->dxtBufferPool))
+        if (myDrp->hasColour)
         {
-            HapCodecBufferPoolDestroy(glob->dxtBufferPool);
-            glob->dxtBufferPool = HapCodecBufferPoolCreate(dxtBufferLength);
+            unsigned long dxtBufferLength = dxtBytesForDimensions(myDrp->dxtWidth, myDrp->dxtHeight, glob->type);
+            if (glob->dxtBufferPool == NULL || dxtBufferLength != HapCodecBufferPoolGetBufferSize(glob->dxtBufferPool))
+            {
+                HapCodecBufferPoolDestroy(glob->dxtBufferPool);
+                glob->dxtBufferPool = HapCodecBufferPoolCreate(dxtBufferLength);
+            }
+            
+            myDrp->dxtBuffer = HapCodecBufferCreate(glob->dxtBufferPool);
         }
-        
-        myDrp->dxtBuffer = HapCodecBufferCreate(glob->dxtBufferPool);
+
+        if (myDrp->hasAlpha)
+        {
+            unsigned long dxtBufferLength = dxtBytesForDimensions(myDrp->dxtWidth, myDrp->dxtHeight, kHapAOnlyCodecSubType);
+            if (glob->alphaBufferPool == NULL || dxtBufferLength != HapCodecBufferPoolGetBufferSize(glob->alphaBufferPool))
+            {
+                HapCodecBufferPoolDestroy(glob->alphaBufferPool);
+                glob->alphaBufferPool = HapCodecBufferPoolCreate(dxtBufferLength);
+            }
+
+            myDrp->alphaBuffer = HapCodecBufferCreate(glob->alphaBufferPool);
+        }
     }
     
-    if (!isDXTPixelFormat(myDrp->destFormat) && myDrp->texFormat == HapTextureFormat_YCoCg_DXT5)
+    if (!isDXTPixelFormat(myDrp->destFormat) && myDrp->dxtFormat == HapTextureFormat_YCoCg_DXT5)
     {
         long convertBufferSize = glob->dxtWidth * glob->dxtHeight * 4;
         if (glob->convertBufferPool == NULL || HapCodecBufferPoolGetBufferSize(glob->convertBufferPool) != convertBufferSize)
@@ -458,7 +514,7 @@ ComponentResult Hap_DBeginBand(HapDecompressorGlobals glob, CodecDecompressParam
 #ifdef HAP_GPU_DECODE
     if (!isDXTPixelFormat(myDrp->destFormat))
     {
-        unsigned int texture_format = myDrp->texFormat;
+        unsigned int texture_format = myDrp->dxtFormat;
         // The GL decoder is currently ignorant of YCoCg, we swizzle the format to one it understands
         if (texture_format == HapTextureFormat_YCoCg_DXT5) texture_format = HapCodecGLCompressedFormat_RGBA_DXT5;
         
@@ -517,18 +573,47 @@ ComponentResult Hap_DDecodeBand(HapDecompressorGlobals glob HAP_ATTR_UNUSED, Ima
     
     if (!isDXTPixelFormat(myDrp->destFormat))
     {
-        unsigned int hapResult = HapDecode(drp->codecData, myDrp->dataSize, (HapDecodeCallback)HapMTDecode, NULL, HapCodecBufferGetBaseAddress(myDrp->dxtBuffer), HapCodecBufferGetSize(myDrp->dxtBuffer), NULL, &myDrp->texFormat);
-        if (hapResult != HapResult_No_Error)
+        if (myDrp->hasColour)
         {
-            err = (hapResult == HapResult_Bad_Frame ? codecBadDataErr : internalComponentErr);
-            goto bail;
+            unsigned int hapResult = HapDecode(drp->codecData,
+                                               myDrp->dataSize,
+                                               myDrp->dxtIndex,
+                                               (HapDecodeCallback)HapMTDecode,
+                                               NULL,
+                                               HapCodecBufferGetBaseAddress(myDrp->dxtBuffer),
+                                               HapCodecBufferGetSize(myDrp->dxtBuffer),
+                                               NULL,
+                                               &myDrp->dxtFormat);
+            if (hapResult != HapResult_No_Error)
+            {
+                err = (hapResult == HapResult_Bad_Frame ? codecBadDataErr : internalComponentErr);
+                goto bail;
+            }
+            
+            if (myDrp->dxtFormat == HapTextureFormat_YCoCg_DXT5)
+            {
+                // For now we use the dedicated YCoCgDXT decoder but we could use a regular
+                // decoder if we add code to convert scaled YCoCg -> RGB
+                DeCompressYCoCgDXT5((const byte *)HapCodecBufferGetBaseAddress(myDrp->dxtBuffer), (byte *)HapCodecBufferGetBaseAddress(myDrp->convertBuffer), myDrp->width, myDrp->height, myDrp->dxtWidth * 4);
+            }
         }
-        
-        if (myDrp->texFormat == HapTextureFormat_YCoCg_DXT5)
+        if (myDrp->hasAlpha)
         {
-            // For now we use the dedicated YCoCgDXT decoder but we could use a regular
-            // decoder if we add code to convert scaled YCoCg -> RGB
-            DeCompressYCoCgDXT5((const byte *)HapCodecBufferGetBaseAddress(myDrp->dxtBuffer), (byte *)HapCodecBufferGetBaseAddress(myDrp->convertBuffer), myDrp->width, myDrp->height, myDrp->dxtWidth * 4);
+            unsigned int format;
+            unsigned int hapResult = HapDecode(drp->codecData,
+                                               myDrp->dataSize,
+                                               myDrp->alphaIndex,
+                                               (HapDecodeCallback)HapMTDecode,
+                                               NULL,
+                                               HapCodecBufferGetBaseAddress(myDrp->alphaBuffer),
+                                               HapCodecBufferGetSize(myDrp->alphaBuffer),
+                                               NULL,
+                                               &format);
+            if (hapResult != HapResult_No_Error)
+            {
+                err = (hapResult == HapResult_Bad_Frame ? codecBadDataErr : internalComponentErr);
+                goto bail;
+            }
         }
     }
         
@@ -564,86 +649,130 @@ ComponentResult Hap_DDrawBand(HapDecompressorGlobals glob, ImageSubCodecDecompre
 		err = Hap_DDecodeBand( glob, drp, 0 );
 		if( err ) goto bail;
 	}
-	
+
     if (isDXTPixelFormat(myDrp->destFormat))
     {
         // Decompress the frame directly into the output buffer
         //
         // We only advertise the DXT type we contain, so we assume we never
         // get asked for the wrong one here
-        
-        unsigned int bufferSize = dxtBytesForDimensions(myDrp->dxtWidth, myDrp->dxtHeight, glob->type);
-        unsigned int hapResult = HapDecode(drp->codecData, myDrp->dataSize, (HapDecodeCallback)HapMTDecode, NULL, drp->baseAddr, bufferSize, NULL, &myDrp->texFormat);
-        if (hapResult != HapResult_No_Error)
+
+        if (myDrp->destFormat == kHapCVPixelFormat_YCoCg_DXT5_A_RGTC1)
         {
-            err = (hapResult == HapResult_Bad_Frame ? codecBadDataErr : internalComponentErr);
-            goto bail;
-        }
-    }
-    else
-    {
-        if (myDrp->texFormat == HapTextureFormat_YCoCg_DXT5)
-        {
-            if (myDrp->destFormat == k32RGBAPixelFormat)
+            PlanarPixmapInfoHapYCoCgA *planes = (PlanarPixmapInfoHapYCoCgA *)drp->baseAddr;
+            if (planes)
             {
-                ConvertCoCg_Y8888ToRGB_((uint8_t *)HapCodecBufferGetBaseAddress(myDrp->convertBuffer), (uint8_t *)drp->baseAddr, myDrp->width, myDrp->height, myDrp->dxtWidth * 4, drp->rowBytes, 1);
-            }
-            else
-            {
-                ConvertCoCg_Y8888ToBGR_((uint8_t *)HapCodecBufferGetBaseAddress(myDrp->convertBuffer), (uint8_t *)drp->baseAddr, myDrp->width, myDrp->height, myDrp->dxtWidth * 4, drp->rowBytes, 1);
+                unsigned int planeSize;
+                void *plane;
+                unsigned int format;
+                unsigned int hapResult = HapResult_No_Error;
+
+                if (myDrp->hasAlpha)
+                {
+                    planeSize = dxtBytesForDimensions(myDrp->dxtWidth, myDrp->dxtHeight, kHapAOnlyCodecSubType);
+                    plane = drp->baseAddr + EndianS32_BtoN(planes->componentInfoARGTC1.offset);
+                    hapResult = HapDecode(drp->codecData, myDrp->dataSize, myDrp->alphaIndex, (HapDecodeCallback)HapMTDecode, NULL, plane, planeSize, NULL, &format);
+                }
+
+                if (hapResult == HapResult_No_Error && myDrp->hasColour)
+                {
+                    planeSize = dxtBytesForDimensions(myDrp->dxtWidth, myDrp->dxtHeight, kHapYCoCgCodecSubType);
+                    plane = drp->baseAddr + EndianS32_BtoN(planes->componentInfoYCoCgDXT5.offset);
+                    hapResult = HapDecode(drp->codecData, myDrp->dataSize, myDrp->dxtIndex, (HapDecodeCallback)HapMTDecode, NULL, plane, planeSize, NULL, &format);
+                }
+
+                if (hapResult != HapResult_No_Error)
+                {
+                    err = (hapResult == HapResult_Bad_Frame ? codecBadDataErr : internalComponentErr);
+                    goto bail;
+                }
             }
         }
         else
         {
-#ifdef HAP_GPU_DECODE
-            if (glob->glDecoder != NULL)
+            unsigned int bufferSize = dxtBytesForDimensions(myDrp->dxtWidth, myDrp->dxtHeight, glob->type);
+            unsigned int hapResult = HapDecode(drp->codecData, myDrp->dataSize, myDrp->dxtIndex, (HapDecodeCallback)HapMTDecode, NULL, drp->baseAddr, bufferSize, NULL, &myDrp->dxtFormat);
+            if (hapResult != HapResult_No_Error)
             {
-                int decodeResult = HapCodecGLDecode(glob->glDecoder,
-                                                    drp->rowBytes,
-                                                    (myDrp->destFormat == k32RGBAPixelFormat ? HapCodecGLPixelFormat_RGBA8 : HapCodecGLPixelFormat_BGRA8),
-                                                    HapCodecBufferGetBaseAddress(myDrp->dxtBuffer),
-                                                    drp->baseAddr);
-                if (decodeResult != 0)
-                {
-                    err = internalComponentErr;
-                    goto bail;
-                }
+                err = (hapResult == HapResult_Bad_Frame ? codecBadDataErr : internalComponentErr);
+                goto bail;
             }
-#endif
-            
-#ifdef HAP_SQUISH_DECODE
-#ifdef HAP_GPU_DECODE
-            else
-            {
-#endif
-                int decompressFormat = 0;
-                switch (myDrp->texFormat)
-                {
-                case HapTextureFormat_RGB_DXT1:
-                    decompressFormat = kHapCVPixelFormat_RGB_DXT1;
-                    break;
-                case HapTextureFormat_RGBA_DXT5:
-                    decompressFormat = kHapCVPixelFormat_RGBA_DXT5;
-                    break;
-                default:
-                    err = internalComponentErr;
-                    break;
-                }
-                if (err)
-                    goto bail;
-                HapCodecSquishDecode(HapCodecBufferGetBaseAddress(myDrp->dxtBuffer),
-                    decompressFormat,
-                    drp->baseAddr,
-                    myDrp->destFormat,
-                    drp->rowBytes,
-                    glob->width,
-                    glob->height);
-#ifdef HAP_GPU_DECODE
-            }
-#endif
-#endif // HAP_SQUISH_DECODE
         }
     }
+    else
+    {
+        if (myDrp->hasColour)
+        {
+            if (myDrp->dxtFormat == HapTextureFormat_YCoCg_DXT5)
+            {
+                if (myDrp->destFormat == k32RGBAPixelFormat)
+                {
+                    ConvertCoCg_Y8888ToRGB_((uint8_t *)HapCodecBufferGetBaseAddress(myDrp->convertBuffer), (uint8_t *)drp->baseAddr, myDrp->width, myDrp->height, myDrp->dxtWidth * 4, drp->rowBytes, 1);
+                }
+                else
+                {
+                    ConvertCoCg_Y8888ToBGR_((uint8_t *)HapCodecBufferGetBaseAddress(myDrp->convertBuffer), (uint8_t *)drp->baseAddr, myDrp->width, myDrp->height, myDrp->dxtWidth * 4, drp->rowBytes, 1);
+                }
+            }
+            else
+            {
+    #ifdef HAP_GPU_DECODE
+                if (glob->glDecoder != NULL)
+                {
+                    int decodeResult = HapCodecGLDecode(glob->glDecoder,
+                                                        drp->rowBytes,
+                                                        (myDrp->destFormat == k32RGBAPixelFormat ? HapCodecGLPixelFormat_RGBA8 : HapCodecGLPixelFormat_BGRA8),
+                                                        HapCodecBufferGetBaseAddress(myDrp->dxtBuffer),
+                                                        drp->baseAddr);
+                    if (decodeResult != 0)
+                    {
+                        err = internalComponentErr;
+                        goto bail;
+                    }
+                }
+    #endif
+                
+    #ifdef HAP_SQUISH_DECODE
+    #ifdef HAP_GPU_DECODE
+                else
+                {
+    #endif
+                    int decompressFormat = 0;
+                    switch (myDrp->dxtFormat)
+                    {
+                    case HapTextureFormat_RGB_DXT1:
+                        decompressFormat = kHapCVPixelFormat_RGB_DXT1;
+                        break;
+                    case HapTextureFormat_RGBA_DXT5:
+                        decompressFormat = kHapCVPixelFormat_RGBA_DXT5;
+                        break;
+                    default:
+                        err = internalComponentErr;
+                        break;
+                    }
+                    if (err)
+                        goto bail;
+                    HapCodecSquishDecode(HapCodecBufferGetBaseAddress(myDrp->dxtBuffer),
+                        decompressFormat,
+                        drp->baseAddr,
+                        myDrp->destFormat,
+                        drp->rowBytes,
+                        glob->width,
+                        glob->height);
+    #ifdef HAP_GPU_DECODE
+                }
+    #endif
+    #endif // HAP_SQUISH_DECODE
+            }
+        }
+
+        if (myDrp->hasAlpha)
+        {
+            // TODO: GL decode to single-channel?
+            HapCodecSquishRGTC1Decode(HapCodecBufferGetBaseAddress(myDrp->alphaBuffer), drp->baseAddr, drp->rowBytes, glob->width, glob->height);
+        }
+    }
+
 bail:
     debug_print_err(glob, err);
 	return err;
@@ -665,6 +794,8 @@ ComponentResult Hap_DEndBand(HapDecompressorGlobals glob HAP_ATTR_UNUSED, ImageS
     myDrp->dxtBuffer = NULL;
     HapCodecBufferReturn(myDrp->convertBuffer);
     myDrp->convertBuffer = NULL;
+    HapCodecBufferReturn(myDrp->alphaBuffer);
+    myDrp->alphaBuffer = NULL;
 	return noErr;
 }
 

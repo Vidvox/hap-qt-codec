@@ -53,7 +53,8 @@ unsigned long dxtBytesForDimensions(int width, int height, OSType codecSubType);
  */
 #define isDXTPixelFormat(fmt) (((fmt) == kHapCVPixelFormat_RGB_DXT1 \
                                 || (fmt) == kHapCVPixelFormat_RGBA_DXT5 \
-                                || (fmt) == kHapCVPixelFormat_YCoCg_DXT5) ? true : false)
+                                || (fmt) == kHapCVPixelFormat_YCoCg_DXT5 \
+                                || (fmt) == kHapCVPixelFormat_YCoCg_DXT5_A_RGTC1) ? true : false)
 
 SInt16 resourceIDForComponentType(OSType componentType, OSType resourceType);
 

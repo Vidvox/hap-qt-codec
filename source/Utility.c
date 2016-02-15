@@ -80,7 +80,7 @@ int roundDownToMultipleOf4( int n )
 unsigned long dxtBytesForDimensions(int width, int height, OSType codecSubType)
 {
     unsigned long length = roundUpToMultipleOf4(width) * roundUpToMultipleOf4(height);
-    if (codecSubType == kHapCodecSubType) length /= 2;
+    if (codecSubType == kHapCodecSubType || codecSubType == kHapAOnlyCodecSubType) length /= 2;
     return length;
 }
 
@@ -95,6 +95,8 @@ SInt16 resourceIDForComponentType(OSType componentType, OSType resourceType)
                 return 456;
             case kHapYCoCgCodecSubType:
                 return 356;
+            case kHapYCoCgACodecSubType:
+                return 556;
             default:
                 return 0;
         }
