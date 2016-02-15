@@ -310,7 +310,7 @@ unsigned long HapMaxEncodedLength(unsigned int count,
         return HapResult_Bad_Arguments;
     }
 
-    for (int i = 0; i < count; i++) {
+    for (unsigned int i = 0; i < count; i++) {
         // Assume snappy, the worst case
         total_length += hap_max_encoded_length(inputBytes[i], textureFormats[i], HapCompressorSnappy, chunkCounts[i]);
     }
@@ -516,7 +516,7 @@ unsigned int HapEncode(unsigned int count,
     {
         // Calculate the worst-case size for the top section and choose a header-length based on that
         top_section_length = 0;
-        for (int i = 0; i < count; i++)
+        for (unsigned int i = 0; i < count; i++)
         {
             top_section_length += inputBuffersBytes[i] + hap_decode_instructions_length(chunkCounts[i]) + 4;
         }
@@ -532,7 +532,7 @@ unsigned int HapEncode(unsigned int count,
 
         // Encode each texture
         top_section_length = 0;
-        for (int i = 0; i < count; i++)
+        for (unsigned int i = 0; i < count; i++)
         {
             void *section = ((uint8_t *)outputBuffer) + top_section_header_length + top_section_length;
             unsigned int result = hap_encode_texture(inputBuffers[i],
@@ -892,7 +892,7 @@ int hap_get_section_at_index(const void *input_buffer, uint32_t input_buffer_byt
         input_buffer = ((uint8_t *)input_buffer) + section_header_length;
         section_header_length = 0;
         *section_length = 0;
-        for (int i = 0; i <= index; i++) {
+        for (unsigned int i = 0; i <= index; i++) {
             offset += section_header_length + *section_length;
             if (offset >= top_section_length)
             {
