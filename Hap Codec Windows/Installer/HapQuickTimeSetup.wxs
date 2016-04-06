@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
-    <Product Id="*" Name="Hap QuickTime Component" Language="1033" Version="9.0.0" Manufacturer="Vidvox" UpgradeCode="36A1CCCB-8DF7-40F9-A6AB-D900C873ED9B">
+    <Product Id="*" Name="Hap QuickTime Component" Language="1033" Version="10.0.0" Manufacturer="Vidvox" UpgradeCode="36A1CCCB-8DF7-40F9-A6AB-D900C873ED9B">
         <Package Description="A QuickTime component to permit creating and playing Hap movies." Comments="Hap QuickTime Component" InstallerVersion="405" Compressed="yes" />
         <Media Id="1" Cabinet="simple.cab" EmbedCab="yes" />
         <Property Id="INSTALLDIR">
