@@ -1,8 +1,8 @@
 /*
- HapYCoCgCompressor.r
+ HapYCoCgACompressor.r
  Hap Codec
  
- Copyright (c) 2012-2013, Tom Butterworth and Vidvox LLC. All rights reserved.
+ Copyright (c) 2012-2016, Tom Butterworth and Vidvox LLC. All rights reserved.
  Redistribution and use in source and binary forms, with or without
  modification, are permitted provided that the following conditions are met:
  
@@ -198,6 +198,7 @@ resource 'ccop' (556) {
 // Pixel formats we accept and emit
 resource 'cpix' (556) {
     {
+        'DYtA',
         'RGBA',
         'BGRA'
     }
