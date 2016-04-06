@@ -768,7 +768,6 @@ ComponentResult Hap_DDrawBand(HapDecompressorGlobals glob, ImageSubCodecDecompre
 
         if (myDrp->hasAlpha)
         {
-            // TODO: GL decode to single-channel?
             HapCodecSquishRGTC1Decode(HapCodecBufferGetBaseAddress(myDrp->alphaBuffer), drp->baseAddr, drp->rowBytes, glob->width, glob->height);
         }
     }
