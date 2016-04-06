@@ -3,7 +3,7 @@ Hap QuickTime Codec
 
 Hap is a video codec for fast decompression on modern graphics hardware. This is the home of the Hap QuickTime codec. For general information about Hap, see [the Hap project][1].
 
-The Hap QuickTime codec supports encoding and decoding Hap video. Video can be decoded to RGB(A) formats for playback in any existing application, or if an application explicitly requests it, to S3TC/DXT frames for accelerated playback on graphics hardware.
+The Hap QuickTime codec supports encoding and decoding Hap video. Video can be decoded to RGB(A) formats for playback in any existing application, or if an application explicitly requests it, to compressed texture formats for accelerated playback on graphics hardware.
 
 Note that there is no advantage to using Hap over other codecs if the application you will be using for playback does not support accelerated Hap playback.
  
@@ -19,11 +19,12 @@ Requires at minimum MacOS 10.6 Snow Leapord, or Windows Vista with QuickTime 7 i
 Using the Hap QuickTime Codec
 ====
 
-After installation, the codec will show up when exporting video in applications which support QuickTime. Three variants of the codec exist:
+After installation, the codec will show up when exporting video in applications which support QuickTime. Four variants of the codec exist:
 
 * **Hap** - Reasonable image quality
 * **Hap Alpha** - Reasonable image quality with an alpha channel
 * **Hap Q** - Good image quality at a higher data-rate
+* **Hap Q Alpha** - Good image quality with an alpha channel at a higher data-rate
 
 Hap and Hap Alpha have a quality setting. Although QuickTime displays a slider, it has only two effective settings: below "High" a fast low-quality encoder is used, and at "High" or above a slower high-quality encoder is used.
 
