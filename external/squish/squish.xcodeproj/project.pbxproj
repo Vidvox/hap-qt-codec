@@ -176,7 +176,7 @@
 		E25D561D17E0E02B008DD459 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0720;
+				LastUpgradeCheck = 0730;
 				ORGANIZATIONNAME = Vidvox;
 			};
 			buildConfigurationList = E25D562017E0E02B008DD459 /* Build configuration list for PBXProject "squish" */;
