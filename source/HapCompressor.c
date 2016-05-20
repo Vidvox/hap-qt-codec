@@ -100,6 +100,7 @@ typedef struct {
     HapCodecTaskGroupRef            taskGroup;
 
     unsigned int                    sliceCount;
+    unsigned int                    sliceHeight;
 #ifdef DEBUG
     unsigned int                    debugFrameCount;
     uint64_t                        debugStartTime;
@@ -229,6 +230,7 @@ Hap_COpen(
     glob->dxtFormat = 0;
     glob->taskGroup = NULL;
     glob->sliceCount = 1;
+    glob->sliceHeight = 4;
     
 bail:
     debug_print_err(glob, err);
@@ -664,13 +666,26 @@ Hap_CPrepareToCompressFrames(
     
     glob->taskGroup = HapCodecTasksCreateGroup(Background_Encode, maxTasks);
 
-    glob->sliceCount = roundUpToMultipleOf4(glob->height) / 4;
-    if (glob->sliceCount > 32)
-        glob->sliceCount = 32;
-    
-    // decrease slice count until it yeilds whole DXT rows
-    while ((roundUpToMultipleOf4(glob->height) / 4) % glob->sliceCount != 0)
-        glob->sliceCount--;
+    {
+        // Slice on DXT row boundaries
+        unsigned int totalDXTRows = roundUpToMultipleOf4(glob->height) / 4;
+        unsigned int remainder;
+        glob->sliceCount = totalDXTRows < 30 ? totalDXTRows : 30;
+        glob->sliceHeight = (totalDXTRows / glob->sliceCount) * 4;
+        remainder = (totalDXTRows % glob->sliceCount) * 4;
+        while (remainder > 0)
+        {
+            glob->sliceCount++;
+            if (remainder > glob->sliceHeight)
+            {
+                remainder -= glob->sliceHeight;
+            }
+            else
+            {
+                remainder = 0;
+            }
+        }
+    }
 
 #ifdef DEBUG    
     glob->debugStartTime = CVGetCurrentHostTime();
@@ -860,7 +875,7 @@ dxtEncode(HapCompressorGlobals glob, CVPixelBufferRef sourcePixelBuffer, HapCode
     dxtTask.width = glob->width;
     dxtTask.height = glob->height;
     dxtTask.encoder = encoder;
-    dxtTask.sliceHeight = roundUpToMultipleOf4(glob->height) / glob->sliceCount;
+    dxtTask.sliceHeight = glob->sliceHeight;
     dxtTask.sourceBytesPerRow = CVPixelBufferGetBytesPerRow(sourcePixelBuffer);
     dxtTask.sourcePixelFormat = sourceFormat;
     dxtTask.source = CVPixelBufferGetBaseAddress(sourcePixelBuffer);
