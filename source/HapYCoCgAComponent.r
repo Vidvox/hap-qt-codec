@@ -37,8 +37,8 @@
 
 // These flags specify the possible format of compressed data produced by the component
 // and the format of compressed files that the component can handle during decompression
-// The component can decompress from files at 24-bit depth
-#define kHapYCoCgAFormatFlags ( codecInfoDepth24 )
+// The component can decompress from files at 24 and 32-bit depths
+#define kHapYCoCgAFormatFlags ( codecInfoDepth32 )
 
 #define kHapYCoCgANameResID 556
 
