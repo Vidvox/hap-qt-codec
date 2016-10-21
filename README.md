@@ -28,6 +28,17 @@ After installation, the codec will show up when exporting video in applications 
 
 Hap and Hap Alpha have a quality setting. Although QuickTime displays a slider, it has only two effective settings: below "High" a fast low-quality encoder is used, and at "High" or above a slower high-quality encoder is used.
 
+Note that the current QuickTime Player on macOS does not support non-Apple codecs. Use [QuickTime Player 7](https://support.apple.com/en-us/HT201288) or a third-party player.
+
+Other software for encoding and decoding Hap
+====
+
+* [ffmpeg](http://ffmpeg.org)
+* [AVF Batch Converter](https://github.com/Vidvox/hap-in-avfoundation/releases)
+* [Hap for DirectShow](http://renderheads.com/product/hap-for-directshow/)
+* [TouchDesigner](https://www.derivative.ca)
+
+
 Open-Source
 ====
 
