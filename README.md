@@ -33,11 +33,12 @@ Note that the current QuickTime Player on macOS does not support non-Apple codec
 Other software for encoding and decoding Hap
 ====
 
-* [ffmpeg](http://ffmpeg.org)
+* [AfterCodecs](https://aescripts.com/aftercodecs/)
 * [AVF Batch Converter](https://github.com/Vidvox/hap-in-avfoundation/releases)
+* [ffmpeg](http://ffmpeg.org)
 * [Hap for DirectShow](http://renderheads.com/product/hap-for-directshow/)
 * [TouchDesigner](https://www.derivative.ca)
-
+* [VLC](http://www.videolan.org/)
 
 Open-Source
 ====
