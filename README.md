@@ -1,3 +1,5 @@
+**QuickTime codecs are no longer supported. Please use a modern alternative, such as one listed on the [Hap video website](https://hap.video/integrations.html#encoding).**
+
 Hap QuickTime Codec
 ==========
 
